@@ -29,7 +29,11 @@ jobs:
       - name: NDK va CMake o'rnatish
         run: |
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null
-          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-36" "build-tools;36.0.0" "ndk;27.2.12479018" "cmake;3.22.1" > /dev/null
+          for i in 1 2 3; do
+            "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-36" "build-tools;36.0.0" "ndk;27.2.12479018" "cmake;3.22.1" > /dev/null && exit 0
+            echo "Urinish $i muvaffaqiyatsiz, qayta..."; sleep 20
+          done
+          exit 1
 
       - name: Imzo kaliti va API kalitlari
         env:
