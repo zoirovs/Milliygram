@@ -1224,6 +1224,7 @@ public class ChatActivity extends BaseFragment implements
     public final static int OPTION_VIEW_REPLIES_OR_THREAD = 27;
     public final static int OPTION_STATISTICS = 28;
     public final static int OPTION_TRANSLATE = 29;
+    public final static int OPTION_MILLIY_TRANSLIT = 900;
     public final static int OPTION_TRANSCRIBE = 30;
     public final static int OPTION_HIDE_SPONSORED_MESSAGE = 31;
     public final static int OPTION_VIEW_IN_TOPIC = 32;
@@ -33375,6 +33376,10 @@ public class ChatActivity extends BaseFragment implements
                 presentFragment(fragment);
                 break;
             }
+            case OPTION_MILLIY_TRANSLIT: {
+                org.telegram.milliy.MilliyTranslit.showAlert(this, selectedObject.getMessageTextToTranslate(selectedObjectGroup, null));
+                break;
+            }
             case OPTION_COPY: {
                 final TL_iv.RichMessage copyRichMessage = selectedObject.messageOwner != null ? selectedObject.messageOwner.rich_message : null;
                 if (selectedObject.isDice()) {
@@ -45829,6 +45834,11 @@ public class ChatActivity extends BaseFragment implements
                     items.add(LocaleController.getString(R.string.TranslateMessage));
                     options.add(OPTION_TRANSLATE);
                     icons.add(R.drawable.msg_translate);
+                    if (selectedObject.type != MessageObject.TYPE_ARTICLE) {
+                        items.add(LocaleController.getString(R.string.MilliyTranslit));
+                        options.add(OPTION_MILLIY_TRANSLIT);
+                        icons.add(R.drawable.msg_translate);
+                    }
                 }
                 if (message.canEditMessage(currentChat) && message.type != MessageObject.TYPE_POLL || chatMode == MODE_WELCOME_MESSAGES) {
                     items.add(LocaleController.getString(R.string.Edit));
@@ -46176,6 +46186,11 @@ public class ChatActivity extends BaseFragment implements
                     items.add(LocaleController.getString(R.string.TranslateMessage));
                     options.add(OPTION_TRANSLATE);
                     icons.add(R.drawable.msg_translate);
+                    if (selectedObject.type != MessageObject.TYPE_ARTICLE) {
+                        items.add(LocaleController.getString(R.string.MilliyTranslit));
+                        options.add(OPTION_MILLIY_TRANSLIT);
+                        icons.add(R.drawable.msg_translate);
+                    }
                 }
                 if (allowEdit || chatMode == MODE_WELCOME_MESSAGES) {
                     items.add(LocaleController.getString(R.string.Edit));

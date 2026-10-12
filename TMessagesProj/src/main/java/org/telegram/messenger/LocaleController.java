@@ -543,6 +543,8 @@ public class LocaleController {
         }
     }
 
+    public static final String MILLIY_UZ_CYRL = "uz_cyrl";
+
     private boolean loadingRemoteLanguages;
 
     public ArrayList<LocaleInfo> languages = new ArrayList<>();
@@ -571,7 +573,7 @@ public class LocaleController {
         addRules(new String[]{"bem", "brx", "da", "de", "el", "en", "eo", "es", "et", "fi", "fo", "gl", "he", "iw", "it", "nb",
                 "nl", "nn", "no", "sv", "af", "bg", "bn", "ca", "eu", "fur", "fy", "gu", "ha", "is", "ku",
                 "lb", "ml", "mr", "nah", "ne", "om", "or", "pa", "pap", "ps", "so", "sq", "sw", "ta", "te",
-                "tk", "ur", "zu", "mn", "gsw", "chr", "rm", "pt", "an", "ast"}, new PluralRules_One());
+                "tk", "ur", "zu", "mn", "gsw", "chr", "rm", "pt", "an", "ast", "uz"}, new PluralRules_One());
         addRules(new String[]{"cs", "sk"}, new PluralRules_Czech());
         addRules(new String[]{"ff", "fr", "kab"}, new PluralRules_French());
         addRules(new String[]{"ru", "uk", "be"}, new PluralRules_Balkan());
@@ -683,6 +685,26 @@ public class LocaleController {
         languages.add(localeInfo);
         languagesDict.put(localeInfo.shortName, localeInfo);
 
+        // Milliygram: o'zbek tili (lotin va kirill) ilova ichida
+        localeInfo = new LocaleInfo();
+        localeInfo.name = "Oʻzbekcha";
+        localeInfo.nameEnglish = "Uzbek";
+        localeInfo.shortName = localeInfo.pluralLangCode = "uz";
+        localeInfo.pathToFile = null;
+        localeInfo.builtIn = true;
+        languages.add(localeInfo);
+        languagesDict.put(localeInfo.shortName, localeInfo);
+
+        localeInfo = new LocaleInfo();
+        localeInfo.name = "Ўзбекча (кирилл)";
+        localeInfo.nameEnglish = "Uzbek (Cyrillic)";
+        localeInfo.shortName = MILLIY_UZ_CYRL;
+        localeInfo.pluralLangCode = "uz";
+        localeInfo.pathToFile = null;
+        localeInfo.builtIn = true;
+        languages.add(localeInfo);
+        languagesDict.put(localeInfo.shortName, localeInfo);
+
         loadOtherLanguages();
         if (remoteLanguages.isEmpty()) {
             AndroidUtilities.runOnUIThread(() -> loadRemoteLanguages(UserConfig.selectedAccount));
@@ -738,6 +760,9 @@ public class LocaleController {
                 }
             }
 
+            if (currentInfo == null) {
+                currentInfo = getLanguageFromDict("uz"); // Milliygram: birinchi ochilishda o'zbekcha
+            }
             if (currentInfo == null && systemDefaultLocale.getLanguage() != null) {
                 currentInfo = getLanguageFromDict(systemDefaultLocale.getLanguage());
             }
@@ -1345,6 +1370,9 @@ public class LocaleController {
                 newLocale = new Locale(args[0]);
             } else {
                 newLocale = new Locale(args[0], args[1]);
+            }
+            if (MILLIY_UZ_CYRL.equals(localeInfo.shortName)) {
+                newLocale = new Locale.Builder().setLanguage("uz").setScript("Cyrl").build();
             }
             if (override) {
                 languageOverride = localeInfo.shortName;

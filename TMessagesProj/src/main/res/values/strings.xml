@@ -11235,4 +11235,15 @@
     <string name="RoundVideoComposition">Composition</string>
     <string name="RoundVideoCompositionEnabled">Round video styling</string>
     <string name="RoundVideoCompositionInfo">Disable styling to record a plain square without outside-circle blur, dimming or Telegram overlays.</string>
+    <!-- Milliygram -->
+    <string name="MilliyTwoFaTitle">Ikki bosqichli himoyani yoqing</string>
+    <string name="MilliyTwoFaText">Milliygramdan foydalanish uchun akkauntingizda **ikki bosqichli himoya (2FA)** yoqilgan bo\'lishi shart.\n\nBu — SMS kodidan tashqari qo\'shimcha parol. Kimdir SMS kodingizni qo\'lga kiritsa ham, bu parolsiz akkauntingizga kira olmaydi.</string>
+    <string name="MilliyTwoFaTips">• Parolni o\'zingiz o\'ylab toping — boshqa joyda ishlatmagan bo\'lsin\n• Tiklash uchun **elektron pochtangizni** albatta kiriting\n• Parolni hech kimga aytmang — Milliygram xodimlari ham hech qachon so\'ramaydi</string>
+    <string name="MilliyTwoFaButton">Himoyani yoqish</string>
+    <string name="MilliyTwoFaDoneTitle">Himoya yoqildi ✅</string>
+    <string name="MilliyTwoFaDoneText">Parolingizni **albatta eslab qoling!**\n\n• Uni qog\'ozga yozib, xavfsiz joyda saqlang\n• Yangi telefonda kirganda bu parol so\'raladi\n• Unutsangiz, kiritgan pochtangiz orqali tiklaysiz\n• Parolni hech kimga bermang</string>
+    <string name="MilliyTwoFaDoneButton">Tushundim, eslab qoldim</string>
+    <string name="MilliyTranslit">Lotin ↔ Kirill</string>
+    <string name="MilliyTranslitToLatin">Lotin yozuvida</string>
+    <string name="MilliyTranslitToCyrillic">Кирилл ёзувида</string>
 </resources>
