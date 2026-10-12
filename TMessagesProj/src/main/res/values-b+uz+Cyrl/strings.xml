@@ -10207,4 +10207,8 @@
     <string name="MilliyLoading">Юкланмоқда…</string>
     <string name="MilliyNetworkError">Маълумотни юклаб бўлмади. Интернет алоқасини текшириб, қайта уриниб кўринг.</string>
     <string name="MilliyRetry">Қайта уриниш</string>
+    <string name="MilliyFolderPrivate">Шахсий</string>
+    <string name="MilliyFolderGroups">Гуруҳлар</string>
+    <string name="MilliyFolderChannels">Каналлар</string>
+    <string name="MilliyFolderBots">Ботлар</string>
 </resources>

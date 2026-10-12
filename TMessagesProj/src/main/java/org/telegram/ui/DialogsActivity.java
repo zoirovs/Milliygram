@@ -7017,7 +7017,10 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     @Override
     public void onResume() {
         super.onResume();
-        org.telegram.milliy.MilliyTwoFa.check(this);
+        if (!onlySelect && initialDialogsType == DIALOGS_TYPE_DEFAULT) {
+            org.telegram.milliy.MilliyTwoFa.check(this);
+            org.telegram.milliy.MilliyFolders.ensure(this);
+        }
         if (dialogStoriesCell != null) {
             dialogStoriesCell.onResume();
         }

@@ -11267,4 +11267,8 @@
     <string name="MilliyLoading">Yuklanmoqda…</string>
     <string name="MilliyNetworkError">Maʼlumotni yuklab boʻlmadi. Internet aloqasini tekshirib, qayta urinib koʻring.</string>
     <string name="MilliyRetry">Qayta urinish</string>
+    <string name="MilliyFolderPrivate">Shaxsiy</string>
+    <string name="MilliyFolderGroups">Guruhlar</string>
+    <string name="MilliyFolderChannels">Kanallar</string>
+    <string name="MilliyFolderBots">Botlar</string>
 </resources>
