@@ -29,7 +29,7 @@ import java.util.Set;
 /** Milliygram server bilan ishlash (hududlar, kanallar, valyuta, ob-havo) va akkaunt bo'yicha sozlamalar. */
 public class MilliyData {
 
-    public static final String API = "https://api.milliygram.uz/api/v1/";
+    public static final String API = "https://platforma.cyberhimoya.uz/api/v1/";
 
     private static final String KEY_DISTRICT = "milliy_district";
     private static final String KEY_DISTRICT_NAME = "milliy_district_name";
