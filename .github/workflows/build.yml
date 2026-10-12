@@ -1,0 +1,65 @@
+name: Milliygram APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [master]
+    paths-ignore: ['**.md']
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - name: Disk joyini bo'shatish
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/node_modules /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache/CodeQL
+          df -h /
+
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 1
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: NDK va CMake o'rnatish
+        run: |
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-36" "build-tools;36.0.0" "ndk;27.2.12479018" "cmake;3.22.1" > /dev/null
+
+      - name: Imzo kaliti va API kalitlari
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          RELEASE_STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
+          RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+          RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+          APP_ID: ${{ secrets.APP_ID }}
+          APP_HASH: ${{ secrets.APP_HASH }}
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          set -e
+          echo "$KEYSTORE_BASE64" | base64 -d > TMessagesProj/config/release.keystore
+          sed -i "s/^RELEASE_KEY_PASSWORD=.*/RELEASE_KEY_PASSWORD=$RELEASE_KEY_PASSWORD/; s/^RELEASE_KEY_ALIAS=.*/RELEASE_KEY_ALIAS=$RELEASE_KEY_ALIAS/; s/^RELEASE_STORE_PASSWORD=.*/RELEASE_STORE_PASSWORD=$RELEASE_STORE_PASSWORD/" gradle.properties
+          B=TMessagesProj/src/main/java/org/telegram/messenger/BuildVars.java
+          sed -i "s/APP_ID = [0-9]*;/APP_ID = $APP_ID;/; s/APP_HASH = \"[^\"]*\"/APP_HASH = \"$APP_HASH\"/" $B
+          if [ -n "$GOOGLE_SERVICES_JSON" ]; then
+            for d in TMessagesProj TMessagesProj_App; do echo "$GOOGLE_SERVICES_JSON" > $d/google-services.json; done
+          fi
+
+      - name: APK yig'ish
+        run: ./gradlew :TMessagesProj_App:assembleAfatRelease --no-daemon --stacktrace
+
+      - name: APK nomlash
+        run: |
+          V=$(grep '^APP_VERSION_NAME=' gradle.properties | cut -d= -f2)
+          mkdir -p out && cp TMessagesProj_App/build/outputs/apk/afat/release/app.apk "out/Milliygram-$V-${GITHUB_RUN_NUMBER}.apk"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Milliygram-apk
+          path: out/*.apk
+          retention-days: 30
