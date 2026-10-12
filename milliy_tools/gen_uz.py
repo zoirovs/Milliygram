@@ -72,6 +72,7 @@ def main():
         v = uz.get(k)
         if v is None:
             continue
+        v = v.replace("<![CDATA[", "").replace("]]>", "")  # tarjimada matn sifatida kelgan CDATA belgilari
         if sorted(PH.findall(v)) != sorted(PH.findall(en[k])):
             bad += 1; continue
         v = v.replace("Telegram", "Milliygram") if k in ("AppNameFull",) else v

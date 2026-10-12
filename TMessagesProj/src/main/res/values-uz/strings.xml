@@ -2356,7 +2356,7 @@
     <string name="LanguageUnsupportedError">Til topilmadi.</string>
     <string name="LanguageSame">Allaqachon ushbu til paketidan (**%1$s**) foydalanmoqdasiz. Ilova tilini istalgan payt Sozlamalarda oʻzgartirishingiz mumkin.</string>
     <string name="LanguageUnknownCustomAlert">Afsuski, ushbu maxsus til paketida (**%1$s**) Telegram Android uchun maʼlumotlar mavjud emas.</string>
-    <string name="AskAQuestionInfo">Unutmang, Telegram qoʻllab-quvvatlash xizmati faqat koʻngillilar tomonidan yuritiladi. Biz imkon qadar tezroq javob berishga harakat qilamiz, lekin bu biroz vaqt olishi mumkin.\n\n&lt;![CDATA[&lt;a href=\"https://telegram.org/faq#general-questions\"&gt;Telegram haqida savollar&lt;/a&gt;]]&gt; boʻlimiga qarang: unda koʻplab savollarga javoblar va &lt;![CDATA[&lt;a href=\"https://telegram.org/faq#troubleshooting\"&gt; muammolarni bartaraf etish&lt;/a&gt;]]&gt;  boʻyicha muhim maslahatlar berilgan.</string>
+    <string name="AskAQuestionInfo">Unutmang, Telegram qoʻllab-quvvatlash xizmati faqat koʻngillilar tomonidan yuritiladi. Biz imkon qadar tezroq javob berishga harakat qilamiz, lekin bu biroz vaqt olishi mumkin.\n\n&lt;a href=\"https://telegram.org/faq#general-questions\"&gt;Telegram haqida savollar&lt;/a&gt; boʻlimiga qarang: unda koʻplab savollarga javoblar va &lt;a href=\"https://telegram.org/faq#troubleshooting\"&gt; muammolarni bartaraf etish&lt;/a&gt;  boʻyicha muhim maslahatlar berilgan.</string>
     <string name="AskButton">Ko‘ngillidan so‘rash</string>
     <string name="TelegramFAQ">Telegram haqida savollar</string>
     <string name="TelegramFaq">Telegram haqida savollar</string>
@@ -5518,7 +5518,7 @@
     <string name="LimitReachedPinDialogsPremium">Kechirasiz, yuqoriga %1$d tadan ortiq chatni qaday olmaysiz. Hozirda qadalgan ayrimlarini yechib oling.</string>
     <string name="LimitReachedPinDialogsLocked">Kechirasiz, siz yuqorida %1$d tadan ortiq chatni qaday olmaysiz. Hozirda qadalgan ayrim chatlarni yechib oling. Biz kelgusida ushbu limitni oshirish ustida ishlamoqdamiz.</string>
     <string name="LastActiveCommunities">Eng nofaol hamjamiyatlar</string>
-    <string name="ChatsLeaveAlert">&lt;![CDATA[Haqiqatan ham tanlangan chatlarni tark etmoqchimisiz?]]&gt;</string>
+    <string name="ChatsLeaveAlert">Haqiqatan ham tanlangan chatlarni tark etmoqchimisiz?</string>
     <string name="PremiumPreviewAdvancedChatManagementDescription">Birlamchi jild tanlash, avtomatik arxivlash va kontaktlarda boʻlmaganlardan yangi chatlarni berkitish vositalari.</string>
     <string name="PremiumPreviewAdvancedChatManagementDescription2">Telegram Premium obunachilari birlamchi jildni sozlashi, kontakt emaslardan yangi chatlarni avtomatik arxivlashi va berkitishi mumkin.</string>
     <string name="TelegramPremiumUserDialogTitle">**%s** – Telegram Premium obunachisi.</string>
@@ -5873,7 +5873,7 @@
     <string name="RestrictUserDeleteAllMessages">Barcha xabarlarni oʻchirish</string>
     <string name="RestrictUserDeleteAllReactions">Barcha reaksiyalarni oʻchirish</string>
     <string name="SendMediaPermissionVideos">Videolar</string>
-    <string name="SendMediaPermissionStickersGifs">&lt;![CDATA[Stikerlar va GIF]]&gt;</string>
+    <string name="SendMediaPermissionStickersGifs">Stikerlar va GIF</string>
     <string name="SendMediaPermissionMusic">Musiqa</string>
     <string name="SendMediaPermissionFiles">Fayllar</string>
     <string name="SendMediaPermissionVoice">Ovozli xabarlar</string>

@@ -2356,7 +2356,7 @@
     <string name="LanguageUnsupportedError">Тил топилмади.</string>
     <string name="LanguageSame">Аллақачон ушбу тил пакетидан (**%1$s**) фойдаланмоқдасиз. Илова тилини исталган пайт Созламаларда ўзгартиришингиз мумкин.</string>
     <string name="LanguageUnknownCustomAlert">Афсуски, ушбу махсус тил пакетида (**%1$s**) Телеграм Android учун маълумотлар мавжуд эмас.</string>
-    <string name="AskAQuestionInfo">Унутманг, Телеграм қўллаб-қувватлаш хизмати фақат кўнгиллилар томонидан юритилади. Биз имкон қадар тезроқ жавоб беришга ҳаракат қиламиз, лекин бу бироз вақт олиши мумкин.\n\n&lt;![CDATA[&lt;a href=\"https://telegram.org/faq#general-questions\"&gt;Телеграм ҳақида саволлар&lt;/a&gt;]]&gt; бўлимига қаранг: унда кўплаб саволларга жавоблар ва &lt;![CDATA[&lt;a href=\"https://telegram.org/faq#troubleshooting\"&gt; муаммоларни бартараф этиш&lt;/a&gt;]]&gt;  бўйича муҳим маслаҳатлар берилган.</string>
+    <string name="AskAQuestionInfo">Унутманг, Телеграм қўллаб-қувватлаш хизмати фақат кўнгиллилар томонидан юритилади. Биз имкон қадар тезроқ жавоб беришга ҳаракат қиламиз, лекин бу бироз вақт олиши мумкин.\n\n&lt;a href=\"https://telegram.org/faq#general-questions\"&gt;Телеграм ҳақида саволлар&lt;/a&gt; бўлимига қаранг: унда кўплаб саволларга жавоблар ва &lt;a href=\"https://telegram.org/faq#troubleshooting\"&gt; муаммоларни бартараф этиш&lt;/a&gt;  бўйича муҳим маслаҳатлар берилган.</string>
     <string name="AskButton">Кўнгиллидан сўраш</string>
     <string name="TelegramFAQ">Телеграм ҳақида саволлар</string>
     <string name="TelegramFaq">Телеграм ҳақида саволлар</string>
@@ -5518,7 +5518,7 @@
     <string name="LimitReachedPinDialogsPremium">Кечирасиз, юқорига %1$d тадан ортиқ чатни қадай олмайсиз. Ҳозирда қадалган айримларини ечиб олинг.</string>
     <string name="LimitReachedPinDialogsLocked">Кечирасиз, сиз юқорида %1$d тадан ортиқ чатни қадай олмайсиз. Ҳозирда қадалган айрим чатларни ечиб олинг. Биз келгусида ушбу лимитни ошириш устида ишламоқдамиз.</string>
     <string name="LastActiveCommunities">Энг нофаол ҳамжамиятлар</string>
-    <string name="ChatsLeaveAlert">&lt;![CDATA[Haqiqatan ham tanlangan chatlarni tark etmoqchimisiz?]]&gt;</string>
+    <string name="ChatsLeaveAlert">Ҳақиқатан ҳам танланган чатларни тарк этмоқчимисиз?</string>
     <string name="PremiumPreviewAdvancedChatManagementDescription">Бирламчи жилд танлаш, автоматик архивлаш ва контактларда бўлмаганлардан янги чатларни беркитиш воситалари.</string>
     <string name="PremiumPreviewAdvancedChatManagementDescription2">Телеграм Премиум обуначилари бирламчи жилдни созлаши, контакт эмаслардан янги чатларни автоматик архивлаши ва беркитиши мумкин.</string>
     <string name="TelegramPremiumUserDialogTitle">**%s** – Телеграм Премиум обуначиси.</string>
@@ -5873,7 +5873,7 @@
     <string name="RestrictUserDeleteAllMessages">Барча хабарларни ўчириш</string>
     <string name="RestrictUserDeleteAllReactions">Барча реаксияларни ўчириш</string>
     <string name="SendMediaPermissionVideos">Видеолар</string>
-    <string name="SendMediaPermissionStickersGifs">&lt;![CDATA[Stikerlar va GIF]]&gt;</string>
+    <string name="SendMediaPermissionStickersGifs">Стикерлар ва GIF</string>
     <string name="SendMediaPermissionMusic">Мусиқа</string>
     <string name="SendMediaPermissionFiles">Файллар</string>
     <string name="SendMediaPermissionVoice">Овозли хабарлар</string>
