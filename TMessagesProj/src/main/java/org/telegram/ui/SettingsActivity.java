@@ -611,6 +611,19 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
     }
 
     private ArrayList<Integer> accountNumbers = new ArrayList<>();
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (listView != null) {
+            listView.adapter.update(false);
+        }
+        org.telegram.milliy.MilliyInfo.refresh(currentAccount, () -> {
+            if (listView != null) {
+                listView.adapter.update(true);
+            }
+        });
+    }
+
     private void fillItems(ArrayList<UItem> items, UniversalAdapter adapter) {
         if (searchItem.isSearchFieldVisible2()) {
             items.add(UItem.asSpace(ActionBar.getCurrentActionBarHeight()));
@@ -695,6 +708,14 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
         items.add(SettingCell.Factory.of(9, IconBackgroundColors.ORANGE_DEEP.top, IconBackgroundColors.ORANGE_DEEP.bottom, R.drawable.settings_power, getString(R.string.SettingsPowerSaving), getString(R.string.SettingsPowerSavingInfo)));
         items.add(SettingCell.Factory.of(10, IconBackgroundColors.PURPLE.top, IconBackgroundColors.PURPLE.bottom, R.drawable.settings_language, getString(R.string.SettingsLanguage), LocaleController.getCurrentLanguageName()));
 
+        items.add(UItem.asShadow(null));
+
+        // Milliygram: ob-havo, valyuta, hudud
+        final String milliyDistrict = org.telegram.milliy.MilliyData.getDistrictName(currentAccount);
+        items.add(UItem.asHeader("Milliygram"));
+        items.add(SettingCell.Factory.of(101, 0xFF4FC3F7, 0xFF1D83BE, R.drawable.settings_milliy_weather, getString(R.string.MilliyWeather), org.telegram.milliy.MilliyInfo.weatherShort(currentAccount)));
+        items.add(SettingCell.Factory.of(102, 0xFF66BB6A, 0xFF2E7D32, R.drawable.settings_milliy_currency, getString(R.string.MilliyCurrency), org.telegram.milliy.MilliyInfo.currencyShort()));
+        items.add(SettingCell.Factory.of(103, 0xFFFFA726, 0xFFEF6C00, R.drawable.settings_milliy_region, getString(R.string.MilliyMyRegion), milliyDistrict != null ? milliyDistrict : getString(R.string.MilliyChooseRegion)));
         items.add(UItem.asShadow(null));
 
         if (!getMessagesController().premiumFeaturesBlocked()) {
@@ -812,6 +833,15 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
             return;
         }
         switch (item.id) {
+            case 101:
+                org.telegram.milliy.MilliyInfo.showWeather(this);
+                break;
+            case 102:
+                org.telegram.milliy.MilliyInfo.showCurrency(this);
+                break;
+            case 103:
+                presentFragment(new org.telegram.milliy.MilliyRegionActivity(false));
+                break;
             case 1:
                 presentSettingFragment(new UserInfoActivity());
                 break;

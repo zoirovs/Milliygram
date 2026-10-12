@@ -10186,4 +10186,25 @@
     <string name="MilliyTranslit">Лотин ↔ Кирилл</string>
     <string name="MilliyTranslitToLatin">Лотин ёзувида</string>
     <string name="MilliyTranslitToCyrillic">Кирилл ёзувида</string>
+    <string name="MilliyRegionTitle">Ҳудудингиз</string>
+    <string name="MilliyChooseRegion">Вилоятингизни танланг</string>
+    <string name="MilliyChooseDistrict">туманингизни танланг</string>
+    <string name="MilliyRegionChannels">Ҳудудингиз каналлари</string>
+    <string name="MilliyRegionChannelsInfo">**%1$s** бўйича янгиликлар каналлари. Кераксизларини белгидан чиқаринг.</string>
+    <string name="MilliyRegionLeaveInfo">Каналлардан исталган вақтда чиқиб кетишингиз мумкин — Миллийграм сизни уларга қайта қўшмайди.</string>
+    <string name="MilliyRegionSubscribe">Обуна бўлиш (%1$d)</string>
+    <string name="MilliyRegionContinue">Давом этиш</string>
+    <string name="MilliyRegionJoined">%1$d та ҳудуд каналига обуна бўлдингиз</string>
+    <string name="MilliyMyRegion">Ҳудудим</string>
+    <string name="MilliyWeather">Об-ҳаво</string>
+    <string name="MilliyCurrency">Валюта курси</string>
+    <string name="MilliyCurrencyDate">Марказий банк курси, %1$s</string>
+    <string name="MilliyWeatherFeels">Ҳис қилинади: %1$s</string>
+    <string name="MilliyWeatherWind">Шамол: %1$d км/соат · Намлик: %2$d%%</string>
+    <string name="MilliyToday">Бугун</string>
+    <string name="MilliyTomorrow">Эртага</string>
+    <string name="MilliyAfterTomorrow">Индинга</string>
+    <string name="MilliyLoading">Юкланмоқда…</string>
+    <string name="MilliyNetworkError">Маълумотни юклаб бўлмади. Интернет алоқасини текшириб, қайта уриниб кўринг.</string>
+    <string name="MilliyRetry">Қайта уриниш</string>
 </resources>

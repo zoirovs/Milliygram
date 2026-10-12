@@ -11246,4 +11246,25 @@
     <string name="MilliyTranslit">Lotin ↔ Kirill</string>
     <string name="MilliyTranslitToLatin">Lotin yozuvida</string>
     <string name="MilliyTranslitToCyrillic">Кирилл ёзувида</string>
+    <string name="MilliyRegionTitle">Hududingiz</string>
+    <string name="MilliyChooseRegion">Viloyatingizni tanlang</string>
+    <string name="MilliyChooseDistrict">tumaningizni tanlang</string>
+    <string name="MilliyRegionChannels">Hududingiz kanallari</string>
+    <string name="MilliyRegionChannelsInfo">**%1$s** boʻyicha yangiliklar kanallari. Keraksizlarini belgidan chiqaring.</string>
+    <string name="MilliyRegionLeaveInfo">Kanallardan istalgan vaqtda chiqib ketishingiz mumkin — Milliygram sizni ularga qayta qoʻshmaydi.</string>
+    <string name="MilliyRegionSubscribe">Obuna boʻlish (%1$d)</string>
+    <string name="MilliyRegionContinue">Davom etish</string>
+    <string name="MilliyRegionJoined">%1$d ta hudud kanaliga obuna boʻldingiz</string>
+    <string name="MilliyMyRegion">Hududim</string>
+    <string name="MilliyWeather">Ob-havo</string>
+    <string name="MilliyCurrency">Valyuta kursi</string>
+    <string name="MilliyCurrencyDate">Markaziy bank kursi, %1$s</string>
+    <string name="MilliyWeatherFeels">His qilinadi: %1$s</string>
+    <string name="MilliyWeatherWind">Shamol: %1$d km/soat · Namlik: %2$d%%</string>
+    <string name="MilliyToday">Bugun</string>
+    <string name="MilliyTomorrow">Ertaga</string>
+    <string name="MilliyAfterTomorrow">Indinga</string>
+    <string name="MilliyLoading">Yuklanmoqda…</string>
+    <string name="MilliyNetworkError">Maʼlumotni yuklab boʻlmadi. Internet aloqasini tekshirib, qayta urinib koʻring.</string>
+    <string name="MilliyRetry">Qayta urinish</string>
 </resources>

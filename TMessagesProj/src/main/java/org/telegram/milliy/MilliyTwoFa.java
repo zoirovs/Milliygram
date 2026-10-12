@@ -9,6 +9,7 @@ import org.telegram.ui.ActionBar.BaseFragment;
 /**
  * Milliygram: 2FA majburiy. Akkauntda ikki bosqichli parol bo'lmasa,
  * MilliyTwoFaRequiredActivity ochiladi va parol qo'yilmaguncha yopilmaydi.
+ * 2FA tayyor bo'lgach — hudud tanlanmagan bo'lsa MilliyRegionActivity ochiladi.
  */
 public class MilliyTwoFa {
 
@@ -17,7 +18,11 @@ public class MilliyTwoFa {
 
     public static void check(BaseFragment fragment) {
         final int account = fragment.getCurrentAccount();
-        if (verified[account] || checking[account] || !UserConfig.getInstance(account).isClientActivated()) {
+        if (!UserConfig.getInstance(account).isClientActivated() || checking[account]) {
+            return;
+        }
+        if (verified[account]) {
+            MilliyRegionActivity.checkRequired(fragment); // 2FA tayyor — endi hudud tanlash
             return;
         }
         checking[account] = true;
@@ -29,6 +34,7 @@ public class MilliyTwoFa {
             TL_account.Password password = (TL_account.Password) response;
             if (password.has_password) {
                 verified[account] = true;
+                MilliyRegionActivity.checkRequired(fragment);
                 return;
             }
             if (fragment.getParentLayout() == null || fragment.getParentLayout().getLastFragment() instanceof MilliyTwoFaRequiredActivity) {
