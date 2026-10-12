@@ -51,7 +51,7 @@ jobs:
           B=TMessagesProj/src/main/java/org/telegram/messenger/BuildVars.java
           sed -i "s/APP_ID = [0-9]*;/APP_ID = $APP_ID;/; s/APP_HASH = \"[^\"]*\"/APP_HASH = \"$APP_HASH\"/" $B
           if [ -n "$GOOGLE_SERVICES_JSON" ]; then
-            for d in TMessagesProj TMessagesProj_App; do echo "$GOOGLE_SERVICES_JSON" > $d/google-services.json; done
+            echo "$GOOGLE_SERVICES_JSON" > TMessagesProj_App/google-services.json
           fi
 
       - name: APK yig'ish
