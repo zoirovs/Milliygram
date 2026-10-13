@@ -1704,6 +1704,7 @@ public class FilterTabsView extends FrameLayout {
                 }
             }
             MessagesController.getInstance(UserConfig.selectedAccount).lockFiltersInternal();
+            org.telegram.milliy.MilliyAdminFolders.cleanOrder(UserConfig.selectedAccount, req.order);
             ConnectionsManager.getInstance(UserConfig.selectedAccount).sendRequest(req, (response, error) -> {
             });
             orderChanged = false;

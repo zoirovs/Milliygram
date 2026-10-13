@@ -114,10 +114,106 @@ public class MilliyProActivity extends BaseFragment {
         check(R.string.MilliyStoryDownload, 0, "story_download", true, null);
         info(R.string.MilliyStoriesHint);
 
+        // Adminlar uchun
+        header(R.string.MilliyForAdmins);
+        check(R.string.MilliyAdminFolders, R.string.MilliyAdminFoldersInfo, "admin_folders", false, () -> MilliyAdminFolders.apply(currentAccount));
+        info(R.string.MilliyAdminsHint);
+
+        // Jildlar
+        header(R.string.MilliyFolders);
+        action(LocaleController.getString(R.string.MilliyHiddenFolders), String.valueOf(hiddenFolders().size()), this::showHiddenFolders);
+        info(R.string.MilliyFoldersHint);
+
+        // Media va trafik
+        header(R.string.MilliyMedia);
+        action(LocaleController.getString(R.string.MilliyAutoDl), LocaleController.getString(MilliyTools.autoDownloadOn(currentAccount) ? R.string.MilliyOn : R.string.MilliyOff), () -> {
+            MilliyTools.toggleAutoDownload(this);
+            build();
+        });
+        check(R.string.MilliyRoundBack, 0, "round_back", false, null);
+        info(R.string.MilliyMediaHint);
+
+        // Avto-javob
+        header(R.string.MilliyAutoReply);
+        check(R.string.MilliyAutoReply, R.string.MilliyAutoReplyInfo, "auto_reply", false, null);
+        String text = MilliyAutoReply.text();
+        action(LocaleController.getString(R.string.MilliyAutoReplyText), text.isEmpty() ? LocaleController.getString(R.string.MilliyNotSet) : (text.length() > 24 ? text.substring(0, 24) + "…" : text), this::editAutoReply);
+        int[] hours = {1, 3, 6, 12, 24};
+        action(LocaleController.getString(R.string.MilliyAutoReplyEvery), LocaleController.formatString(R.string.MilliyHoursN, MilliyAutoReply.hours()), () -> {
+            CharSequence[] items = new CharSequence[hours.length];
+            for (int i = 0; i < hours.length; i++) {
+                items[i] = LocaleController.formatString(R.string.MilliyHoursN, hours[i]);
+            }
+            AlertDialog.Builder b = new AlertDialog.Builder(getParentActivity());
+            b.setTitle(LocaleController.getString(R.string.MilliyAutoReplyEvery));
+            b.setItems(items, (d, w) -> {
+                MilliyPro.prefs().edit().putInt("auto_reply_hours", hours[w]).apply();
+                build();
+            });
+            showDialog(b.create());
+        });
+        info(R.string.MilliyAutoReplyHint);
+
         // Boshqa
         header(R.string.MilliyOther);
         check(R.string.MilliyShowId, 0, "show_id", true, null);
+        action(LocaleController.getString(R.string.MilliyCopySettingsLink), "tg://settings/milliy", () -> {
+            org.telegram.messenger.AndroidUtilities.addToClipboard("tg://settings/milliy");
+            org.telegram.ui.Components.BulletinFactory.of(this).createCopyLinkBulletin().show();
+        });
         info(R.string.MilliyOtherHint);
+    }
+
+    private java.util.ArrayList<org.telegram.messenger.MessagesController.DialogFilter> hiddenFolders() {
+        java.util.ArrayList<org.telegram.messenger.MessagesController.DialogFilter> out = new java.util.ArrayList<>();
+        for (org.telegram.messenger.MessagesController.DialogFilter f : getMessagesController().getDialogFilters()) {
+            if (!f.isDefault() && MilliyFolders.isHidden(currentAccount, f.id)) {
+                out.add(f);
+            }
+        }
+        return out;
+    }
+
+    private void showHiddenFolders() {
+        java.util.ArrayList<org.telegram.messenger.MessagesController.DialogFilter> list = hiddenFolders();
+        AlertDialog.Builder b = new AlertDialog.Builder(getParentActivity());
+        b.setTitle(LocaleController.getString(R.string.MilliyHiddenFolders));
+        if (list.isEmpty()) {
+            b.setMessage(LocaleController.getString(R.string.MilliyHiddenFoldersEmpty));
+            b.setPositiveButton(LocaleController.getString(R.string.OK), null);
+        } else {
+            CharSequence[] items = new CharSequence[list.size()];
+            for (int i = 0; i < list.size(); i++) {
+                items[i] = list.get(i).name;
+            }
+            b.setItems(items, (d, w) -> {
+                MilliyFolders.unhideAndNotify(currentAccount, list.get(w).id);
+                build();
+            });
+        }
+        showDialog(b.create());
+    }
+
+    private void editAutoReply() {
+        android.widget.EditText edit = new android.widget.EditText(getParentActivity());
+        edit.setTextSize(android.util.TypedValue.COMPLEX_UNIT_DIP, 16);
+        edit.setTextColor(Theme.getColor(Theme.key_dialogTextBlack));
+        edit.setHintTextColor(Theme.getColor(Theme.key_dialogTextGray3));
+        edit.setHint(LocaleController.getString(R.string.MilliyAutoReplyTextHint));
+        edit.setText(MilliyAutoReply.text());
+        edit.setBackground(Theme.createEditTextDrawable(getParentActivity(), true));
+        edit.setMaxLines(6);
+        LinearLayout box = new LinearLayout(getParentActivity());
+        box.addView(edit, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 24, 4, 24, 8));
+        AlertDialog.Builder b = new AlertDialog.Builder(getParentActivity());
+        b.setTitle(LocaleController.getString(R.string.MilliyAutoReplyText));
+        b.setView(box);
+        b.setPositiveButton(LocaleController.getString(R.string.Save), (d, w) -> {
+            MilliyPro.prefs().edit().putString("auto_reply_text", edit.getText().toString().trim()).apply();
+            build();
+        });
+        b.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
+        showDialog(b.create());
     }
 
     private void header(int text) {

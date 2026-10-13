@@ -2599,7 +2599,9 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                                         data = Uri.parse(url);
                                         theme = data.getQueryParameter("slug");
                                     } else if (url.startsWith("tg:settings") || url.startsWith("tg://settings")) {
-                                        if (url.contains("themes") || url.contains("theme")) {
+                                        if (url.contains("milliy")) {
+                                            open_settings = 50; // Milliygram: qo'shimcha imkoniyatlar
+                                        } else if (url.contains("themes") || url.contains("theme")) {
                                             open_settings = 2;
                                         } else if (url.contains("devices")) {
                                             open_settings = 3;
@@ -3134,6 +3136,8 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                 boolean closePrevious = false;
                 if (open_settings == 1) {
                     fragment = new SettingsActivity();
+                } else if (open_settings == 50) {
+                    fragment = new org.telegram.milliy.MilliyProActivity();
                 } else if (open_settings == 2) {
                     fragment = new ThemeActivity(ThemeActivity.THEME_TYPE_BASIC);
                 } else if (open_settings == 3) {

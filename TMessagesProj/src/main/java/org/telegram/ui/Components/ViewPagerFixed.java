@@ -2246,6 +2246,7 @@ public class ViewPagerFixed extends FrameLayout {
                     MessagesController.DialogFilter filter = filters.get(a);
                     req.order.add(filters.get(a).id);
                 }
+                org.telegram.milliy.MilliyAdminFolders.cleanOrder(UserConfig.selectedAccount, req.order);
                 ConnectionsManager.getInstance(UserConfig.selectedAccount).sendRequest(req, (response, error) -> {
 
                 });

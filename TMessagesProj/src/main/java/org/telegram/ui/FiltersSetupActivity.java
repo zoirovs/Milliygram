@@ -565,7 +565,7 @@ public class FiltersSetupActivity extends BaseFragment implements NotificationCe
         items.clear();
 
         ArrayList<TLRPC.TL_dialogFilterSuggested> suggestedFilters = getMessagesController().suggestedFilters;
-        ArrayList<MessagesController.DialogFilter> dialogFilters = getMessagesController().getDialogFilters();
+        ArrayList<MessagesController.DialogFilter> dialogFilters = org.telegram.milliy.MilliyAdminFolders.real(getMessagesController().getDialogFilters());
         items.add(ItemInner.asHint());
         if (!suggestedFilters.isEmpty() && dialogFilters.size() < 10) {
             int start = items.size();
@@ -625,6 +625,7 @@ public class FiltersSetupActivity extends BaseFragment implements NotificationCe
                 MessagesController.DialogFilter filter = filters.get(a);
                 req.order.add(filter.id);
             }
+            org.telegram.milliy.MilliyAdminFolders.cleanOrder(currentAccount, req.order);
             getConnectionsManager().sendRequest(req, (response, error) -> {
 
             });
@@ -732,7 +733,7 @@ public class FiltersSetupActivity extends BaseFragment implements NotificationCe
     }
 
     public void createFolder(INavigationLayout navigationLayout) {
-        final int count = getMessagesController().getDialogFilters().size();
+        final int count = org.telegram.milliy.MilliyAdminFolders.real(getMessagesController().getDialogFilters()).size();
         if (
             count - 1 >= getMessagesController().dialogFiltersLimitDefault && !getUserConfig().isPremium() ||
             count >= getMessagesController().dialogFiltersLimitPremium

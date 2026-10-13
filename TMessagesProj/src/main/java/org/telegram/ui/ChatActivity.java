@@ -1693,6 +1693,9 @@ public class ChatActivity extends BaseFragment implements
     private final static int chat_menu_topic_create = 73;
     private final static int milliy_lock = 990;
     private final static int milliy_vault = 991;
+    private final static int milliy_signature = 992;
+    private final static int milliy_first = 993;
+    private final static int milliy_round = 994;
 
     private final static int id_chat_compose_panel = 1000;
 
@@ -3905,6 +3908,12 @@ public class ChatActivity extends BaseFragment implements
                     org.telegram.milliy.MilliyLock.toggleLock(ChatActivity.this, getDialogId());
                 } else if (id == milliy_vault) {
                     org.telegram.milliy.MilliyLock.toggleVault(ChatActivity.this, getDialogId());
+                } else if (id == milliy_signature) {
+                    org.telegram.milliy.MilliySignature.showMenu(ChatActivity.this);
+                } else if (id == milliy_first) {
+                    jumpToDate(1);
+                } else if (id == milliy_round) {
+                    org.telegram.milliy.MilliyRound.pick(ChatActivity.this);
                 } else if (id == add_shortcut) {
                     try {
                         getMediaDataController().installShortcut(currentUser.id, MediaDataController.SHORTCUT_TYPE_USER_OR_CHAT);
@@ -4457,6 +4466,11 @@ public class ChatActivity extends BaseFragment implements
             if (chatMode == MODE_DEFAULT && !isTopic && getDialogId() != getUserConfig().getClientUserId()) { // Milliygram: qulf va seyf
                 headerItem.lazilyAddSubItem(milliy_lock, R.drawable.msg_secret, LocaleController.getString(R.string.MilliyLockMenu));
                 headerItem.lazilyAddSubItem(milliy_vault, R.drawable.msg_archive_hide, LocaleController.getString(R.string.MilliyVaultMenu));
+                headerItem.lazilyAddSubItem(milliy_first, R.drawable.msg_go_up, LocaleController.getString(R.string.MilliyFirstMessage));
+                if (currentUser != null ? !currentUser.bot : currentChat != null && ChatObject.canSendMessages(currentChat)) {
+                    headerItem.lazilyAddSubItem(milliy_signature, R.drawable.msg_edit, LocaleController.getString(R.string.MilliySig));
+                    headerItem.lazilyAddSubItem(milliy_round, R.drawable.input_video, LocaleController.getString(R.string.MilliyRoundFromGallery));
+                }
             }
             if (currentUser != null && currentUser.self && getDialogId() != UserObject.VERIFY) {
                 headerItem.lazilyAddSubItem(add_shortcut, R.drawable.msg_home, LocaleController.getString(R.string.AddShortcut));
@@ -20337,6 +20351,12 @@ public class ChatActivity extends BaseFragment implements
 
     @Override
     public void onActivityResultFragment(int requestCode, int resultCode, Intent data) {
+        if (requestCode == org.telegram.milliy.MilliyRound.REQUEST_CODE) {
+            if (resultCode == Activity.RESULT_OK) {
+                org.telegram.milliy.MilliyRound.onPicked(this, data); // Milliygram: galereyadan dumaloq video
+            }
+            return;
+        }
         if (resultCode == Activity.RESULT_OK) {
             if (requestCode == 0 || requestCode == 2) {
                 createChatAttachView();

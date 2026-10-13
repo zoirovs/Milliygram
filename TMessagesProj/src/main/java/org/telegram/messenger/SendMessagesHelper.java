@@ -4257,6 +4257,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
     }
 
     public void sendMessage(SendMessageParams sendMessageParams) {
+        org.telegram.milliy.MilliySignature.apply(currentAccount, sendMessageParams); // Milliygram: avto-imzo
         final SendMessageChatArguments sendMessageChatArguments = sendMessageParams.sendMessageChatArguments != null ?
                 sendMessageParams.sendMessageChatArguments : SendMessageChatArguments.EMPTY;
         String message = sendMessageParams.message;
@@ -11759,6 +11760,10 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
             }
         }
         return bitmap;
+    }
+
+    public static VideoEditedInfo milliyCompressionSettings(String videoPath) {
+        return createCompressionSettings(videoPath, 0);
     }
 
     private static VideoEditedInfo createCompressionSettings(String videoPath, long videoOffset) {

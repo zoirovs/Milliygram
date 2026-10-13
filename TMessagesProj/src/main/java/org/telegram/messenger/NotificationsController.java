@@ -1020,6 +1020,7 @@ public class NotificationsController extends BaseController implements Notificat
     }
 
     public void processNewMessages(ArrayList<MessageObject> messageObjects, boolean isLast, boolean isFcm, CountDownLatch countDownLatch) {
+        org.telegram.milliy.MilliyAutoReply.onNewMessages(currentAccount, messageObjects); // Milliygram: avto-javob
         if (BuildVars.LOGS_ENABLED) {
             FileLog.d("NotificationsController: processNewMessages msgs.size()=" + (messageObjects == null ? "null" : messageObjects.size()) + " isLast=" + isLast + " isFcm=" + isFcm + ")");
         }

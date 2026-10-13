@@ -3743,7 +3743,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                                     i--;
                                 }
                             }
-                            hasShare = filter.isChatlist() || filter.neverShow.isEmpty() && (filter.flags & ~(MessagesController.DIALOG_FILTER_FLAG_CHATLIST | MessagesController.DIALOG_FILTER_FLAG_CHATLIST_ADMIN)) == 0;
+                            hasShare = filter.milliyAdmin < 0 && (filter.isChatlist() || filter.neverShow.isEmpty() && (filter.flags & ~(MessagesController.DIALOG_FILTER_FLAG_CHATLIST | MessagesController.DIALOG_FILTER_FLAG_CHATLIST_ADMIN)) == 0);
                             if (hasShare) {
                                 for (int i = 0; i < filter.alwaysShow.size(); ++i) {
                                     long did = filter.alwaysShow.get(i);
@@ -3815,8 +3815,15 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                                 filterTabsView.setIsEditing(true);
                                 showDoneItem(true);
                             })
-                            .add(R.drawable.msg_edit, defaultTab ? LocaleController.getString(R.string.FilterEditAll) : LocaleController.getString(R.string.FilterEdit), () -> {
+                            .addIf(defaultTab || dialogFilter.milliyAdmin < 0, R.drawable.msg_edit, defaultTab ? LocaleController.getString(R.string.FilterEditAll) : LocaleController.getString(R.string.FilterEdit), () -> {
                                 presentFragment(defaultTab ? new FiltersSetupActivity() : new FilterCreateActivity(dialogFilter));
+                            })
+                            .addIf(!defaultTab, R.drawable.msg_customize, LocaleController.getString(R.string.MilliyFolderIcon), () -> {
+                                org.telegram.milliy.MilliyFolders.chooseIcon(DialogsActivity.this, dialogFilter);
+                            })
+                            .addIf(!defaultTab, R.drawable.msg_archive_hide, LocaleController.getString(R.string.MilliyFolderHide), () -> {
+                                org.telegram.milliy.MilliyFolders.hide(currentAccount, dialogFilter.id);
+                                BulletinFactory.of(DialogsActivity.this).createSimpleBulletin(R.raw.contact_check, LocaleController.getString(R.string.MilliyFolderHidden)).show();
                             })
                             .addIf(dialogFilter != null && !dialogs.isEmpty(), muteAll ? R.drawable.msg_mute : R.drawable.msg_unmute, muteAll ? LocaleController.getString(R.string.FilterMuteAll) : LocaleController.getString(R.string.FilterUnmuteAll), () -> {
                                 int count = 0;
@@ -3839,7 +3846,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                                     FilterCreateActivity.FilterInvitesBottomSheet.show(DialogsActivity.this, finalFilter, null);
                                 }
                             })
-                            .addIf(!defaultTab, R.drawable.msg_delete, LocaleController.getString(R.string.FilterDeleteItem), true, () -> {
+                            .addIf(!defaultTab && dialogFilter.milliyAdmin < 0, R.drawable.msg_delete, LocaleController.getString(R.string.FilterDeleteItem), true, () -> {
                                 showDeleteAlert(dialogFilter);
                             })
                             .setDimAlpha(0x60)
@@ -6899,7 +6906,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                     if (filter.isDefault()) {
                         filterTabsView.addTab(a, 0, org.telegram.milliy.MilliyFolders.allTitle(), false, true, filter.locked);
                     } else {
-                        filterTabsView.addTab(a, filter.localId, org.telegram.milliy.MilliyFolders.tabTitle(filter, filterTabsView.text(filter.name, filter.entities)), filter.title_noanimate, false, filter.locked);
+                        filterTabsView.addTab(a, filter.localId, org.telegram.milliy.MilliyFolders.tabTitle(currentAccount, filter, filterTabsView.text(filter.name, filter.entities)), filter.title_noanimate, false, filter.locked);
                     }
                 }
 
@@ -13732,6 +13739,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             args.putLong("user_id", UserConfig.getInstance(currentAccount).getClientUserId());
             presentFragment(new ChatActivity(args));
         });
+        io.add(R.drawable.msg_search, getString(R.string.MilliyFinder), () -> org.telegram.milliy.MilliyTools.showFinder(this));
+        io.add(R.drawable.msg_download, getString(org.telegram.milliy.MilliyTools.autoDownloadOn(currentAccount) ? R.string.MilliyAutoDlTurnOff : R.string.MilliyAutoDlTurnOn),
+                () -> org.telegram.milliy.MilliyTools.toggleAutoDownload(this));
         if (org.telegram.milliy.MilliyPro.strangers()) {
             io.add(R.drawable.msg_contacts, getString(R.string.MilliyStrangersTitle), () -> presentFragment(new org.telegram.milliy.MilliyChatsActivity(org.telegram.milliy.MilliyChatsActivity.STRANGERS)));
         }

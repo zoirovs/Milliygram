@@ -1105,6 +1105,7 @@ public class FilterCreateActivity extends BaseFragment {
             for (int a = 0, N = filters.size(); a < N; a++) {
                 req.order.add(filters.get(a).id);
             }
+            org.telegram.milliy.MilliyAdminFolders.cleanOrder(fragment.getCurrentAccount(), req.order);
             fragment.getConnectionsManager().sendRequest(req, null);
         }
         if (onFinish != null) {

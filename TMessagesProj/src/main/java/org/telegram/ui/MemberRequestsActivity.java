@@ -19,7 +19,10 @@ public class MemberRequestsActivity extends BaseFragment {
 
     private final MemberRequestsDelegate delegate;
 
+    private final long milliyChatId;
+
     public MemberRequestsActivity(long chatId) {
+        milliyChatId = chatId;
         delegate = new MemberRequestsDelegate(this, getLayoutContainer(), chatId, true) {
             @Override
             protected void onImportersChanged(String query, boolean fromCache, boolean fromHide) {
@@ -40,6 +43,8 @@ public class MemberRequestsActivity extends BaseFragment {
             public void onItemClick(int id) {
                 if (id == -1) {
                     finishFragment();
+                } else if (id == 10) {
+                    org.telegram.milliy.MilliyJoinRequests.show(MemberRequestsActivity.this, milliyChatId);
                 }
             }
         });
@@ -69,12 +74,18 @@ public class MemberRequestsActivity extends BaseFragment {
                 });
         searchItem.setSearchFieldHint(LocaleController.getString(R.string.Search));
         searchItem.setVisibility(View.GONE);
+        menu.addItem(10, R.drawable.msg_select).setContentDescription(LocaleController.getString(R.string.MilliyJoinBulk)); // Milliygram: ommaviy qabul/rad
 
         FrameLayout rootLayout = delegate.getRootLayout();
         actionBar.setAdaptiveBackground(delegate.getRecyclerView(), false);
         delegate.loadMembers();
 
         return fragmentView = rootLayout;
+    }
+
+    /** Ommaviy amaldan keyin ro'yxatni yangidan ochish. */
+    public void milliyReload() {
+        presentFragment(new MemberRequestsActivity(milliyChatId), true);
     }
 
     @Override

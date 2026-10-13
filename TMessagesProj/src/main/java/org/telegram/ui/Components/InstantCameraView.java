@@ -143,7 +143,7 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
     private ImageView muteImageView;
     private float progress;
     private CameraInfo selectedCamera;
-    private boolean isFrontface = true;
+    private boolean isFrontface = !org.telegram.milliy.MilliyRound.backCamera();
     private volatile boolean cameraReady;
     private AnimatorSet muteAnimation;
     private TLRPC.InputFile file;
@@ -731,7 +731,7 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
         selectedCamera = null;
         if (!fromPaused) {
             if (!useCamera2) {
-                isFrontface = true;
+                isFrontface = !org.telegram.milliy.MilliyRound.backCamera(); // Milliygram: tanlangan kamera
             }
             updateFlash();
             recordedTime = 0;

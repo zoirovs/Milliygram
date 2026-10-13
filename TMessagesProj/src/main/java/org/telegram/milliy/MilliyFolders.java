@@ -48,6 +48,87 @@ public class MilliyFolders {
     };
     private static final int[] ICONS = {R.drawable.msg_folders_private, R.drawable.msg_folders_groups, R.drawable.msg_folders_channels, R.drawable.msg_folders_bots};
     private static final int ICON_ALL = R.drawable.msg_limit_chats;
+    private static final int[] ICON_ADMIN = {R.drawable.msg_folders_groups, R.drawable.msg_folders_channels, R.drawable.msg_fave, R.drawable.msg_fave};
+
+    /** Foydalanuvchi tanlay oladigan jild ikonkalari. */
+    public static final int[] ICON_CHOICES = {
+            R.drawable.msg_folders_private, R.drawable.msg_folders_groups, R.drawable.msg_folders_channels, R.drawable.msg_folders_bots,
+            R.drawable.msg_folders_read, R.drawable.msg_folders_muted, R.drawable.msg_folders_archive, R.drawable.msg_fave,
+            R.drawable.msg_home, R.drawable.msg_work, R.drawable.msg_payment_card, R.drawable.msg_media,
+            R.drawable.msg_gift_premium, R.drawable.msg_calendar2, R.drawable.msg_location, R.drawable.msg_message,
+            R.drawable.msg_emoji_activities, R.drawable.msg_emoji_travel, R.drawable.msg_emoji_flags, R.drawable.msg_emoji_cat,
+    };
+    private static final int[] ICON_NAMES = {
+            R.string.MilliyIcon0, R.string.MilliyIcon1, R.string.MilliyIcon2, R.string.MilliyIcon3, R.string.MilliyIcon4,
+            R.string.MilliyIcon5, R.string.MilliyIcon6, R.string.MilliyIcon7, R.string.MilliyIcon8, R.string.MilliyIcon9,
+            R.string.MilliyIcon10, R.string.MilliyIcon11, R.string.MilliyIcon12, R.string.MilliyIcon13, R.string.MilliyIcon14,
+            R.string.MilliyIcon15, R.string.MilliyIcon16, R.string.MilliyIcon17, R.string.MilliyIcon18, R.string.MilliyIcon19,
+    };
+
+    private static int customIcon(int account, int filterId) {
+        return MessagesController.getMainSettings(account).getInt("milliy_folder_icon_" + filterId, -1);
+    }
+
+    /** Tab uchun ikonka: tanlangani, bo'lmasa milliy/admin papka ikonkasi, bo'lmasa yo'q (0). */
+    public static int iconFor(int account, MessagesController.DialogFilter f) {
+        int c = customIcon(account, f.id);
+        if (c >= 0 && c < ICON_CHOICES.length) {
+            return ICON_CHOICES[c];
+        }
+        int t = milliyType(f);
+        if (t >= 0) {
+            return ICONS[t];
+        }
+        if (f.milliyAdmin >= 0 && f.milliyAdmin < ICON_ADMIN.length) {
+            return ICON_ADMIN[f.milliyAdmin];
+        }
+        return 0;
+    }
+
+    public static void chooseIcon(BaseFragment fragment, MessagesController.DialogFilter f) {
+        if (fragment.getParentActivity() == null || f == null) {
+            return;
+        }
+        int account = fragment.getCurrentAccount();
+        CharSequence[] items = new CharSequence[ICON_CHOICES.length + 1];
+        int[] icons = new int[ICON_CHOICES.length + 1];
+        for (int i = 0; i < ICON_CHOICES.length; i++) {
+            items[i] = LocaleController.getString(ICON_NAMES[i]);
+            icons[i] = ICON_CHOICES[i];
+        }
+        items[ICON_CHOICES.length] = LocaleController.getString(R.string.MilliyIconDefault);
+        icons[ICON_CHOICES.length] = R.drawable.msg_reset;
+        org.telegram.ui.ActionBar.AlertDialog.Builder b = new org.telegram.ui.ActionBar.AlertDialog.Builder(fragment.getParentActivity());
+        b.setTitle(LocaleController.getString(R.string.MilliyFolderIcon));
+        b.setItems(items, icons, (d, which) -> {
+            SharedPreferences.Editor e = MessagesController.getMainSettings(account).edit();
+            if (which >= ICON_CHOICES.length) {
+                e.remove("milliy_folder_icon_" + f.id);
+            } else {
+                e.putInt("milliy_folder_icon_" + f.id, which);
+            }
+            e.apply();
+            org.telegram.messenger.NotificationCenter.getInstance(account).postNotificationName(org.telegram.messenger.NotificationCenter.dialogFiltersUpdated);
+        });
+        fragment.showDialog(b.create());
+    }
+
+    /** Jildni faqat shu ilovada yashirish (serverda qoladi). */
+    public static void hide(int account, int filterId) {
+        Set<String> set = new HashSet<>(hidden(account));
+        set.add(String.valueOf(filterId));
+        MessagesController.getMainSettings(account).edit().putStringSet(KEY_HIDDEN, set).apply();
+        org.telegram.messenger.NotificationCenter.getInstance(account).postNotificationName(org.telegram.messenger.NotificationCenter.dialogFiltersUpdated);
+    }
+
+    public static boolean isHidden(int account, int filterId) {
+        return hidden(account).contains(String.valueOf(filterId));
+    }
+
+    public static void unhideAndNotify(int account, int filterId) {
+        unhide(account, filterId);
+        org.telegram.messenger.NotificationCenter.getInstance(account).postNotificationName(org.telegram.messenger.NotificationCenter.dialogFiltersUpdated);
+    }
 
     /** Milliy papka turi (0..3) yoki -1. */
     public static int milliyType(MessagesController.DialogFilter f) {
@@ -87,8 +168,10 @@ public class MilliyFolders {
             int t = milliyType(f);
             if (f.isDefault()) {
                 def = a;
-            } else if (t >= 0 && milliy[t] < 0) {
+            } else if (t >= 0 && milliy[t] < 0 && !hide.contains(String.valueOf(f.id))) {
                 milliy[t] = a;
+            } else if (t >= 0 && milliy[t] < 0) {
+                milliy[t] = -2; // foydalanuvchi yashirgan milliy papka
             } else if (!hide.contains(String.valueOf(f.id))) {
                 rest.add(a);
             }
@@ -106,16 +189,16 @@ public class MilliyFolders {
     }
 
     /** Tab sarlavhasi: Barchasi — faqat ikonka, milliy papkalar — ikonka + nom, boshqalar — nomning o'zi. */
-    public static CharSequence tabTitle(MessagesController.DialogFilter f, CharSequence name) {
+    public static CharSequence tabTitle(int account, MessagesController.DialogFilter f, CharSequence name) {
         if (f == null || f.isDefault()) {
             return allTitle();
         }
-        int t = milliyType(f);
-        if (t < 0) {
+        int icon = iconFor(account, f);
+        if (icon == 0) {
             return name;
         }
         SpannableStringBuilder sb = new SpannableStringBuilder("\u2060");
-        sb.setSpan(new IconSpan(ICONS[t], dp(5)), 0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        sb.setSpan(new IconSpan(icon, dp(5)), 0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         sb.append(name);
         return sb;
     }

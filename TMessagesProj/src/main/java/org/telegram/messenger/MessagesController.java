@@ -875,9 +875,10 @@ public class MessagesController extends BaseController implements NotificationCe
 
     public void lockFiltersInternal() {
         boolean changed = false;
-        if (!getUserConfig().isPremium() && dialogFilters.size() - 1 > dialogFiltersLimitDefault) {
-            int n = dialogFilters.size() - 1 - dialogFiltersLimitDefault;
-            ArrayList<DialogFilter> filtersSortedById = new ArrayList<>(dialogFilters);
+        final ArrayList<DialogFilter> milliyReal = org.telegram.milliy.MilliyAdminFolders.real(dialogFilters); // virtual papkalar limitga kirmaydi
+        if (!getUserConfig().isPremium() && milliyReal.size() - 1 > dialogFiltersLimitDefault) {
+            int n = milliyReal.size() - 1 - dialogFiltersLimitDefault;
+            ArrayList<DialogFilter> filtersSortedById = new ArrayList<>(milliyReal);
             Collections.reverse(filtersSortedById);
             for (int i = 0; i < filtersSortedById.size(); i++) {
                 if (i < n) {
@@ -1294,6 +1295,7 @@ public class MessagesController extends BaseController implements NotificationCe
         private static int dialogFilterPointer = 10;
         public int localId = dialogFilterPointer++;
         public boolean locked;
+        public int milliyAdmin = -1; // Milliygram: virtual adminlik papkasi turi (serverga yuborilmaydi)
 
         public boolean includesDialog(AccountInstance accountInstance, long dialogId) {
             MessagesController messagesController = accountInstance.getMessagesController();
@@ -1305,6 +1307,9 @@ public class MessagesController extends BaseController implements NotificationCe
         }
 
         public boolean includesDialog(AccountInstance accountInstance, long dialogId, TLRPC.Dialog d) {
+            if (milliyAdmin >= 0) {
+                return org.telegram.milliy.MilliyAdminFolders.matches(accountInstance.getCurrentAccount(), milliyAdmin, dialogId);
+            }
             if (neverShow.contains(dialogId)) {
                 return false;
             }
@@ -2237,6 +2242,7 @@ public class MessagesController extends BaseController implements NotificationCe
                         DialogFilter filter = dialogFilters.get(a);
                         dialogFiltersById.put(filter.id, filter);
                     }
+                    org.telegram.milliy.MilliyAdminFolders.inject(MessagesController.this); // Milliygram: adminlik papkalari
                     Collections.sort(dialogFilters, (o1, o2) -> {
                         if (o1.order > o2.order) {
                             return 1;
