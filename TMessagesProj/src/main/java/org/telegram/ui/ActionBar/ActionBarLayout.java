@@ -1949,6 +1949,9 @@ public class ActionBarLayout extends FrameLayout implements INavigationLayout, F
         boolean preview = params.preview;
         ActionBarPopupWindow.ActionBarPopupWindowLayout menu = params.menuView;
 
+        if (fragment != null && !checkTransitionAnimation() && org.telegram.milliy.MilliyLock.intercept(this, params)) {
+            return false; // Milliygram: qulflangan chat — avval PIN
+        }
         if (fragment == null || checkTransitionAnimation() || delegate != null && check && !delegate.needPresentFragment(this, params) || !fragment.onFragmentCreate()) {
             return false;
         }

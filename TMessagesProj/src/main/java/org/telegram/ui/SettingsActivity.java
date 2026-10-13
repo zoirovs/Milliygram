@@ -725,6 +725,7 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
         final String milliyDistrict = org.telegram.milliy.MilliyData.getDistrictName(currentAccount);
         items.add(UItem.asHeader("Milliygram"));
         items.add(SettingCell.Factory.of(104, 0xFF26C281, 0xFF1E9E5A, R.drawable.settings_privacy, getString(R.string.MilliySecurity), getString(R.string.MilliySecuritySubtitle)));
+        items.add(SettingCell.Factory.of(105, 0xFF7E57C2, 0xFF5E35B1, R.drawable.settings_features, getString(R.string.MilliyPro), getString(R.string.MilliyProSubtitle)));
         items.add(SettingCell.Factory.of(103, 0xFFFFA726, 0xFFEF6C00, R.drawable.settings_milliy_region, getString(R.string.MilliyMyRegion), milliyDistrict != null ? milliyDistrict : getString(R.string.MilliyChooseRegion)));
         items.add(UItem.asShadow(null));
 
@@ -854,6 +855,9 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
                 break;
             case 104:
                 presentFragment(new org.telegram.milliy.MilliySecurityActivity());
+                break;
+            case 105:
+                presentFragment(new org.telegram.milliy.MilliyProActivity());
                 break;
             case 1:
                 presentSettingFragment(new UserInfoActivity());

@@ -3445,6 +3445,18 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             milliyThemeItem.setContentDescription(getString(Theme.isCurrentThemeDark() ? R.string.SwitchThemeToDay : R.string.SwitchThemeToNight));
             milliyThemeItem.setOnClickListener(v -> milliyToggleDayNight(milliyThemeItem));
 
+            if (org.telegram.milliy.MilliyPro.ghostButton()) { // Milliygram: ghost rejimi tugmasi
+                milliyGhostItem = menu.addItem(-49, R.drawable.msg_stories_stealth);
+                milliyGhostItem.setContentDescription(getString(R.string.MilliyGhost));
+                milliyGhostItem.setAlpha(org.telegram.milliy.MilliyPro.ghost() ? 1f : 0.45f);
+                milliyGhostItem.setOnClickListener(v -> {
+                    boolean on = !org.telegram.milliy.MilliyPro.ghost();
+                    org.telegram.milliy.MilliyPro.set("ghost", on);
+                    milliyGhostItem.setAlpha(on ? 1f : 0.45f);
+                    BulletinFactory.of(this).createSimpleBulletin(R.raw.contact_check, getString(on ? R.string.MilliyGhostOn : R.string.MilliyGhostOff)).show();
+                });
+            }
+
             optionsItem = menu.addItem(4, R.drawable.ic_ab_other);
             optionsItem.setContentDescription(LocaleController.getString(R.string.AccDescrMoreOptions));
             optionsItem.setOnClickListener(v -> {
@@ -8725,6 +8737,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 }
             }
             hasPinAction[0] = !(newPinnedSecretCount + pinnedSecretCount > maxPinnedCount || newPinnedCount + pinnedCount - alreadyAdded > maxPinnedCount);
+            if (folderId == 0 && filter == null) {
+                hasPinAction[0] = true; // Milliygram: cheksiz pin
+            }
         }
 
         if (hasPinAction[0]) {
@@ -9260,8 +9275,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 if (folderId != 0 || filter != null) {
                     AlertsCreator.showSimpleAlert(DialogsActivity.this, LocaleController.formatString("PinFolderLimitReached", R.string.PinFolderLimitReached, LocaleController.formatPluralString("Chats", maxPinnedCount)));
                 } else {
-                    LimitReachedBottomSheet limitReachedBottomSheet = new LimitReachedBottomSheet(this, getParentActivity(), LimitReachedBottomSheet.TYPE_PIN_DIALOGS, currentAccount, null);
-                    showDialog(limitReachedBottomSheet);
+                    milliyToggleLocalPins(selectedDialogs); // Milliygram: server limiti tugasa — mahalliy pin
                 }
                 return;
             }
@@ -11013,7 +11027,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         }
         MessagesController messagesController = AccountInstance.getInstance(currentAccount).getMessagesController();
         if (dialogsType == DIALOGS_TYPE_DEFAULT) {
-            return messagesController.getDialogs(folderId);
+            return org.telegram.milliy.MilliyPro.filterDialogs(currentAccount, messagesController.getDialogs(folderId));
         } else if (dialogsType == DIALOGS_TYPE_WIDGET || dialogsType == DIALOGS_TYPE_IMPORT_HISTORY) {
             return messagesController.dialogsServerOnly;
         } else if (dialogsType == DIALOGS_TYPE_ADD_USERS_TO) {
@@ -11043,7 +11057,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             }
             return dialogs;
         } else if (dialogsType == DIALOGS_TYPE_FORWARD) {
-            return messagesController.dialogsForward;
+            return org.telegram.milliy.MilliyPro.filterDialogs(currentAccount, messagesController.dialogsForward);
         } else if (dialogsType == DIALOGS_TYPE_USERS_ONLY || dialogsType == DIALOGS_TYPE_IMPORT_HISTORY_USERS) {
             return messagesController.dialogsUsersOnly;
         } else if (dialogsType == DIALOGS_TYPE_CHANNELS_ONLY) {
@@ -11053,12 +11067,12 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         } else if (dialogsType == 7 || dialogsType == 8) {
             MessagesController.DialogFilter dialogFilter = messagesController.selectedDialogFilter[dialogsType == 7 ? 0 : 1];
             if (dialogFilter == null) {
-                return messagesController.getDialogs(folderId);
+                return org.telegram.milliy.MilliyPro.filterDialogs(currentAccount, messagesController.getDialogs(folderId));
             } else {
                 if (initialDialogsType == DIALOGS_TYPE_FORWARD) {
-                    return dialogFilter.dialogsForward;
+                    return org.telegram.milliy.MilliyPro.filterDialogs(currentAccount, dialogFilter.dialogsForward);
                 }
-                return dialogFilter.dialogs;
+                return org.telegram.milliy.MilliyPro.filterDialogs(currentAccount, dialogFilter.dialogs);
             }
         } else if (dialogsType == DIALOGS_TYPE_BLOCK) {
             return messagesController.dialogsForBlock;
@@ -12771,8 +12785,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         }
         boolean onlySelfStories = !isArchive() && getStoriesController().hasOnlySelfStories();
         boolean newVisibility;
-        if (communityId != 0) {
+        if (communityId != 0 || org.telegram.milliy.MilliyPro.hideStories() && !isArchive()) {
             newVisibility = false;
+            onlySelfStories = false;
         } else if (isArchive()) {
             newVisibility = !getStoriesController().getHiddenList().isEmpty();
         } else {
@@ -13717,6 +13732,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             args.putLong("user_id", UserConfig.getInstance(currentAccount).getClientUserId());
             presentFragment(new ChatActivity(args));
         });
+        if (org.telegram.milliy.MilliyPro.strangers()) {
+            io.add(R.drawable.msg_contacts, getString(R.string.MilliyStrangersTitle), () -> presentFragment(new org.telegram.milliy.MilliyChatsActivity(org.telegram.milliy.MilliyChatsActivity.STRANGERS)));
+        }
         if (ApplicationLoader.applicationLoaderInstance != null) {
             ApplicationLoader.applicationLoaderInstance.addItemOptions(io);
         }
@@ -14261,6 +14279,23 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     }
 
     private ActionBarMenuItem milliyThemeItem;
+    private ActionBarMenuItem milliyGhostItem;
+
+    private void milliyToggleLocalPins(ArrayList<Long> ids) {
+        boolean allPinned = true;
+        for (Long id : ids) {
+            if (!org.telegram.milliy.MilliyPro.isLocalPin(currentAccount, id)) {
+                allPinned = false;
+            }
+        }
+        for (Long id : ids) {
+            org.telegram.milliy.MilliyPro.toggleSet(currentAccount, "local_pins", id, !allPinned);
+        }
+        getMessagesController().sortDialogs(null);
+        getNotificationCenter().postNotificationName(NotificationCenter.dialogsNeedReload);
+        hideActionMode(true);
+        BulletinFactory.of(this).createSimpleBulletin(allPinned ? R.raw.ic_unpin : R.raw.ic_pin, getString(allPinned ? R.string.MilliyLocalUnpinned : R.string.MilliyLocalPinned)).show();
+    }
     private RLottieDrawable milliyThemeDrawable;
 
     private void switchTheme(Theme.ThemeInfo themeInfo, boolean toDark) {

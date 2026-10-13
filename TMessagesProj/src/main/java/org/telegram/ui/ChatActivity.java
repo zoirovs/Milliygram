@@ -1227,6 +1227,8 @@ public class ChatActivity extends BaseFragment implements
     public final static int OPTION_TRANSLATE = 29;
     public final static int OPTION_MILLIY_TRANSLIT = 900;
     public final static int OPTION_MILLIY_REPORT = 901;
+    public final static int OPTION_MILLIY_FORWARD_NOAUTHOR = 902;
+    public final static int OPTION_MILLIY_EDIT_HISTORY = 903;
     public final static int OPTION_TRANSCRIBE = 30;
     public final static int OPTION_HIDE_SPONSORED_MESSAGE = 31;
     public final static int OPTION_VIEW_IN_TOPIC = 32;
@@ -1689,6 +1691,8 @@ public class ChatActivity extends BaseFragment implements
     private final static int charge_fee = 72;
 
     private final static int chat_menu_topic_create = 73;
+    private final static int milliy_lock = 990;
+    private final static int milliy_vault = 991;
 
     private final static int id_chat_compose_panel = 1000;
 
@@ -3897,6 +3901,10 @@ public class ChatActivity extends BaseFragment implements
                     }
                 } else if (id == mute) {
                     toggleMute(false);
+                } else if (id == milliy_lock) {
+                    org.telegram.milliy.MilliyLock.toggleLock(ChatActivity.this, getDialogId());
+                } else if (id == milliy_vault) {
+                    org.telegram.milliy.MilliyLock.toggleVault(ChatActivity.this, getDialogId());
                 } else if (id == add_shortcut) {
                     try {
                         getMediaDataController().installShortcut(currentUser.id, MediaDataController.SHORTCUT_TYPE_USER_OR_CHAT);
@@ -4445,6 +4453,10 @@ public class ChatActivity extends BaseFragment implements
             }
             if (themeDelegate.isThemeChangeAvailable(true)) {
                 headerItem.lazilyAddSubItem(change_colors, R.drawable.msg_background, LocaleController.getString(R.string.SetWallpapers));
+            }
+            if (chatMode == MODE_DEFAULT && !isTopic && getDialogId() != getUserConfig().getClientUserId()) { // Milliygram: qulf va seyf
+                headerItem.lazilyAddSubItem(milliy_lock, R.drawable.msg_secret, LocaleController.getString(R.string.MilliyLockMenu));
+                headerItem.lazilyAddSubItem(milliy_vault, R.drawable.msg_archive_hide, LocaleController.getString(R.string.MilliyVaultMenu));
             }
             if (currentUser != null && currentUser.self && getDialogId() != UserObject.VERIFY) {
                 headerItem.lazilyAddSubItem(add_shortcut, R.drawable.msg_home, LocaleController.getString(R.string.AddShortcut));
@@ -15147,6 +15159,9 @@ public class ChatActivity extends BaseFragment implements
                     messagePreviewParams.attach(forwardingPreviewView);
                 }
                 messagePreviewParams.updateForward(messageObjectsToForward, dialog_id);
+                if (org.telegram.milliy.MilliyPro.takeNoAuthor()) {
+                    messagePreviewParams.hideForwardSendersName = true; // Milliygram: imzosiz uzatish
+                }
                 if (messagePreviewParams.isEmpty() && editingMessageObject == null) {
                     messagePreviewParams = null;
                 }
@@ -33391,6 +33406,15 @@ public class ChatActivity extends BaseFragment implements
                 presentFragment(fragment);
                 break;
             }
+            case OPTION_MILLIY_FORWARD_NOAUTHOR: {
+                org.telegram.milliy.MilliyPro.setNoAuthor();
+                processSelectedOption(OPTION_FORWARD);
+                return;
+            }
+            case OPTION_MILLIY_EDIT_HISTORY: {
+                org.telegram.milliy.MilliyKeep.showHistory(this, selectedObject);
+                break;
+            }
             case OPTION_MILLIY_REPORT: {
                 org.telegram.milliy.MilliyShield.report(this, selectedObject.getSenderId(), selectedObject);
                 break;
@@ -46191,6 +46215,9 @@ public class ChatActivity extends BaseFragment implements
                     items.add(LocaleController.getString(R.string.Forward));
                     options.add(OPTION_FORWARD);
                     icons.add(R.drawable.msg_forward);
+                    items.add(LocaleController.getString(R.string.MilliyForwardNoAuthor));
+                    options.add(OPTION_MILLIY_FORWARD_NOAUTHOR);
+                    icons.add(R.drawable.msg_forward);
                 }
                 if (allowUnpin) {
                     items.add(LocaleController.getString(R.string.UnpinMessage));
@@ -46351,6 +46378,11 @@ public class ChatActivity extends BaseFragment implements
             items.add(getString(R.string.MilliyReport));
             options.add(OPTION_MILLIY_REPORT);
             icons.add(R.drawable.msg_report);
+        }
+        if (org.telegram.milliy.MilliyKeep.hasHistory(message)) {
+            items.add(getString(R.string.MilliyEditHistory));
+            options.add(OPTION_MILLIY_EDIT_HISTORY);
+            icons.add(R.drawable.msg_edit);
         }
     }
 

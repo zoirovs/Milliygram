@@ -18489,6 +18489,9 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         if (currentMessageObject.messageOwner.video_processing_pending) {
             timeString = formatString(R.string.ScheduledTimeApprox, timeString);
         }
+        if (org.telegram.milliy.MilliyKeep.isDeleted(currentMessageObject)) {
+            timeString = getString(R.string.MilliyDeletedMark) + " " + timeString; // Milliygram: saqlangan o'chirilgan xabar
+        }
         if (signString != null) {
             if (messageObject.messageOwner.via_business_bot_id != 0) {
                 currentTimeString = timeString + ", ";

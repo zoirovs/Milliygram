@@ -150,6 +150,8 @@ public class SendGiftSheet extends BottomSheetWithRecyclerListView implements No
         this(context, currentAccount, null, premiumTier, dialogId, closeParentSheet, false, false);
     }
 
+    private boolean milliyGiftConfirmed;
+
     private SendGiftSheet(Context context, int currentAccount, TL_stars.StarGift starGift, GiftPremiumBottomSheet.GiftTier premiumTier, long dialogId, Runnable closeParentSheet, boolean forceUpgrade, boolean forceNotUpgrade) {
         super(context, null, true, false, false, false, ActionBarType.SLIDING, null);
 
@@ -485,6 +487,18 @@ public class SendGiftSheet extends BottomSheetWithRecyclerListView implements No
         buttonContainer.addView(button, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 48, Gravity.FILL, 10, 10, 10, 10));
         button.setOnClickListener(v -> {
             if (button.isLoading()) return;
+            if (org.telegram.milliy.MilliyPro.confirmGift() && !milliyGiftConfirmed) { // Milliygram: tasodifiy sovg'adan himoya
+                new org.telegram.ui.ActionBar.AlertDialog.Builder(context, resourcesProvider)
+                    .setTitle(LocaleController.getString(R.string.MilliyGiftConfirmTitle))
+                    .setMessage(LocaleController.getString(R.string.MilliyGiftConfirmText))
+                    .setPositiveButton(LocaleController.getString(R.string.MilliyGiftConfirmYes), (d, w) -> {
+                        milliyGiftConfirmed = true;
+                        button.performClick();
+                    })
+                    .setNegativeButton(LocaleController.getString(R.string.Cancel), null)
+                    .show();
+                return;
+            }
 
             if (auction != null) {
                 final AuctionBidSheet.Params p = new AuctionBidSheet.Params(dialogId, anonymous, getMessage());

@@ -9,7 +9,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 RES = ROOT / "TMessagesProj/src/main/res"
 PH = re.compile(r"%(?:\d+\$)?[-#+ 0,(]*\d*(?:\.\d+)?[a-zA-Z]|%%|\bun\d\b")
-PROTECT = re.compile(r"%(?:\d+\$)?[-#+ 0,(]*\d*(?:\.\d+)?[a-zA-Z]|%%|\bun\d\b|https?://\S+|tg://\S+|<[^>]+>|@[A-Za-z0-9_]+|\{[^}]*\}|\b(?:2FA|APK|CVV|QR|GIF|ID|URL|API|PDF|HD|NFT|TON|USDT|KB|MB|GB|TB|IP|DC|VPN|AI|SIM|iOS|PIN|FAQ|DNS|SSL|HTTP|HTTPS|JSON|PNG|JPG|MP3|MP4|UTC|GMT|Wi-Fi|Bluetooth|Android|Google|Apple|Fragment)\b")
+PROTECT = re.compile(r"%(?:\d+\$)?[-#+ 0,(]*\d*(?:\.\d+)?[a-zA-Z]|%%|\bun\d\b|https?://\S+|tg://\S+|<[^>]+>|@[A-Za-z0-9_]+|\{[^}]*\}|\b(?:2FA|APK|CVV|QR|GIF|ID|URL|API|PDF|HD|NFT|TON|USDT|KB|MB|GB|TB|IP|DC|VPN|AI|SIM|iOS|PIN|FAQ|DNS|SSL|HTTP|HTTPS|JSON|PNG|JPG|MP3|MP4|UTC|GMT|Wi-Fi|Bluetooth|Android|Google|Apple|Fragment|Ghost|Stars)\b")
 
 def unescape(v):
     return v.replace("\\n", "\n").replace("\\", "").replace("&lt;", "<").replace("&gt;", ">").replace("&amp;", "&").replace("&quot;", '"')

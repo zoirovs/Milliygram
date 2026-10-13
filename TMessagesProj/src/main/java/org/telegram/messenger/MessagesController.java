@@ -1451,6 +1451,8 @@ public class MessagesController extends BaseController implements NotificationCe
             return 1;
         } else if (dialog1.pinned && !dialog2.pinned) {
             return -1;
+        } else if (!dialog1.pinned && org.telegram.milliy.MilliyPro.isLocalPin(currentAccount, dialog1.id) != org.telegram.milliy.MilliyPro.isLocalPin(currentAccount, dialog2.id)) {
+            return org.telegram.milliy.MilliyPro.isLocalPin(currentAccount, dialog1.id) ? -1 : 1; // Milliygram: mahalliy pin
         } else if (dialog1.pinned) {
             if (dialog1.pinnedNum < dialog2.pinnedNum) {
                 return 1;
@@ -9350,7 +9352,12 @@ public class MessagesController extends BaseController implements NotificationCe
                     }
                 }
             }
-            if (scheduled) {
+            if (!scheduled && !quickReplies && !welcomeMessages && !cacheOnly) {
+                messages = org.telegram.milliy.MilliyKeep.onSelfDelete(currentAccount, channelId, messages, forAll); // Milliygram: «hammasi» rejimi
+            }
+            if (messages.isEmpty()) {
+                // Milliygram: hammasi shu yerda saqlab qolindi — mahalliy o'chirish yo'q
+            } else if (scheduled) {
                 getMessagesStorage().markMessagesAsDeleted(dialogId, messages, true, false, ChatActivity.MODE_SCHEDULED, 0);
             } else if (quickReplies) {
                 if (mode == ChatActivity.MODE_QUICK_REPLIES) {
@@ -10533,7 +10540,7 @@ public class MessagesController extends BaseController implements NotificationCe
         checkReadTasks();
 
         if (getUserConfig().isClientActivated()) {
-            if (!ignoreSetOnline && getConnectionsManager().getPauseTime() == 0 && ApplicationLoader.isScreenOn && !ApplicationLoader.mainInterfacePausedStageQueue) {
+            if (!ignoreSetOnline && !org.telegram.milliy.MilliyPro.ghostOnline() && getConnectionsManager().getPauseTime() == 0 && ApplicationLoader.isScreenOn && !ApplicationLoader.mainInterfacePausedStageQueue) {
                 if (ApplicationLoader.mainInterfacePausedStageQueueTime != 0 && Math.abs(ApplicationLoader.mainInterfacePausedStageQueueTime - System.currentTimeMillis()) > 1000) {
                     if (statusSettingState != 1 && (lastStatusUpdateTime == 0 || Math.abs(System.currentTimeMillis() - lastStatusUpdateTime) >= 55000 || offlineSent)) {
                         statusSettingState = 1;
@@ -11392,7 +11399,7 @@ public class MessagesController extends BaseController implements NotificationCe
     }
 
     public boolean sendTyping(long dialogId, long threadMsgId, int action, String emojicon, int classGuid) {
-        if (action < 0 || action >= sendingTypings.length || dialogId == 0) {
+        if (action < 0 || action >= sendingTypings.length || dialogId == 0 || org.telegram.milliy.MilliyPro.ghostTyping()) {
             return false;
         }
         final long selfId = UserConfig.getInstance(UserConfig.selectedAccount).getClientUserId();
@@ -14414,6 +14421,9 @@ public class MessagesController extends BaseController implements NotificationCe
         long dialogId = messageObject.getDialogId();
         getMessagesStorage().markMessagesContentAsRead(dialogId, arrayList, 0, 0);
         getNotificationCenter().postNotificationName(NotificationCenter.messagesReadContent, dialogId, arrayList);
+        if (org.telegram.milliy.MilliyPro.ghostRead()) {
+            return;
+        }
         if (messageObject.getId() < 0) {
             markMessageAsRead(messageObject.getDialogId(), messageObject.messageOwner.random_id, Integer.MIN_VALUE);
         } else {
@@ -14566,6 +14576,9 @@ public class MessagesController extends BaseController implements NotificationCe
     }
 
     private void completeReadTask(ReadTask task) {
+        if (org.telegram.milliy.MilliyPro.ghostRead()) { // Milliygram ghost: «o'qildi» yuborilmaydi
+            return;
+        }
         if (task.replyId != 0 && task.monoForumPeerId == 0) {
             TLRPC.TL_messages_readDiscussion req = new TLRPC.TL_messages_readDiscussion();
             req.msg_id = (int) task.replyId;
@@ -18823,15 +18836,18 @@ public class MessagesController extends BaseController implements NotificationCe
                 dialogs_read_outbox_max.put(dialogId, Math.max(value, update.max_id));
             } else if (baseUpdate instanceof TL_update.TL_updateDeleteMessages) {
                 TL_update.TL_updateDeleteMessages update = (TL_update.TL_updateDeleteMessages) baseUpdate;
-                if (deletedMessages == null) {
-                    deletedMessages = new LongSparseArray<>();
+                ArrayList<Integer> milliyIds = org.telegram.milliy.MilliyKeep.onRemoteDelete(currentAccount, 0, update.messages);
+                if (!milliyIds.isEmpty()) { // Milliygram: saqlanadiganlari o'chirilmaydi
+                    if (deletedMessages == null) {
+                        deletedMessages = new LongSparseArray<>();
+                    }
+                    ArrayList<Integer> arrayList = deletedMessages.get(0);
+                    if (arrayList == null) {
+                        arrayList = new ArrayList<>();
+                        deletedMessages.put(0, arrayList);
+                    }
+                    arrayList.addAll(milliyIds);
                 }
-                ArrayList<Integer> arrayList = deletedMessages.get(0);
-                if (arrayList == null) {
-                    arrayList = new ArrayList<>();
-                    deletedMessages.put(0, arrayList);
-                }
-                arrayList.addAll(update.messages);
             } else if (baseUpdate instanceof TL_update.TL_updateDeleteQuickReplyMessages) {
                 TL_update.TL_updateDeleteQuickReplyMessages update = (TL_update.TL_updateDeleteQuickReplyMessages) baseUpdate;
                 if (deletedQuickReplyMessages == null) {
@@ -19348,16 +19364,19 @@ public class MessagesController extends BaseController implements NotificationCe
                 if (BuildVars.LOGS_ENABLED) {
                     FileLog.d(baseUpdate + " channelId = " + update.channel_id);
                 }
-                if (deletedMessages == null) {
-                    deletedMessages = new LongSparseArray<>();
+                ArrayList<Integer> milliyIds = org.telegram.milliy.MilliyKeep.onRemoteDelete(currentAccount, update.channel_id, update.messages);
+                if (!milliyIds.isEmpty()) { // Milliygram: saqlanadiganlari o'chirilmaydi
+                    if (deletedMessages == null) {
+                        deletedMessages = new LongSparseArray<>();
+                    }
+                    long dialogId = -update.channel_id;
+                    ArrayList<Integer> arrayList = deletedMessages.get(dialogId);
+                    if (arrayList == null) {
+                        arrayList = new ArrayList<>();
+                        deletedMessages.put(dialogId, arrayList);
+                    }
+                    arrayList.addAll(milliyIds);
                 }
-                long dialogId = -update.channel_id;
-                ArrayList<Integer> arrayList = deletedMessages.get(dialogId);
-                if (arrayList == null) {
-                    arrayList = new ArrayList<>();
-                    deletedMessages.put(dialogId, arrayList);
-                }
-                arrayList.addAll(update.messages);
             } else if (baseUpdate instanceof TL_update.TL_updateChannel) {
                 if (BuildVars.LOGS_ENABLED) {
                     TL_update.TL_updateChannel update = (TL_update.TL_updateChannel) baseUpdate;
@@ -19496,6 +19515,7 @@ public class MessagesController extends BaseController implements NotificationCe
                     message.attachPath = "";
                 }
 
+                org.telegram.milliy.MilliyKeep.onEdit(currentAccount, message); // Milliygram: eski matn tarixga
                 ImageLoader.saveMessageThumbs(message);
                 AndroidUtilities.runOnUIThread(()-> getSendMessagesHelper().onMessageEdited(message));
 

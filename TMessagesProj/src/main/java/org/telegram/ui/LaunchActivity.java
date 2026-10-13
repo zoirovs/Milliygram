@@ -6726,6 +6726,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
 
     @Override
     protected void onPause() {
+        org.telegram.milliy.MilliyLock.relockAll();
         super.onPause();
         isResumed = false;
         pipActivityHandler.onPause();
