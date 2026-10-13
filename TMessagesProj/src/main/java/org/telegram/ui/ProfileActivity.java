@@ -582,6 +582,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     private final static int view_discussion = 22;
     private final static int delete_topic = 23;
     private final static int report = 24;
+    private final static int milliy_report = 950;
 
     private final static int edit_info = 30;
     private final static int logout = 31;
@@ -2640,6 +2641,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     if (button != null) {
                         button.setTextColor(Theme.getColor(Theme.key_text_RedBold));
                     }
+                } else if (id == milliy_report) {
+                    org.telegram.milliy.MilliyShield.report(ProfileActivity.this, getDialogId(), null);
                 } else if (id == report) {
                     ReportBottomSheet.openChat(ProfileActivity.this, getDialogId());
                 } else if (id == edit_channel) {
@@ -12343,6 +12346,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             otherItem.addSubItem(report, R.drawable.msg_report, LocaleController.getString(R.string.ReportBot)).setColors(getThemedColor(Theme.key_text_RedRegular), getThemedColor(Theme.key_text_RedRegular));
         }
 
+        // Milliygram: firibgarlik shikoyati (ZIRH'ga)
+        if (!selfUser && !myProfile && getDialogId() != 0 && getDialogId() != 777000 && getDialogId() != getUserConfig().getClientUserId()) {
+            otherItem.addSubItem(milliy_report, R.drawable.msg_report, LocaleController.getString(R.string.MilliyReport)).setColors(getThemedColor(Theme.key_text_RedRegular), getThemedColor(Theme.key_text_RedRegular));
+        }
         if (selfUser && !myProfile) {
             otherItem.addSubItem(logout, R.drawable.msg_leave, LocaleController.getString(R.string.LogOut));
         }

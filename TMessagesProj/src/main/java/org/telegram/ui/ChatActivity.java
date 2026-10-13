@@ -873,6 +873,7 @@ public class ChatActivity extends BaseFragment implements
     private SparseArray<ArrayList<MessageObject>> messagesByDaysSorted = new SparseArray<>();
     private LongSparseArray<MessageObject> conversionMessages = new LongSparseArray<>();
     public ArrayList<MessageObject> messages = new ArrayList<>();
+    private org.telegram.milliy.MilliyChatGuard milliyGuard;
     private SparseArray<MessageObject> waitingForReplies = new SparseArray<>();
     private LongSparseArray<ArrayList<MessageObject>> polls = new LongSparseArray<>();
     private LongSparseArray<MessageObject.GroupedMessages> groupedMessagesMap = new LongSparseArray<>();
@@ -1225,6 +1226,7 @@ public class ChatActivity extends BaseFragment implements
     public final static int OPTION_STATISTICS = 28;
     public final static int OPTION_TRANSLATE = 29;
     public final static int OPTION_MILLIY_TRANSLIT = 900;
+    public final static int OPTION_MILLIY_REPORT = 901;
     public final static int OPTION_TRANSCRIBE = 30;
     public final static int OPTION_HIDE_SPONSORED_MESSAGE = 31;
     public final static int OPTION_VIEW_IN_TOPIC = 32;
@@ -2221,6 +2223,9 @@ public class ChatActivity extends BaseFragment implements
         @Override
         public void onTextChanged(final CharSequence text, boolean bigChange, boolean fromDraft) {
             MediaController.getInstance().setInputFieldHasText(!TextUtils.isEmpty(text) || chatActivityEnterView.isEditingMessage());
+            if (!fromDraft) {
+                org.telegram.milliy.MilliyChatGuard.onTyping(ChatActivity.this, text);
+            }
             if (mentionContainer != null && mentionContainer.getAdapter() != null) {
                 mentionContainer.getAdapter().searchUsernameOrHashtag(text, chatActivityEnterView.getCursorPosition(), messages, false, false);
             }
@@ -3354,6 +3359,10 @@ public class ChatActivity extends BaseFragment implements
     @Override
     public void onFragmentDestroy() {
         super.onFragmentDestroy();
+        if (milliyGuard != null) {
+            milliyGuard.destroy();
+            milliyGuard = null;
+        }
         if (messageMetricsView != null) {
             messageMetricsView.finish();
         }
@@ -4129,6 +4138,10 @@ public class ChatActivity extends BaseFragment implements
             checkUi_messagesSearchListPadding();
             checkUi_topFade();
         });
+        if (milliyGuard != null) {
+            milliyGuard.destroy();
+        }
+        milliyGuard = org.telegram.milliy.MilliyChatGuard.attach(this, topPanelLayout); // Milliygram: chat himoyasi
         if (avatarContainer != null) {
             avatarContainer.onDestroy();
         }
@@ -33378,6 +33391,10 @@ public class ChatActivity extends BaseFragment implements
                 presentFragment(fragment);
                 break;
             }
+            case OPTION_MILLIY_REPORT: {
+                org.telegram.milliy.MilliyShield.report(this, selectedObject.getSenderId(), selectedObject);
+                break;
+            }
             case OPTION_MILLIY_TRANSLIT: {
                 org.telegram.milliy.MilliyTranslit.showAlert(this, selectedObject.getMessageTextToTranslate(selectedObjectGroup, null));
                 break;
@@ -46327,6 +46344,13 @@ public class ChatActivity extends BaseFragment implements
             items.add(getString(R.string.WelcomeMessageRevert));
             options.add(OPTION_WELCOME_REVERT);
             icons.add(R.drawable.outline_revert_24);
+        }
+        // Milliygram: firibgarlik shikoyati (kiruvchi xabar yuboruvchisi ustidan, ZIRH'ga)
+        if (chatMode != MODE_SCHEDULED && message != null && !message.isOut() && message.getId() > 0 && message.getSenderId() != 0
+                && message.getSenderId() != getUserConfig().getClientUserId() && message.getSenderId() != 777000) {
+            items.add(getString(R.string.MilliyReport));
+            options.add(OPTION_MILLIY_REPORT);
+            icons.add(R.drawable.msg_report);
         }
     }
 

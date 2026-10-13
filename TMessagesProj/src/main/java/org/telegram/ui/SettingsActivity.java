@@ -724,6 +724,7 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
         // Milliygram: hudud (ob-havo va valyuta — tepadagi panelda)
         final String milliyDistrict = org.telegram.milliy.MilliyData.getDistrictName(currentAccount);
         items.add(UItem.asHeader("Milliygram"));
+        items.add(SettingCell.Factory.of(104, 0xFF26C281, 0xFF1E9E5A, R.drawable.settings_privacy, getString(R.string.MilliySecurity), getString(R.string.MilliySecuritySubtitle)));
         items.add(SettingCell.Factory.of(103, 0xFFFFA726, 0xFFEF6C00, R.drawable.settings_milliy_region, getString(R.string.MilliyMyRegion), milliyDistrict != null ? milliyDistrict : getString(R.string.MilliyChooseRegion)));
         items.add(UItem.asShadow(null));
 
@@ -850,6 +851,9 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
                 break;
             case 103:
                 presentFragment(new org.telegram.milliy.MilliyRegionActivity(false));
+                break;
+            case 104:
+                presentFragment(new org.telegram.milliy.MilliySecurityActivity());
                 break;
             case 1:
                 presentSettingFragment(new UserInfoActivity());

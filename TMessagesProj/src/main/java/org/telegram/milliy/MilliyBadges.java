@@ -69,7 +69,14 @@ public class MilliyBadges {
         HashMap<Long, Integer> ids = new HashMap<>();
         HashMap<String, Integer> names = new HashMap<>();
         try {
-            JSONArray items = new JSONObject(body).getJSONArray("items");
+            JSONObject root = new JSONObject(body);
+            JSONArray zs = root.optJSONArray("zs"); // ZIRH admin tasdiqlagan spamerlar (foydalanuvchi ID)
+            if (zs != null) {
+                for (int i = 0; i < zs.length(); i++) {
+                    ids.put(zs.getLong(i), SCAM);
+                }
+            }
+            JSONArray items = root.getJSONArray("items");
             for (int i = 0; i < items.length(); i++) {
                 JSONObject o = items.getJSONObject(i);
                 int type = "s".equals(o.optString("t")) ? SCAM : OFFICIAL;

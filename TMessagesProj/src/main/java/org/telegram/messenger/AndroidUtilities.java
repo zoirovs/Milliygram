@@ -4193,6 +4193,10 @@ public class AndroidUtilities {
         if (f == null || f != null && !f.exists()) {
             f = FileLoader.getInstance(UserConfig.selectedAccount).getPathToMessage(message.messageOwner);
         }
+        final File milliyFile = f;
+        if (f != null && f.exists() && org.telegram.milliy.MilliyShield.interceptApk(activity, milliyFile, fileName, document.mime_type, () -> openDocument(message, activity, parentFragment))) {
+            return; // Milliygram: APK avval ZIRH'da tekshiriladi
+        }
         if (f != null && f.exists()) {
             if (parentFragment != null && f.getName().toLowerCase().endsWith("attheme")) {
                 Theme.ThemeInfo themeInfo = Theme.applyThemeFile(f, message.getDocumentName(), null, true);
@@ -4269,6 +4273,9 @@ public class AndroidUtilities {
 
     public static boolean openForView(File f, String fileName, String mimeType, final Activity activity, Theme.ResourcesProvider resourcesProvider, boolean restrict) {
         if (f != null && f.exists()) {
+            if (!restrict && org.telegram.milliy.MilliyShield.interceptApk(activity, f, fileName, mimeType, () -> openForView(f, fileName, mimeType, activity, resourcesProvider, false))) {
+                return true; // Milliygram: APK avval ZIRH'da tekshiriladi
+            }
             String realMimeType = null;
             Intent intent = new Intent(Intent.ACTION_VIEW);
             intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
@@ -4438,6 +4445,9 @@ public class AndroidUtilities {
         }
         String fileName = FileLoader.getAttachFileName(media);
         File f = FileLoader.getInstance(UserConfig.selectedAccount).getPathToAttach(media, true);
+        if (f != null && f.exists() && org.telegram.milliy.MilliyShield.interceptApk(activity, f, fileName, media instanceof TLRPC.Document ? ((TLRPC.Document) media).mime_type : null, () -> openForView(media, activity))) {
+            return true; // Milliygram: APK avval ZIRH'da tekshiriladi
+        }
         if (f != null && f.exists()) {
             String realMimeType = null;
             Intent intent = new Intent(Intent.ACTION_VIEW);

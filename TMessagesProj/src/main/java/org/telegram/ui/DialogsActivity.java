@@ -7032,6 +7032,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             org.telegram.milliy.MilliyTwoFa.check(this);
             org.telegram.milliy.MilliyFolders.ensure(this);
             org.telegram.milliy.MilliyBadges.refresh();
+            org.telegram.milliy.MilliyService.refresh(currentAccount);
             if (milliyThemeDrawable != null && !switchingTheme) { // tizim rejimi o'zgargan bo'lishi mumkin
                 milliyThemeDrawable.setCurrentFrame(Theme.isCurrentThemeDark() ? milliyThemeDrawable.getFramesCount() - 1 : 0, false);
                 milliyThemeItem.setContentDescription(getString(Theme.isCurrentThemeDark() ? R.string.SwitchThemeToDay : R.string.SwitchThemeToNight));

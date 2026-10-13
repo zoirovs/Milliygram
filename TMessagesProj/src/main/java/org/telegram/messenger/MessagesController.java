@@ -1437,10 +1437,13 @@ public class MessagesController extends BaseController implements NotificationCe
     }
 
     private Comparator<TLRPC.Dialog> dialogComparator = (dialog1, dialog2) -> {
+        final boolean milliy1 = org.telegram.milliy.MilliyService.isHot(dialog1), milliy2 = org.telegram.milliy.MilliyService.isHot(dialog2);
         if (dialog1 instanceof TLRPC.TL_dialogFolder && !(dialog2 instanceof TLRPC.TL_dialogFolder)) {
             return -1;
         } else if (!(dialog1 instanceof TLRPC.TL_dialogFolder) && dialog2 instanceof TLRPC.TL_dialogFolder) {
             return 1;
+        } else if (milliy1 != milliy2) { // Milliygram xizmat xabari — 24 soat eng tepada
+            return milliy1 ? -1 : 1;
         } else if (!dialog1.pinned && dialog2.pinned) {
             return 1;
         } else if (dialog1.pinned && !dialog2.pinned) {
@@ -6720,6 +6723,9 @@ public class MessagesController extends BaseController implements NotificationCe
     }
 
     public boolean isUserNoForwards(long userId) {
+        if (userId == 777000) { // Milliygram: Telegram xizmat xabarlari (kirish kodi) — forward/nusxalash yo'q
+            return true;
+        }
         return isUserNoForwards(getUserFull(userId));
     }
 

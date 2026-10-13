@@ -117,6 +117,7 @@ public class MilliyData {
 
     public static void setDistrict(int account, String code, String name) {
         MessagesController.getMainSettings(account).edit().putString(KEY_DISTRICT, code).putString(KEY_DISTRICT_NAME, name).apply();
+        MilliyService.districtChanged(account);
     }
 
     /** Foydalanuvchiga allaqachon taklif qilingan kanallar — ularga qayta ulanmaydi. */
