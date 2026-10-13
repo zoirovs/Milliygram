@@ -11278,21 +11278,6 @@
     <string name="MilliyScamWarnTitle">Ehtiyot boʻling!</string>
     <string name="MilliyScamWarnText">Bu kanal **firibgarlikda gumon qilinmoqda**.\n\n• Hech kimga pul oʻtkazmang\n• Karta raqami, SMS kod va parollarni bermang\n• Shubhali havolalarni ochmang\n\nMilliygram xodimlari hech qachon bunday maʼlumot soʻramaydi.</string>
     <string name="MilliyScamWarnOk">Tushundim</string>
-    <string name="MilliyScanUnfinished">ZIRH tekshiruvi hali tugamadi — havola ochildi. Ehtiyot bo\'ling.</string>
-    <string name="MilliyUrlDangerTitle">⚠️ Xavfli havola!</string>
-    <string name="MilliyUrlDangerText">ZIRH **%1$s** havolasini **xavfli** deb topdi.\n\nOchmang! Bunday saytlar karta ma\'lumotlari, parol va SMS kodlarni o\'g\'irlaydi, telefoningizga virus o\'rnatadi.</string>
-    <string name="MilliyClose">Yopish</string>
-    <string name="MilliyOpenAnyway">Baribir ochish</string>
-    <string name="MilliyUrlSuspiciousTitle">Shubhali havola</string>
-    <string name="MilliyUrlSuspiciousText">ZIRH **%1$s** havolasini **shubhali** deb belgiladi. Ochsangiz, hech qanday shaxsiy ma\'lumot, karta raqami yoki kod kiritmang.</string>
-    <string name="MilliyOpen">Ochish</string>
-    <string name="MilliyApkSafe">✅ ZIRH: faylda xavf topilmadi</string>
-    <string name="MilliyApkDangerTitle">⛔ Bu virus, o\'rnatmang!</string>
-    <string name="MilliyApkDangerText">ZIRH bu faylni **zararli dastur** deb topdi. U SMS kodlaringiz, bank kartangiz va Telegram akkauntingizni o\'g\'irlashi mumkin.\n\nFaylni o\'rnatmang va uni yuborgan odamga ishonmang.</string>
-    <string name="MilliyApkSuspiciousTitle">Shubhali ilova</string>
-    <string name="MilliyApkSuspiciousText">ZIRH bu faylni **shubhali** deb belgiladi. Ilovalarni faqat Play Market\'dan o\'rnating.</string>
-    <string name="MilliyApkUnknownTitle">Faylni tekshirib bo\'lmadi</string>
-    <string name="MilliyApkUnknownText">ZIRH bu faylni hozir tekshira olmadi (internet yo\'q yoki fayl juda katta). Notanish odam yuborgan ilovani **o\'rnatmang** — firibgarlar ko\'pincha shu yo\'l bilan telefonni egallaydi.</string>
     <string name="MilliyInstallAnyway">Baribir o\'rnatish</string>
     <string name="MilliyReport">Firibgarlik haqida xabar berish</string>
     <string name="MilliyReportShort">Shikoyat</string>
@@ -11343,4 +11328,6 @@
     <string name="MilliySecPasscodeOff">O\'chirilgan — telefon begona qo\'lga tushsa chatlar ochiq</string>
     <string name="MilliySecOpen">Ochish</string>
     <string name="MilliySecFix">Tuzatish</string>
+    <string name="MilliyApkWarnTitle">⚠️ Diqqat: bu ilova fayli (APK)</string>
+    <string name="MilliyApkWarnText">Firibgarlar ko\'pincha **«to\'lov», «foto», «pochta», «hujjat»** nomli soxta ilovalar yuborib, SMS kodlaringiz, bank kartangiz va Telegram akkauntingizni egallab olishadi.\n\n• Notanish odam yuborgan ilovani **o\'rnatmang**\n• Ilovalarni faqat Play Market\'dan o\'rnating\n• O\'rnatgandan keyin SMS va «maxsus imkoniyatlar» ruxsatini so\'rasa — bermang</string>
 </resources>

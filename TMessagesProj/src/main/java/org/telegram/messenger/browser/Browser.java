@@ -292,16 +292,6 @@ public class Browser {
         if (context == null || uri == null) {
             return;
         }
-        { // Milliygram: tashqi havola ochilishidan oldin ZIRH tekshiruvi
-            final Uri u0 = uri;
-            final boolean c0 = _allowCustom, t0 = tryTelegraph;
-            if (org.telegram.milliy.MilliyShield.interceptUrl(context, u0, () -> openUrl(context, u0, c0, t0, forceNotInternalForApps, null, browser, allowIntent, allowInAppBrowser, forceRequest))) {
-                if (inCaseLoading != null) {
-                    inCaseLoading.end();
-                }
-                return;
-            }
-        }
         final int currentAccount = UserConfig.selectedAccount;
         boolean[] forceBrowser = new boolean[]{false};
         boolean internalUri = isInternalUri(uri, forceBrowser);

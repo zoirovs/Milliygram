@@ -101,7 +101,7 @@
     <string name="PaymentCardInfo">Тўлов маълумоти</string>
     <string name="PaymentCardTitle">Тўлов картаси</string>
     <string name="PaymentCardNumber">Карта рақами</string>
-    <string name="PaymentCardCvv">Хавфсизлик коди (СВВ)</string>
+    <string name="PaymentCardCvv">Хавфсизлик коди (CVV)</string>
     <string name="PaymentCardExpireDate">ОО/ЙЙ</string>
     <string name="PaymentBillingAddress">Тўловчи манзили</string>
     <string name="PaymentCardName">Исми ва фамилияси</string>
@@ -1489,7 +1489,7 @@
     <string name="ChatAdmin">админ</string>
     <string name="ChatTagAdmin">Админ</string>
     <string name="ChatTagOwner">Эга</string>
-    <string name="ApkRestricted">Бу илова учун АПК ўрнатиш тақиқланган. Буни тизим созламаларида ёқишингиз мумкин.</string>
+    <string name="ApkRestricted">Бу илова учун APK ўрнатиш тақиқланган. Буни тизим созламаларида ёқишингиз мумкин.</string>
     <string name="UnreadMessages">Ўқилмаган хабарлар</string>
     <string name="SearchStickersHint">Стикер тўпламларини қидириш</string>
     <string name="SearchTrendingStickersHint">Оммабоп стикерларни қидириш</string>
@@ -10218,21 +10218,6 @@
     <string name="MilliyScamWarnTitle">Эҳтиёт бўлинг!</string>
     <string name="MilliyScamWarnText">Бу канал **фирибгарликда гумон қилинмоқда**.\n\n• Ҳеч кимга пул ўтказманг\n• Карта рақами, СМС код ва паролларни берманг\n• Шубҳали ҳаволаларни очманг\n\nМиллийграм ходимлари ҳеч қачон бундай маълумот сўрамайди.</string>
     <string name="MilliyScamWarnOk">Тушундим</string>
-    <string name="MilliyScanUnfinished">ЗИРҲ текшируви ҳали тугамади — ҳавола очилди. Эҳтиёт бўлинг.</string>
-    <string name="MilliyUrlDangerTitle">⚠️ Хавфли ҳавола!</string>
-    <string name="MilliyUrlDangerText">ЗИРҲ **%1$s** ҳаволасини **хавфли** деб топди.\n\nОчманг! Бундай сайтлар карта маълумотлари, парол ва СМС кодларни ўғирлайди, телефонингизга вирус ўрнатади.</string>
-    <string name="MilliyClose">Ёпиш</string>
-    <string name="MilliyOpenAnyway">Барибир очиш</string>
-    <string name="MilliyUrlSuspiciousTitle">Шубҳали ҳавола</string>
-    <string name="MilliyUrlSuspiciousText">ЗИРҲ **%1$s** ҳаволасини **шубҳали** деб белгилади. Очсангиз, ҳеч қандай шахсий маълумот, карта рақами ёки код киритманг.</string>
-    <string name="MilliyOpen">Очиш</string>
-    <string name="MilliyApkSafe">✅ ЗИРҲ: файлда хавф топилмади</string>
-    <string name="MilliyApkDangerTitle">⛔ Бу вирус, ўрнатманг!</string>
-    <string name="MilliyApkDangerText">ЗИРҲ бу файлни **зарарли дастур** деб топди. У СМС кодларингиз, банк картангиз ва Телеграм аккаунтингизни ўғирлаши мумкин.\n\nФайлни ўрнатманг ва уни юборган одамга ишонманг.</string>
-    <string name="MilliyApkSuspiciousTitle">Шубҳали илова</string>
-    <string name="MilliyApkSuspiciousText">ЗИРҲ бу файлни **шубҳали** деб белгилади. Иловаларни фақат Плай Маркетъдан ўрнатинг.</string>
-    <string name="MilliyApkUnknownTitle">Файлни текшириб бўлмади</string>
-    <string name="MilliyApkUnknownText">ЗИРҲ бу файлни ҳозир текшира олмади (интернет йўқ ёки файл жуда катта). Нотаниш одам юборган иловани **ўрнатманг** — фирибгарлар кўпинча шу йўл билан телефонни эгаллайди.</string>
     <string name="MilliyInstallAnyway">Барибир ўрнатиш</string>
     <string name="MilliyReport">Фирибгарлик ҳақида хабар бериш</string>
     <string name="MilliyReportShort">Шикоят</string>
@@ -10255,7 +10240,7 @@
     <string name="MilliyDangerTitle">Эҳтиёт бўлинг — фирибгарлик белгилари!</string>
     <string name="MilliyDangerText">Бу одам карта маълумоти, СМС код ёки пул сўрамоқда. Ҳеч нарса юборманг.</string>
     <string name="MilliyTypingTitle">Эслатма</string>
-    <string name="MilliyTypingCard">Карта рақамини фақат ишончли одамга юборинг. Карта муддати, СВВ ва СМС кодни ҳеч кимга берманг.</string>
+    <string name="MilliyTypingCard">Карта рақамини фақат ишончли одамга юборинг. Карта муддати, CVV ва СМС кодни ҳеч кимга берманг.</string>
     <string name="MilliyTypingCode">СМС ёки кириш кодини ҳеч кимга берманг — бу аккаунтингизни бой беришнинг энг кўп учрайдиган йўли.</string>
     <string name="MilliySecurity">Хавфсизлик ҳолати</string>
     <string name="MilliySecuritySubtitle">Аккаунт ҳимоясини текшириш</string>
@@ -10283,4 +10268,6 @@
     <string name="MilliySecPasscodeOff">Ўчирилган — телефон бегона қўлга тушса чатлар очиқ</string>
     <string name="MilliySecOpen">Очиш</string>
     <string name="MilliySecFix">Тузатиш</string>
+    <string name="MilliyApkWarnTitle">⚠️ Диққат: бу илова файли (APK)</string>
+    <string name="MilliyApkWarnText">Фирибгарлар кўпинча **«тўлов», «фото», «почта», «ҳужжат»** номли сохта иловалар юбориб, СМС кодларингиз, банк картангиз ва Телеграм аккаунтингизни эгаллаб олишади.\n\n• Нотаниш одам юборган иловани **ўрнатманг**\n• Иловаларни фақат Плай Маркетъдан ўрнатинг\n• Ўрнатгандан кейин СМС ва «махсус имкониятлар» рухсатини сўраса — берманг</string>
 </resources>

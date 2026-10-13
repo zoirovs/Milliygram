@@ -1,10 +1,7 @@
 package org.telegram.milliy;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.DialogInterface;
-import android.net.Uri;
-import android.text.TextUtils;
 import android.widget.Toast;
 
 import org.json.JSONObject;
@@ -25,30 +22,19 @@ import org.telegram.ui.ActionBar.BaseFragment;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.security.MessageDigest;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
 
 /**
- * ZIRH himoyasi: tashqi havolalarni ochishdan va APK o'rnatishdan oldin tekshirish, firibgarlik shikoyati.
- * Serverga faqat havolaning o'zi / faylning o'zi boradi (xabar matni emas). Natija: 0 xavfsiz, 1 shubhali, 2 xavfli.
+ * Firibgarlikka qarshi: APK ochishdan oldin ogohlantirish va firibgarlik shikoyati (ZIRH ko'rib chiqadi).
+ * Havola va APK'ni avtomatik tekshirish — mustaqil tekshiruv tizimi tayyor bo'lgach qo'shiladi.
  */
 public class MilliyShield {
 
-    public static final int SAFE = 0, SUSPICIOUS = 1, MALICIOUS = 2;
-    private static final int MAX_APK = 20 * 1024 * 1024;
-
-    /** Tekshiruvdan ozod domenlar (Telegram'ning o'zi) — qolganini server oq ro'yxati hal qiladi. */
-    private static final String[] SKIP_HOSTS = {"t.me", "telegram.me", "telegram.org", "telegra.ph", "telesco.pe", "fragment.com",
-            "cyberhimoya.uz", "milliysi.uz"};
-
-    private static final HashMap<String, Integer> verdicts = new HashMap<>();
     private static final HashSet<String> approved = new HashSet<>();
 
     // ---------- HTTP ----------
@@ -105,143 +91,6 @@ public class MilliyShield {
         });
     }
 
-    private static JSONObject json(int code, String body) {
-        if (code != 200 || body == null) {
-            return null;
-        }
-        try {
-            return new JSONObject(body);
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    /** null — natija yo'q (hali tekshirilmoqda yoki noma'lum). */
-    private static Integer status(JSONObject o) {
-        return o == null || o.isNull("status") ? null : o.optInt("status");
-    }
-
-    private static String reason(JSONObject o) {
-        String r = o == null || o.isNull("reason") ? null : o.optString("reason");
-        return TextUtils.isEmpty(r) ? "" : "\n\n" + r;
-    }
-
-    // ---------- Havolalar ----------
-
-    /**
-     * Browser.openUrl boshida chaqiriladi. true — havola ushlab qolindi (tekshiruvdan keyin proceed chaqiriladi yoki bekor qilinadi).
-     */
-    public static boolean interceptUrl(Context context, Uri uri, Runnable proceed) {
-        if (!(context instanceof Activity) || uri == null) {
-            return false;
-        }
-        final String scheme = uri.getScheme() == null ? "" : uri.getScheme().toLowerCase(Locale.US);
-        final String host = uri.getHost() == null ? "" : uri.getHost().toLowerCase(Locale.US);
-        if (!scheme.equals("http") && !scheme.equals("https") || host.isEmpty()) {
-            return false;
-        }
-        for (String h : SKIP_HOSTS) {
-            if (host.equals(h) || host.endsWith("." + h)) {
-                return false;
-            }
-        }
-        final String url = uri.toString();
-        if (approved.remove(url)) {
-            return false;
-        }
-        Integer known = verdicts.get(url);
-        if (known != null && known == SAFE) {
-            return false;
-        }
-        final Activity activity = (Activity) context;
-        final Runnable open = () -> {
-            approved.add(url);
-            proceed.run();
-        };
-        if (known != null) {
-            showUrlVerdict(activity, host, known, "", open);
-            return true;
-        }
-        final AlertDialog progress = new AlertDialog(activity, AlertDialog.ALERT_TYPE_SPINNER);
-        progress.setCanCancel(true);
-        final boolean[] cancelled = {false};
-        progress.setOnCancelListener(d -> cancelled[0] = true);
-        final Runnable showProgress = () -> {
-            if (!cancelled[0] && !activity.isFinishing()) {
-                try {
-                    progress.show();
-                } catch (Exception ignore) {
-                }
-            }
-        };
-        AndroidUtilities.runOnUIThread(showProgress, 350);
-        final long started = System.currentTimeMillis();
-        final byte[] body;
-        try {
-            body = new JSONObject().put("url", url).toString().getBytes("UTF-8");
-        } catch (Exception e) {
-            AndroidUtilities.cancelRunOnUIThread(showProgress);
-            return false;
-        }
-        new Object() {
-            void request() {
-                http("POST", "scan/url", body, "application/json", 20000, (code, text) -> {
-                    if (cancelled[0]) {
-                        return;
-                    }
-                    JSONObject o = json(code, text);
-                    Integer st = status(o);
-                    boolean pending = o != null && o.optBoolean("pending");
-                    if (st == null && pending && System.currentTimeMillis() - started < 25000) {
-                        AndroidUtilities.runOnUIThread(this::request, 2500);
-                        return;
-                    }
-                    AndroidUtilities.cancelRunOnUIThread(showProgress);
-                    try {
-                        progress.dismiss();
-                    } catch (Exception ignore) {
-                    }
-                    if (st == null) {
-                        // server ishlamadi yoki tekshiruv tugamadi — havolani to'smaymiz
-                        if (pending) {
-                            Toast.makeText(activity, LocaleController.getString(R.string.MilliyScanUnfinished), Toast.LENGTH_SHORT).show();
-                        }
-                        open.run();
-                        return;
-                    }
-                    verdicts.put(url, st);
-                    if (st == SAFE) {
-                        open.run();
-                    } else {
-                        showUrlVerdict(activity, host, st, reason(o), open);
-                    }
-                });
-            }
-        }.request();
-        return true;
-    }
-
-    private static void showUrlVerdict(Activity activity, String host, int st, String reason, Runnable open) {
-        AlertDialog.Builder b = new AlertDialog.Builder(activity);
-        if (st == MALICIOUS) {
-            b.setTitle(LocaleController.getString(R.string.MilliyUrlDangerTitle));
-            b.setMessage(AndroidUtilities.replaceTags(LocaleController.formatString(R.string.MilliyUrlDangerText, host) + reason));
-            b.setPositiveButton(LocaleController.getString(R.string.MilliyClose), null);
-            b.setNegativeButton(LocaleController.getString(R.string.MilliyOpenAnyway), (d, w) -> open.run());
-            b.makeRed(DialogInterface.BUTTON_NEGATIVE);
-        } else {
-            b.setTitle(LocaleController.getString(R.string.MilliyUrlSuspiciousTitle));
-            b.setMessage(AndroidUtilities.replaceTags(LocaleController.formatString(R.string.MilliyUrlSuspiciousText, host) + reason));
-            b.setPositiveButton(LocaleController.getString(R.string.MilliyOpen), (d, w) -> open.run());
-            b.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
-        }
-        try {
-            b.show();
-        } catch (Exception e) {
-            FileLog.e(e);
-        }
-    }
-
     // ---------- APK ----------
 
     public static boolean isApk(String fileName, String mime) {
@@ -249,8 +98,8 @@ public class MilliyShield {
     }
 
     /**
-     * APK ochilishidan oldin chaqiriladi. true — ushlab qolindi; tekshiruvdan so'ng (xavfsiz bo'lsa yoki foydalanuvchi rozi bo'lsa)
-     * proceed chaqiriladi va u qayta shu metodga kelganda bir martalik ruxsat bilan o'tadi.
+     * APK ochilishidan oldin ogohlantirish (mustaqil tekshiruv tizimi tayyor bo'lguncha). true — ushlab qolindi;
+     * foydalanuvchi rozi bo'lsa proceed chaqiriladi va u qayta shu metodga kelganda bir martalik ruxsat bilan o'tadi.
      */
     public static boolean interceptApk(Activity activity, File f, String fileName, String mime, Runnable proceed) {
         if (activity == null || f == null || !f.exists() || !isApk(fileName != null ? fileName : f.getName(), mime)) {
@@ -260,150 +109,22 @@ public class MilliyShield {
         if (approved.remove(key)) {
             return false;
         }
-        final Runnable install = () -> {
+        AlertDialog.Builder b = new AlertDialog.Builder(activity);
+        b.setTitle(LocaleController.getString(R.string.MilliyApkWarnTitle));
+        b.setMessage(AndroidUtilities.replaceTags(LocaleController.getString(R.string.MilliyApkWarnText)));
+        b.setPositiveButton(LocaleController.getString(R.string.Cancel), null);
+        b.setNegativeButton(LocaleController.getString(R.string.MilliyInstallAnyway), (d, w) -> {
             approved.add(key);
             proceed.run();
-        };
-        final AlertDialog progress = new AlertDialog(activity, AlertDialog.ALERT_TYPE_SPINNER);
-        progress.setCanCancel(true);
-        final boolean[] cancelled = {false};
-        progress.setOnCancelListener(d -> cancelled[0] = true);
-        try {
-            progress.show();
-        } catch (Exception ignore) {
-        }
-        final String name = fileName != null ? fileName : f.getName();
-        Utilities.globalQueue.postRunnable(() -> {
-            final String sha = sha256(f);
-            AndroidUtilities.runOnUIThread(() -> {
-                if (cancelled[0]) {
-                    return;
-                }
-                if (sha == null) {
-                    finishApk(activity, progress, null, null, install);
-                    return;
-                }
-                new Object() {
-                    final long started = System.currentTimeMillis();
-                    boolean uploaded;
-
-                    void query() {
-                        http("GET", "scan/apk?sha256=" + sha, null, null, 15000, (code, text) -> {
-                            if (cancelled[0]) {
-                                return;
-                            }
-                            JSONObject o = json(code, text);
-                            Integer st = status(o);
-                            if (st != null || o == null) {
-                                finishApk(activity, progress, st, o, install);
-                            } else if (!uploaded && !o.optBoolean("pending")) {
-                                upload();
-                            } else if (System.currentTimeMillis() - started < 150000) {
-                                AndroidUtilities.runOnUIThread(this::query, 4000);
-                            } else {
-                                finishApk(activity, progress, null, null, install);
-                            }
-                        });
-                    }
-
-                    void upload() {
-                        uploaded = true;
-                        if (f.length() > MAX_APK) {
-                            finishApk(activity, progress, null, null, install);
-                            return;
-                        }
-                        Utilities.globalQueue.postRunnable(() -> {
-                            byte[] data = readAll(f);
-                            AndroidUtilities.runOnUIThread(() -> {
-                                if (data == null) {
-                                    finishApk(activity, progress, null, null, install);
-                                    return;
-                                }
-                                http("POST", "scan/apk?sha256=" + sha + "&name=" + MilliyData.enc(name), data,
-                                        "application/octet-stream", 90000, (code, text) -> {
-                                            if (cancelled[0]) {
-                                                return;
-                                            }
-                                            JSONObject o = json(code, text);
-                                            if (status(o) != null) {
-                                                finishApk(activity, progress, status(o), o, install);
-                                            } else if (o == null) {
-                                                finishApk(activity, progress, null, null, install);
-                                            } else {
-                                                AndroidUtilities.runOnUIThread(this::query, 4000);
-                                            }
-                                        });
-                            });
-                        });
-                    }
-                }.query();
-            });
         });
-        return true;
-    }
-
-    private static void finishApk(Activity activity, AlertDialog progress, Integer st, JSONObject o, Runnable install) {
-        try {
-            progress.dismiss();
-        } catch (Exception ignore) {
-        }
-        if (st != null && st == SAFE) {
-            Toast.makeText(activity, LocaleController.getString(R.string.MilliyApkSafe), Toast.LENGTH_SHORT).show();
-            install.run();
-            return;
-        }
-        AlertDialog.Builder b = new AlertDialog.Builder(activity);
-        if (st != null && st == MALICIOUS) {
-            // xavfli — o'rnatish tugmasi yo'q
-            b.setTitle(LocaleController.getString(R.string.MilliyApkDangerTitle));
-            b.setMessage(AndroidUtilities.replaceTags(LocaleController.getString(R.string.MilliyApkDangerText) + reason(o)));
-            b.setPositiveButton(LocaleController.getString(R.string.MilliyClose), null);
-        } else {
-            b.setTitle(LocaleController.getString(st != null ? R.string.MilliyApkSuspiciousTitle : R.string.MilliyApkUnknownTitle));
-            b.setMessage(AndroidUtilities.replaceTags(LocaleController.getString(st != null ? R.string.MilliyApkSuspiciousText : R.string.MilliyApkUnknownText) + reason(o)));
-            b.setPositiveButton(LocaleController.getString(R.string.Cancel), null);
-            b.setNegativeButton(LocaleController.getString(R.string.MilliyInstallAnyway), (d, w) -> install.run());
-            b.makeRed(DialogInterface.BUTTON_NEGATIVE);
-        }
+        b.makeRed(DialogInterface.BUTTON_NEGATIVE);
         try {
             b.show();
         } catch (Exception e) {
             FileLog.e(e);
+            return false;
         }
-    }
-
-    private static String sha256(File f) {
-        try (InputStream in = new FileInputStream(f)) {
-            MessageDigest md = MessageDigest.getInstance("SHA-256");
-            byte[] buf = new byte[65536];
-            int n;
-            while ((n = in.read(buf)) > 0) {
-                md.update(buf, 0, n);
-            }
-            StringBuilder sb = new StringBuilder();
-            for (byte x : md.digest()) {
-                sb.append(String.format(Locale.US, "%02x", x));
-            }
-            return sb.toString();
-        } catch (Exception e) {
-            FileLog.e(e);
-            return null;
-        }
-    }
-
-    private static byte[] readAll(File f) {
-        try (InputStream in = new FileInputStream(f)) {
-            ByteArrayOutputStream out = new ByteArrayOutputStream((int) f.length());
-            byte[] buf = new byte[65536];
-            int n;
-            while ((n = in.read(buf)) > 0) {
-                out.write(buf, 0, n);
-            }
-            return out.toByteArray();
-        } catch (Throwable e) {
-            FileLog.e(e);
-            return null;
-        }
+        return true;
     }
 
     // ---------- Shikoyat ----------
