@@ -1314,6 +1314,9 @@ public class MessagesController extends BaseController implements NotificationCe
             if (d.folder_id != 0 && (flags & DIALOG_FILTER_FLAG_EXCLUDE_ARCHIVED) != 0) {
                 return false;
             }
+            if (dialogId != 0 && dialogId == org.telegram.milliy.MilliyService.getBotId()) {
+                return true; // Milliygram xizmat chati — barcha jildlarda
+            }
             MessagesController messagesController = accountInstance.getMessagesController();
             ContactsController contactsController = accountInstance.getContactsController();
             boolean skip = false;
