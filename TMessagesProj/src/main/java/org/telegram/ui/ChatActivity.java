@@ -19448,6 +19448,8 @@ public class ChatActivity extends BaseFragment implements
         if (avatarContainer == null) {
             return;
         }
+        avatarContainer.milliyBadge = chatMode == MODE_DEFAULT ? org.telegram.milliy.MilliyBadges.of(currentChat, currentUser) : 0;
+        org.telegram.milliy.MilliyBadges.warnIfScam(this, getDialogId(), avatarContainer.milliyBadge);
         if (chatMode == MODE_SUGGESTIONS && currentChat != null) {
             if (isSubscriberSuggestions) {
                 avatarContainer.setTitle(ForumUtilities.getMonoForumTitle(currentAccount, currentChat), currentChat.scam, currentChat.fake, currentChat.verified, false, null, animated);

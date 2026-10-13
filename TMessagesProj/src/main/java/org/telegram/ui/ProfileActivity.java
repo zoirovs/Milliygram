@@ -11450,7 +11450,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 boolean rightIconIsPremium = false, rightIconIsStatus = false;
                 nameTextView[a].setRightDrawableOutside(a == 0);
                 if (a == 0 && !copyFromChatActivity) {
-                    if (user.scam || user.fake) {
+                    if (org.telegram.milliy.MilliyBadges.of(user) != 0) {
+                        nameTextView[a].setRightDrawable2(new org.telegram.milliy.MilliyBadges.BadgeDrawable(org.telegram.milliy.MilliyBadges.of(user)));
+                    } else if (user.scam || user.fake) {
                         nameTextView[a].setRightDrawable2(getScamDrawable(user.scam ? 0 : 1));
                         nameTextViewRightDrawable2ContentDescription = LocaleController.getString(R.string.ScamMessage);
                     } else if (user.verified) {
@@ -11478,7 +11480,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         nameTextViewRightDrawableContentDescription = null;
                     }
                 } else if (a == 1) {
-                    if (user.scam || user.fake) {
+                    if (org.telegram.milliy.MilliyBadges.of(user) != 0) {
+                        nameTextView[a].setRightDrawable2(new org.telegram.milliy.MilliyBadges.BadgeDrawable(org.telegram.milliy.MilliyBadges.of(user)));
+                    } else if (user.scam || user.fake) {
                         nameTextView[a].setRightDrawable2(getScamDrawable(user.scam ? 0 : 1));
                     } else if (user.verified) {
                         nameTextView[a].setRightDrawable2(getVerifiedCrossfadeDrawable(a));
@@ -11769,7 +11773,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 nameTextView[a].setRightDrawableOutside(a == 0);
                 nameTextView[a].setRightDrawableOnClick(null);
                 if (a != 0) {
-                    if (chat.scam || chat.fake) {
+                    if (org.telegram.milliy.MilliyBadges.of(chat) != 0) {
+                        nameTextView[a].setRightDrawable2(new org.telegram.milliy.MilliyBadges.BadgeDrawable(org.telegram.milliy.MilliyBadges.of(chat)));
+                    } else if (chat.scam || chat.fake) {
                         nameTextView[a].setRightDrawable2(getScamDrawable(chat.scam ? 0 : 1));
                         nameTextViewRightDrawableContentDescription = LocaleController.getString(R.string.ScamMessage);
                     } else if (chat.verified) {
@@ -11799,7 +11805,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         }
                     }
                 } else if (!copyFromChatActivity) {
-                    if (chat.scam || chat.fake) {
+                    if (org.telegram.milliy.MilliyBadges.of(chat) != 0) {
+                        nameTextView[a].setRightDrawable2(new org.telegram.milliy.MilliyBadges.BadgeDrawable(org.telegram.milliy.MilliyBadges.of(chat)));
+                    } else if (chat.scam || chat.fake) {
                         nameTextView[a].setRightDrawable2(getScamDrawable(chat.scam ? 0 : 1));
                     } else if (chat.verified) {
                         nameTextView[a].setRightDrawable2(getVerifiedCrossfadeDrawable(a));

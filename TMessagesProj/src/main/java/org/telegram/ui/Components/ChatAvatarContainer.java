@@ -932,6 +932,9 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
         return botVerificationDrawable;
     }
 
+    /** Milliygram belgisi (MilliyBadges.OFFICIAL / SCAM); keyingi setTitle() da qo'llanadi. */
+    public int milliyBadge;
+
     public void setTitle(CharSequence value) {
         setTitle(value, false, false, false, false, null, false);
     }
@@ -942,7 +945,12 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
         }
         titleTextView.setText(value);
         rightDrawableIsScam = false;
-        if (scam || fake) {
+        if (milliyBadge != 0 && !scam && !fake) {
+            titleTextView.setRightDrawable2(new org.telegram.milliy.MilliyBadges.BadgeDrawable(milliyBadge));
+            rightDrawableIsScam = milliyBadge == org.telegram.milliy.MilliyBadges.SCAM;
+            rightDrawableIsScamOrVerified = true;
+            rightDrawable2ContentDescription = org.telegram.milliy.MilliyBadges.description(milliyBadge);
+        } else if (scam || fake) {
             rightDrawableIsScam = true;
             if (!(titleTextView.getRightDrawable() instanceof ScamDrawable)) {
                 ScamDrawable drawable = new ScamDrawable(11, scam ? 0 : 1);
@@ -961,7 +969,7 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
             titleTextView.setRightDrawable2(verifiedDrawable);
             rightDrawableIsScamOrVerified = true;
             rightDrawable2ContentDescription = getString(R.string.AccDescrVerified);
-        } else if (titleTextView.getRightDrawable() instanceof ScamDrawable) {
+        } else if (titleTextView.getRightDrawable() instanceof ScamDrawable || titleTextView.getRightDrawable2() instanceof org.telegram.milliy.MilliyBadges.BadgeDrawable) {
             titleTextView.setRightDrawable2(null);
             rightDrawableIsScamOrVerified = false;
             rightDrawable2ContentDescription = null;

@@ -636,7 +636,14 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
     private final AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable emojiStatus;
     private final AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable botVerification;
 
-    private int drawScam;
+    private int drawScam; // Milliygram: 3 — rasmiy, 4 — firibgar
+
+    private Drawable scamBadgeDrawable() {
+        if (drawScam >= 3) {
+            return org.telegram.milliy.MilliyBadges.drawable(drawScam - 2);
+        }
+        return drawScam == 1 ? Theme.dialogs_scamDrawable : Theme.dialogs_fakeDrawable;
+    }
 
     private boolean isSelected;
 
@@ -1474,7 +1481,10 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                     long dialogBotVerificationIcon = 0;
                     if (chat != null) {
                         dialogBotVerificationIcon = DialogObject.getBotVerificationIcon(chat);
-                        if (chat.scam) {
+                        final int milliyBadge = org.telegram.milliy.MilliyBadges.of(chat);
+                        if (milliyBadge != 0) {
+                            drawScam = milliyBadge + 2;
+                        } else if (chat.scam) {
                             drawScam = 1;
                             Theme.dialogs_scamDrawable.checkText();
                         } else if (chat.fake) {
@@ -1492,7 +1502,10 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                         }
                     } else if (user != null) {
                         dialogBotVerificationIcon = DialogObject.getBotVerificationIcon(user);
-                        if (user.scam) {
+                        final int milliyBadge = org.telegram.milliy.MilliyBadges.of(user);
+                        if (milliyBadge != 0) {
+                            drawScam = milliyBadge + 2;
+                        } else if (user.scam) {
                             drawScam = 1;
                             Theme.dialogs_scamDrawable.checkText();
                         } else if (user.fake) {
@@ -1502,7 +1515,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                             drawVerified = !forbidVerified && user.verified;
                             drawBotVerified = !forbidVerified && !UserObject.isUserSelf(user) && user.bot_verification_icon != 0;
                         }
-                        drawPremium = MessagesController.getInstance(currentAccount).isPremiumUser(user) && UserConfig.getInstance(currentAccount).clientUserId != user.id && user.id != 0;
+                        drawPremium = milliyBadge != org.telegram.milliy.MilliyBadges.SCAM && MessagesController.getInstance(currentAccount).isPremiumUser(user) && UserConfig.getInstance(currentAccount).clientUserId != user.id && user.id != 0;
                         if (drawPremium) {
                             Long emojiStatusId = UserObject.getEmojiStatusDocumentId(user);
                             emojiStatus.center = LocaleController.isRTL;
@@ -2361,7 +2374,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                 nameLeft += w;
             }
         } else if (drawScam != 0) {
-            int w = dp(6) + (drawScam == 1 ? Theme.dialogs_scamDrawable : Theme.dialogs_fakeDrawable).getIntrinsicWidth();
+            int w = dp(6) + scamBadgeDrawable().getIntrinsicWidth();
             nameWidth -= w;
             nameAdditionalsForChannelSubscriber += w;
             if (LocaleController.isRTL) {
@@ -2797,7 +2810,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                     nameMuteLeft = (int) (nameLeft + (nameWidth - widthpx - left) - dp(24));
                     nameMutedIconLeft = nameMuteLeft - dp(6) - Theme.dialogs_muteDrawable.getIntrinsicWidth();
                 } else if (drawScam != 0) {
-                    nameMuteLeft = (int) (nameLeft + (nameWidth - widthpx) - dp(6) - (drawScam == 1 ? Theme.dialogs_scamDrawable : Theme.dialogs_fakeDrawable).getIntrinsicWidth());
+                    nameMuteLeft = (int) (nameLeft + (nameWidth - widthpx) - dp(6) - scamBadgeDrawable().getIntrinsicWidth());
                 } else {
                     nameMuteLeft = (int) (nameLeft + (nameWidth - widthpx) - dp(6) - Theme.dialogs_muteDrawable.getIntrinsicWidth());
                 }
@@ -4499,8 +4512,8 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                 if ((!(useForceThreeLines || SharedConfig.useThreeLinesLayout) || isForumCell()) && hasTags()) {
                     y -= dp(9);
                 }
-                setDrawableBounds((drawScam == 1 ? Theme.dialogs_scamDrawable : Theme.dialogs_fakeDrawable), nameMuteLeft, y);
-                (drawScam == 1 ? Theme.dialogs_scamDrawable : Theme.dialogs_fakeDrawable).draw(canvas);
+                setDrawableBounds(scamBadgeDrawable(), nameMuteLeft, y);
+                scamBadgeDrawable().draw(canvas);
             }
 
             if (drawReorder || reorderIconProgress != 0) {
@@ -5535,6 +5548,9 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
         }
         if (drawVerified) {
             sb.append(getString(R.string.AccDescrVerified));
+            sb.append(". ");
+        } else if (drawScam >= 3) {
+            sb.append(org.telegram.milliy.MilliyBadges.description(drawScam - 2));
             sb.append(". ");
         }
         if (dialogMuted) {

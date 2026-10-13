@@ -10211,4 +10211,11 @@
     <string name="MilliyFolderGroups">Гуруҳлар</string>
     <string name="MilliyFolderChannels">Каналлар</string>
     <string name="MilliyFolderBots">Ботлар</string>
+    <string name="MilliyBadgeOfficial">РАСМИЙ</string>
+    <string name="MilliyBadgeScam">ФИРИБГАР</string>
+    <string name="MilliyBadgeOfficialDescr">Миллийграм тасдиқлаган расмий канал</string>
+    <string name="MilliyBadgeScamDescr">Фирибгарликда гумон қилинган канал</string>
+    <string name="MilliyScamWarnTitle">Эҳтиёт бўлинг!</string>
+    <string name="MilliyScamWarnText">Бу канал **фирибгарликда гумон қилинмоқда**.\n\n• Ҳеч кимга пул ўтказманг\n• Карта рақами, СМС код ва паролларни берманг\n• Шубҳали ҳаволаларни очманг\n\nМиллийграм ходимлари ҳеч қачон бундай маълумот сўрамайди.</string>
+    <string name="MilliyScamWarnOk">Тушундим</string>
 </resources>

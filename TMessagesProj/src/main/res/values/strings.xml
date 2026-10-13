@@ -11271,4 +11271,11 @@
     <string name="MilliyFolderGroups">Guruhlar</string>
     <string name="MilliyFolderChannels">Kanallar</string>
     <string name="MilliyFolderBots">Botlar</string>
+    <string name="MilliyBadgeOfficial">RASMIY</string>
+    <string name="MilliyBadgeScam">FIRIBGAR</string>
+    <string name="MilliyBadgeOfficialDescr">Milliygram tasdiqlagan rasmiy kanal</string>
+    <string name="MilliyBadgeScamDescr">Firibgarlikda gumon qilingan kanal</string>
+    <string name="MilliyScamWarnTitle">Ehtiyot boʻling!</string>
+    <string name="MilliyScamWarnText">Bu kanal **firibgarlikda gumon qilinmoqda**.\n\n• Hech kimga pul oʻtkazmang\n• Karta raqami, SMS kod va parollarni bermang\n• Shubhali havolalarni ochmang\n\nMilliygram xodimlari hech qachon bunday maʼlumot soʻramaydi.</string>
+    <string name="MilliyScamWarnOk">Tushundim</string>
 </resources>
