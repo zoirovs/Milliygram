@@ -733,7 +733,7 @@ public class FiltersSetupActivity extends BaseFragment implements NotificationCe
                 if (item.milliy >= 0) {
                     boolean on = !org.telegram.milliy.MilliyAdminFolders.enabled(item.milliy);
                     org.telegram.milliy.MilliyAdminFolders.setEnabled(currentAccount, item.milliy, on);
-                    ((TextCell) view).setChecked(on);
+                    ((org.telegram.ui.Cells.TextCell) view).setChecked(on);
                 } else {
                     org.telegram.milliy.MilliyFolders.showHiddenFolders(this, () -> updateRows(true));
                 }
@@ -1010,8 +1010,10 @@ public class FiltersSetupActivity extends BaseFragment implements NotificationCe
                     view = new TextInfoPrivacyCell(mContext);
                     break;
                 case VIEW_TYPE_BUTTON:
-                case VIEW_TYPE_MILLIY:
                     view = new TextCell(mContext);
+                    break;
+                case VIEW_TYPE_MILLIY:
+                    view = new org.telegram.ui.Cells.TextCell(mContext); // bu fayldagi ichki TextCell emas — check/value bilan
                     break;
                 case VIEW_TYPE_CHECK:
                     view = new TextCheckCell(mContext);
@@ -1136,7 +1138,7 @@ public class FiltersSetupActivity extends BaseFragment implements NotificationCe
                     break;
                 }
                 case VIEW_TYPE_MILLIY: {
-                    TextCell cell = (TextCell) holder.itemView;
+                    org.telegram.ui.Cells.TextCell cell = (org.telegram.ui.Cells.TextCell) holder.itemView;
                     if (item.milliy >= 0) {
                         cell.setTextAndCheckAndIcon(LocaleController.getString(org.telegram.milliy.MilliyAdminFolders.NAMES[item.milliy]),
                                 org.telegram.milliy.MilliyAdminFolders.enabled(item.milliy), org.telegram.milliy.MilliyAdminFolders.ICONS[item.milliy], divider);
