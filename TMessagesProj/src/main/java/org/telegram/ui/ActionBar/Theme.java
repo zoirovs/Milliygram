@@ -2196,6 +2196,7 @@ public class Theme {
     };
 
     public static int DEFALT_THEME_ACCENT_ID = 99;
+    public static final int MILLIY_ACCENT_ID = 50; // Milliygram: «Milliy» rang to'plami
     public static int selectedAutoNightType = AUTO_NIGHT_TYPE_NONE;
     public static boolean autoNightScheduleByLocation;
     public static float autoNightBrighnessThreshold = 0.25f;
@@ -4325,8 +4326,6 @@ public class Theme {
     }
 
     // Milliygram: «Milliy» rang to'plami (kunduzgi — Blue, tungi — Dark Blue asosida), yangi o'rnatishlarda standart
-    public static final int MILLIY_ACCENT_ID = 50;
-
     private static void addMilliyAccent(ThemeInfo info, int accent, int myMessages, int myMessagesGradient,
                                         long bg, long bg1, long bg2, long bg3, String slug, int rotation, float intensity) {
         ThemeAccent a = new ThemeAccent();

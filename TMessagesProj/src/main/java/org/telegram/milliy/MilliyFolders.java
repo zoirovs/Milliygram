@@ -177,7 +177,7 @@ public class MilliyFolders {
                 }
             }
             prefs.edit().putStringSet(KEY_HIDDEN, hide).putBoolean(KEY_HIDDEN_DONE, true).apply();
-            mc.getNotificationCenter().postNotificationName(org.telegram.messenger.NotificationCenter.dialogFiltersUpdated);
+            org.telegram.messenger.NotificationCenter.getInstance(account).postNotificationName(org.telegram.messenger.NotificationCenter.dialogFiltersUpdated);
         }
         if (prefs.getBoolean(KEY_DONE, false)) {
             return;
