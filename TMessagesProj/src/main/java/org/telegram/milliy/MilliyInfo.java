@@ -29,7 +29,7 @@ public class MilliyInfo {
         }
     }
 
-    private static String emoji(int code) {
+    public static String emoji(int code) {
         if (code == 0) return "☀️";
         if (code <= 2) return "🌤";
         if (code == 3) return "☁️";
@@ -41,36 +41,6 @@ public class MilliyInfo {
 
     private static String deg(int t) {
         return (t > 0 ? "+" : "") + t + "°";
-    }
-
-    // ---------- Qisqa matnlar (Sozlamalar qatori) ----------
-
-    public static String weatherShort(int account) {
-        String wp = weatherPath(account);
-        String body = wp == null ? null : MilliyData.cached(wp);
-        if (body == null) {
-            return MilliyData.getDistrict(account) == null ? LocaleController.getString(R.string.MilliyChooseRegion) : "";
-        }
-        try {
-            JSONObject w = new JSONObject(body);
-            return w.getString("place") + ": " + emoji(w.optInt("code")) + " " + deg(w.getInt("temp")) + ", " + w.optString("text");
-        } catch (Exception e) {
-            return "";
-        }
-    }
-
-    public static String currencyShort() {
-        String body = MilliyData.cached("currency");
-        if (body == null) {
-            return "";
-        }
-        try {
-            JSONArray arr = new JSONArray(body);
-            JSONObject usd = arr.getJSONObject(0);
-            return "1 " + usd.getString("code") + " = " + money(usd.getDouble("rate")) + " soʻm";
-        } catch (Exception e) {
-            return "";
-        }
     }
 
     private static String money(double v) {

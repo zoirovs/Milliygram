@@ -161,6 +161,14 @@ public class FilterTabsView extends FrameLayout {
         }
 
         public boolean setTitle(String newTitle, ArrayList<TLRPC.MessageEntity> newEntities, boolean noanimate) {
+            if (isDefault) { // Milliygram: «Barchasi» o'rnida faqat ikonka
+                final CharSequence icon = org.telegram.milliy.MilliyFolders.allTitle();
+                if (title == icon) {
+                    return false;
+                }
+                title = icon;
+                return true;
+            }
             if (TextUtils.equals(title, newTitle)) {
                 return false;
             }

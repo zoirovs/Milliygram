@@ -1116,6 +1116,7 @@ public class FilterCreateActivity extends BaseFragment {
         if (fragment == null || fragment.getParentActivity() == null) {
             return;
         }
+        org.telegram.milliy.MilliyFolders.unhide(fragment.getCurrentAccount(), filter.id); // tahrirlangan papka Milliygram'da ham ko'rinadi
         AlertDialog progressDialog;
         if (progress) {
             progressDialog = new AlertDialog(fragment.getParentActivity(), AlertDialog.ALERT_TYPE_SPINNER);

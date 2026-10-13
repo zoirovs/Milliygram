@@ -4936,14 +4936,14 @@
     <string name="AccDescrCaptureStory">Hikoya olish</string>
     <string name="AccDescrProfileMusic">Profil musiqasi</string>
     <string name="AccDescrProfileRatingLevel">Profilning yulduzli reyting darajasi</string>
-    <string name="formatterBoostExpired">yyyy-yil, dd-MMM</string>
-    <string name="formatterGiveawayCard">yyyy-yil, dd-MMM </string>
+    <string name="formatterBoostExpired">yyyy-\'yil\', dd-MMM</string>
+    <string name="formatterGiveawayCard">yyyy-\'yil\', dd-MMM</string>
     <string name="formatterGiveawayMonthDay">dd-MMMM</string>
-    <string name="formatterGiveawayMonthDayYear">yyyy-yil, dd-MMMM </string>
+    <string name="formatterGiveawayMonthDayYear">yyyy-\'yil\', dd-MMMM</string>
     <string name="formatterMonthYear">MMMM yyyy</string>
     <string name="formatterMonthOnly">MMMM</string>
     <string name="formatterStats12H">dd-MMM, yyyy, h:mm a</string>
-    <string name="formatterStats24H">dd-mmm yyyy, HH:mm</string>
+    <string name="formatterStats24H">dd-MMM yyyy, HH:mm</string>
     <string name="formatterBannedUntil12H">dd-MMM yyyy, h:mm a</string>
     <string name="formatterBannedUntil24H">dd-MMM yyyy, HH:mm</string>
     <string name="formatterBannedUntilThisYear12H">dd-MMM, h:mm a</string>
@@ -4953,7 +4953,7 @@
     <string name="formatterYearMax">dd.MM.yyyy</string>
     <string name="chatDate">d\'-\'MMMM</string>
     <string name="chatDateShort">d-MMM</string>
-    <string name="chatFullDate">d-MMMM, yyyy-yil</string>
+    <string name="chatFullDate">d-MMMM, yyyy-\'yil\'</string>
     <string name="formatterWeek">EEE</string>
     <string name="formatterWeekLong">EEEE</string>
     <string name="formatterDay24H">HH:mm</string>

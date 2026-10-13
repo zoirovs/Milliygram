@@ -171,6 +171,7 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
     private ImageLocation uploadingImageLocation;
 
     private FrameLayout topView;
+    private org.telegram.milliy.MilliyInfoBar milliyInfoBar;
     private FrameLayout avatarContainer;
     private AvatarDrawable avatarDrawable;
     private BackupImageView avatarView;
@@ -633,6 +634,16 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
 
         items.add(UItem.asCustomShadow(topView, 200 - 12));
 
+        // Milliygram: tepada ob-havo + valyuta paneli
+        if (milliyInfoBar == null && getContext() != null) {
+            milliyInfoBar = new org.telegram.milliy.MilliyInfoBar(getContext(), this);
+        }
+        if (milliyInfoBar != null) {
+            milliyInfoBar.update();
+            items.add(UItem.asCustom(milliyInfoBar));
+            items.add(UItem.asShadow(null));
+        }
+
         accountNumbers.clear();
         for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
             if (UserConfig.getInstance(a).isClientActivated() && currentAccount != a) {
@@ -710,11 +721,9 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
 
         items.add(UItem.asShadow(null));
 
-        // Milliygram: ob-havo, valyuta, hudud
+        // Milliygram: hudud (ob-havo va valyuta — tepadagi panelda)
         final String milliyDistrict = org.telegram.milliy.MilliyData.getDistrictName(currentAccount);
         items.add(UItem.asHeader("Milliygram"));
-        items.add(SettingCell.Factory.of(101, 0xFF4FC3F7, 0xFF1D83BE, R.drawable.settings_milliy_weather, getString(R.string.MilliyWeather), org.telegram.milliy.MilliyInfo.weatherShort(currentAccount)));
-        items.add(SettingCell.Factory.of(102, 0xFF66BB6A, 0xFF2E7D32, R.drawable.settings_milliy_currency, getString(R.string.MilliyCurrency), org.telegram.milliy.MilliyInfo.currencyShort()));
         items.add(SettingCell.Factory.of(103, 0xFFFFA726, 0xFFEF6C00, R.drawable.settings_milliy_region, getString(R.string.MilliyMyRegion), milliyDistrict != null ? milliyDistrict : getString(R.string.MilliyChooseRegion)));
         items.add(UItem.asShadow(null));
 

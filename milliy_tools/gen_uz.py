@@ -58,6 +58,19 @@ def to_cyr(t):
     parts.append(to_cyr_plain(t[last:]))
     return "".join(parts)
 
+DATE_KEY = re.compile(r"^(formatter|chatDate|chatFullDate|formatDateSchedule)")
+DATE_LETTERS = set("GyMdHhmsSEaKkLuz")
+
+def fix_date_pattern(v):
+    """Sana formati (SimpleDateFormat): so'zlarni ('yil') qo'shtirnoqqa oladi, noto'g'ri bo'lsa None.
+    Kirillga O'GIRILMAYDI — oy nomlarini Java locale o'zi kirillda beradi."""
+    v = v.strip().replace("mmm", "MMM")  # tarjimadagi xato: dd-mmm (daqiqa emas, oy)
+    v = re.sub(r"(?<!')\byil\b(?!')", "'yil'", v)
+    outside = re.sub(r"'[^']*'", "", v)
+    if any(ch.isalpha() and ch not in DATE_LETTERS for ch in outside):
+        return None
+    return v
+
 def main():
     en_raw = (RES / "values/strings.xml").read_text(encoding="utf-8")
     en = {k: unescape(v) for k, v in re.findall(r'<string name="([^"]+)"[^>]*>(.*?)</string>', en_raw, re.S)}
@@ -76,6 +89,12 @@ def main():
         if sorted(PH.findall(v)) != sorted(PH.findall(en[k])):
             bad += 1; continue
         v = v.replace("Telegram", "Milliygram") if k in ("AppNameFull",) else v
+        if DATE_KEY.match(k) and "%" not in en[k]:
+            v = fix_date_pattern(v)
+            if v is None:
+                bad += 1; continue
+            lat.append((k, v)); cyr.append((k, v.replace("'yil'", "'йил'")))
+            continue
         lat.append((k, v)); cyr.append((k, to_cyr(v)))
     for d, items in (("values-uz", lat), ("values-b+uz+Cyrl", cyr)):
         p = RES / d; p.mkdir(exist_ok=True)

@@ -3437,6 +3437,14 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         fragmentSearchFieldWatcher.setDoNotCloseAfterFieldEmpty();
 
         if (initialDialogsType == DIALOGS_TYPE_DEFAULT) {
+            // Milliygram: kunduzgi/tungi rejim tugmasi
+            milliyThemeDrawable = new RLottieDrawable(R.raw.sun, dp(28), dp(28), true, null);
+            milliyThemeDrawable.setCurrentFrame(Theme.isCurrentThemeDark() ? milliyThemeDrawable.getFramesCount() - 1 : 0);
+            milliyThemeDrawable.setPlayInDirectionOfCustomEndFrame(true);
+            milliyThemeItem = menu.addItem(-48, milliyThemeDrawable);
+            milliyThemeItem.setContentDescription(getString(Theme.isCurrentThemeDark() ? R.string.SwitchThemeToDay : R.string.SwitchThemeToNight));
+            milliyThemeItem.setOnClickListener(v -> milliyToggleDayNight(milliyThemeItem));
+
             optionsItem = menu.addItem(4, R.drawable.ic_ab_other);
             optionsItem.setContentDescription(LocaleController.getString(R.string.AccDescrMoreOptions));
             optionsItem.setOnClickListener(v -> {
@@ -6872,14 +6880,17 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                     selectWithStableId = true;
                 }
                 filterTabsView.removeTabs();
-                for (int a = 0, N = filters.size(); a < N; a++) {
-                    if (filters.get(a).isDefault()) {
-                        filterTabsView.addTab(a, 0, LocaleController.getString(R.string.FilterAllChats), null, false, true, filters.get(a).locked);
+                // Milliygram: qat'iy tartib (Barchasi, Shaxsiy, Guruhlar, Kanallar, Botlar), ikonkalar, eski papkalar yashirin
+                final ArrayList<Integer> tabOrder = org.telegram.milliy.MilliyFolders.tabOrder(currentAccount, filters);
+                for (int a : tabOrder) {
+                    final MessagesController.DialogFilter filter = filters.get(a);
+                    if (filter.isDefault()) {
+                        filterTabsView.addTab(a, 0, org.telegram.milliy.MilliyFolders.allTitle(), false, true, filter.locked);
                     } else {
-                        final MessagesController.DialogFilter filter = filters.get(a);
-                        filterTabsView.addTab(a, filter.localId, filter.name, filter.entities, filter.title_noanimate, false, filters.get(a).locked);
+                        filterTabsView.addTab(a, filter.localId, org.telegram.milliy.MilliyFolders.tabTitle(filter, filterTabsView.text(filter.name, filter.entities)), filter.title_noanimate, false, filter.locked);
                     }
                 }
+
                 if (stableId >= 0) {
                     if (selectWithStableId) {
                         if (!filterTabsView.selectTabWithStableId(stableId)) {
@@ -6906,8 +6917,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 if (updateCurrentTab) {
                     switchToCurrentSelectedMode(false);
                 }
-                if (filterTabsView.isLocked(filterTabsView.getCurrentTabId())) {
-                    filterTabsView.selectFirstTab();
+                if (filterTabsView.isLocked(filterTabsView.getCurrentTabId()) || !tabOrder.contains(viewPages[0].selectedType)) {
+                    filterTabsView.selectFirstTab(); // yashirin papka tanlangan bo'lib qolgan bo'lsa ham
                 }
             }
         } else {
@@ -7021,6 +7032,10 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             org.telegram.milliy.MilliyTwoFa.check(this);
             org.telegram.milliy.MilliyFolders.ensure(this);
             org.telegram.milliy.MilliyBadges.refresh();
+            if (milliyThemeDrawable != null && !switchingTheme) { // tizim rejimi o'zgargan bo'lishi mumkin
+                milliyThemeDrawable.setCurrentFrame(Theme.isCurrentThemeDark() ? milliyThemeDrawable.getFramesCount() - 1 : 0, false);
+                milliyThemeItem.setContentDescription(getString(Theme.isCurrentThemeDark() ? R.string.SwitchThemeToDay : R.string.SwitchThemeToNight));
+            }
         }
         if (dialogStoriesCell != null) {
             dialogStoriesCell.onResume();
@@ -13689,38 +13704,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         }
         io.add(isCurrentThemeDark ? R.drawable.menu_day_mode_24 : R.drawable.menu_night_mode_24,
                 getString(isCurrentThemeDark ? R.string.SwitchThemeToDay : R.string.SwitchThemeToNight), () -> {
-            if (switchingTheme) {
-                return;
-            }
-            switchingTheme = true;
-            SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences("themeconfig", Activity.MODE_PRIVATE);
-            String dayThemeName = preferences.getString("lastDayTheme", "Blue");
-            if (Theme.getTheme(dayThemeName) == null || Theme.getTheme(dayThemeName).isDark()) {
-                dayThemeName = "Blue";
-            }
-            String nightThemeName = preferences.getString("lastDarkTheme", "Dark Blue");
-            if (Theme.getTheme(nightThemeName) == null || !Theme.getTheme(nightThemeName).isDark()) {
-                nightThemeName = "Dark Blue";
-            }
-            Theme.ThemeInfo themeInfo = Theme.getActiveTheme();
-            if (dayThemeName.equals(nightThemeName)) {
-                if (themeInfo.isDark() || dayThemeName.equals("Dark Blue") || dayThemeName.equals("Night")) {
-                    dayThemeName = "Blue";
-                } else {
-                    nightThemeName = "Dark Blue";
-                }
-            }
-
-            boolean toDark;
-            if (toDark = dayThemeName.equals(themeInfo.getKey())) {
-                themeInfo = Theme.getTheme(nightThemeName);
-            } else {
-                themeInfo = Theme.getTheme(dayThemeName);
-            }
-            switchTheme(themeInfo, toDark);
-            Theme.turnOffAutoNight(BulletinFactory.of(this), () -> {
-                presentFragment(new ThemeActivity(ThemeActivity.THEME_TYPE_NIGHT));
-            });
+            milliyToggleDayNight(optionsItem);
         });
         io.addGap();
         io.add(R.drawable.outline_groups_24, getString(R.string.NewGroup), () -> {
@@ -14235,12 +14219,59 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         scrollToTop(true, true);
     }
 
+    /** Kunduzgi/tungi mavzuni almashtirish (⋮ menyusi va Milliygram'ning tepadagi tugmasi). */
+    private void milliyToggleDayNight(ActionBarMenuItem anchor) {
+        if (switchingTheme || anchor == null) {
+            return;
+        }
+        switchingTheme = true;
+        SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences("themeconfig", Activity.MODE_PRIVATE);
+        String dayThemeName = preferences.getString("lastDayTheme", "Blue");
+        if (Theme.getTheme(dayThemeName) == null || Theme.getTheme(dayThemeName).isDark()) {
+            dayThemeName = "Blue";
+        }
+        String nightThemeName = preferences.getString("lastDarkTheme", "Dark Blue");
+        if (Theme.getTheme(nightThemeName) == null || !Theme.getTheme(nightThemeName).isDark()) {
+            nightThemeName = "Dark Blue";
+        }
+        Theme.ThemeInfo themeInfo = Theme.getActiveTheme();
+        if (dayThemeName.equals(nightThemeName)) {
+            if (themeInfo.isDark() || dayThemeName.equals("Dark Blue") || dayThemeName.equals("Night")) {
+                dayThemeName = "Blue";
+            } else {
+                nightThemeName = "Dark Blue";
+            }
+        }
+
+        boolean toDark;
+        if (toDark = dayThemeName.equals(themeInfo.getKey())) {
+            themeInfo = Theme.getTheme(nightThemeName);
+        } else {
+            themeInfo = Theme.getTheme(dayThemeName);
+        }
+        switchTheme(themeInfo, toDark, anchor);
+        Theme.turnOffAutoNight(BulletinFactory.of(this), () -> {
+            presentFragment(new ThemeActivity(ThemeActivity.THEME_TYPE_NIGHT));
+        });
+        if (milliyThemeItem != null) {
+            milliyThemeDrawable.setCustomEndFrame(toDark ? milliyThemeDrawable.getFramesCount() - 1 : 0);
+            milliyThemeItem.getIconView().playAnimation();
+        }
+    }
+
+    private ActionBarMenuItem milliyThemeItem;
+    private RLottieDrawable milliyThemeDrawable;
+
     private void switchTheme(Theme.ThemeInfo themeInfo, boolean toDark) {
-        if (optionsItem == null) return;
+        switchTheme(themeInfo, toDark, optionsItem);
+    }
+
+    private void switchTheme(Theme.ThemeInfo themeInfo, boolean toDark, ActionBarMenuItem anchor) {
+        if (anchor == null) return;
         int[] pos = new int[2];
-        optionsItem.getLocationInWindow(pos);
-        pos[0] += optionsItem.getIconView().getMeasuredWidth() / 2;
-        pos[1] += optionsItem.getIconView().getMeasuredHeight() / 2;
+        anchor.getLocationInWindow(pos);
+        pos[0] += anchor.getIconView().getMeasuredWidth() / 2;
+        pos[1] += anchor.getIconView().getMeasuredHeight() / 2;
         NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.needSetDayNightTheme, themeInfo, false, pos, -1, toDark, null, null, null, true);
     }
 

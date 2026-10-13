@@ -3910,6 +3910,9 @@ public class Theme {
                 new int[]    {          0,                            180,                            45,                             0,                            45,                           180,                             0,                             0,                             0,                             0,                             0,                             0,                             0,                             0,                             0,                             0 },
                 new int[]    {          0,                             52,                            46,                            57,                            45,                            64,                            52,                            35,                            36,                            41,                            50,                            50,                            35,                            38,                            37,                            30 }
                 );
+        addMilliyAccent(themeInfo, 0xFF1D83BE, 0xFFD9F5C9, 0xFFC5E9F9,
+                0xFFA8DAEC, 0xFFD8EFC6, 0xFFB5E1D6, 0xFFE3F2DA, "fqv01SQemVIBAAAApND8LDRUhRU", 45, 0.40f);
+        themeInfo.currentAccentId = MILLIY_ACCENT_ID;
         sortAccents(themeInfo);
         themes.add(currentDayTheme = defaultTheme = themeInfo);
         themesDict.put("Blue", themeInfo);
@@ -3934,6 +3937,9 @@ public class Theme {
                 new int[]    {                           225,                            45,                           225,                           135,                            45,                           225,                            45,                             0,                             0,                             0,                             0,                             0,                             0,                             0,                             0,                             0,                             0,                             0 },
                 new int[]    {                            40,                            40,                            31,                            50,                            25,                            34,                            35,                            35,                            38,                            29,                            24,                            34,                            34,                            31,                            29,                            37,                            21,                            38 }
                 );
+        addMilliyAccent(themeInfo, 0xFF34A3E6, 0xFF1A6CA0, 0xFF168463,
+                0xFF0A1823, 0xFF0C221E, 0xFF0B1B2B, 0xFF10241C, "fqv01SQemVIBAAAApND8LDRUhRU", 45, 0.35f);
+        themeInfo.currentAccentId = MILLIY_ACCENT_ID;
         sortAccents(themeInfo);
         themes.add(themeInfo);
         themesDict.put("Dark Blue", currentNightTheme = themeInfo);
@@ -4101,7 +4107,7 @@ public class Theme {
             for (ThemeInfo info : themesDict.values()) {
                 if (info.assetName != null && info.accentBaseColor != 0) {
                     String accents = themeConfig.getString("accents_" + info.assetName, null);
-                    info.currentAccentId = themeConfig.getInt("accent_current_" + info.assetName, info.firstAccentIsDefault ? DEFALT_THEME_ACCENT_ID : 0);
+                    info.currentAccentId = themeConfig.getInt("accent_current_" + info.assetName, defaultAccentId(info));
                     ArrayList<ThemeAccent> newAccents = new ArrayList<>();
                     if (!TextUtils.isEmpty(accents)) {
                         try {
@@ -4235,7 +4241,7 @@ public class Theme {
                         sortAccents(info);
                     }
                     if (info.themeAccentsMap != null && info.themeAccentsMap.get(info.currentAccentId) == null) {
-                        info.currentAccentId = info.firstAccentIsDefault ? DEFALT_THEME_ACCENT_ID : 0;
+                        info.currentAccentId = defaultAccentId(info);
                     }
                     info.loadWallpapers(themeConfig);
                     ThemeAccent accent = info.getAccent(false);
@@ -4318,8 +4324,42 @@ public class Theme {
         AndroidUtilities.runOnUIThread(Theme::checkAutoNightThemeConditions);
     }
 
+    // Milliygram: «Milliy» rang to'plami (kunduzgi — Blue, tungi — Dark Blue asosida), yangi o'rnatishlarda standart
+    public static final int MILLIY_ACCENT_ID = 50;
+
+    private static void addMilliyAccent(ThemeInfo info, int accent, int myMessages, int myMessagesGradient,
+                                        long bg, long bg1, long bg2, long bg3, String slug, int rotation, float intensity) {
+        ThemeAccent a = new ThemeAccent();
+        a.id = MILLIY_ACCENT_ID;
+        a.isDefault = true;
+        a.parentTheme = info;
+        a.accentColor = accent;
+        a.myMessagesAccentColor = myMessages;
+        a.myMessagesGradientAccentColor1 = myMessagesGradient;
+        a.backgroundOverrideColor = bg;
+        a.backgroundGradientOverrideColor1 = bg1;
+        a.backgroundGradientOverrideColor2 = bg2;
+        a.backgroundGradientOverrideColor3 = bg3;
+        a.patternSlug = slug;
+        a.backgroundRotation = rotation;
+        a.patternIntensity = intensity;
+        info.themeAccentsMap.put(a.id, a);
+        info.themeAccents.add(a);
+        info.defaultAccentCount++;
+    }
+
+    private static int defaultAccentId(ThemeInfo info) {
+        if (info.themeAccentsMap != null && info.themeAccentsMap.get(MILLIY_ACCENT_ID) != null) {
+            return MILLIY_ACCENT_ID;
+        }
+        return info.firstAccentIsDefault ? DEFALT_THEME_ACCENT_ID : 0;
+    }
+
     private static void sortAccents(ThemeInfo info) {
         Collections.sort(info.themeAccents, (o1, o2) -> {
+            if (o1.id == MILLIY_ACCENT_ID || o2.id == MILLIY_ACCENT_ID) {
+                return o1.id == o2.id ? 0 : (o1.id == MILLIY_ACCENT_ID ? -1 : 1);
+            }
             if (isHome(o1)) {
                 return -1;
             }
