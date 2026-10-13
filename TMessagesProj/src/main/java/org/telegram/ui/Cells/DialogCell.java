@@ -636,7 +636,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
     private final AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable emojiStatus;
     private final AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable botVerification;
 
-    private int drawScam; // Milliygram: 3 — rasmiy, 4 — firibgar
+    private int drawScam; // Milliygram: 3 — rasmiy, 4 — firibgar, 5 — tasdiqlangan
 
     private Drawable scamBadgeDrawable() {
         if (drawScam >= 3) {

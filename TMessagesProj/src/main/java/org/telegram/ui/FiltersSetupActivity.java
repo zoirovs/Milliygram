@@ -482,6 +482,7 @@ public class FiltersSetupActivity extends BaseFragment implements NotificationCe
             title = Emoji.replaceEmoji(title, textView.getPaint().getFontMetricsInt(), false);
             title = MessageObject.replaceAnimatedEmoji(title, filter.entities, textView.getPaint().getFontMetricsInt());
             textView.setEmojiCacheType(filter.title_noanimate ? AnimatedEmojiDrawable.CACHE_TYPE_NOANIMATE_FOLDER : AnimatedEmojiDrawable.CACHE_TYPE_MESSAGES);
+            title = org.telegram.milliy.MilliyFolders.labelWithIcon(currentAccount, filter, title); // Milliygram: tablarda faqat ikonka — bu yerda ikonka + nom
             textView.setText(title);
 
             valueTextView.setText(info);
@@ -596,6 +597,17 @@ public class FiltersSetupActivity extends BaseFragment implements NotificationCe
             items.add(ItemInner.asButton(LocaleController.getString(R.string.CreateNewFilter)));
         }
         items.add(ItemInner.asShadow(null));
+
+        // Milliygram jildlari (virtual): Tanlanganlar, Admin guruhlar, Admin kanallar + yashirin jildlar
+        items.add(ItemInner.asHeader(LocaleController.getString(R.string.MilliyFoldersSection)));
+        for (int t : new int[]{org.telegram.milliy.MilliyAdminFolders.FAVORITES, org.telegram.milliy.MilliyAdminFolders.ADMIN_GROUPS, org.telegram.milliy.MilliyAdminFolders.ADMIN_CHANNELS}) {
+            items.add(ItemInner.asMilliy(t));
+        }
+        ItemInner hiddenItem = ItemInner.asMilliy(-1);
+        hiddenItem.count = org.telegram.milliy.MilliyFolders.hiddenFolders(currentAccount).size();
+        items.add(hiddenItem);
+        items.add(ItemInner.asShadow(LocaleController.getString(R.string.MilliyFoldersSectionInfo)));
+
         folderTagsPosition = items.size();
         showTagsRow = items.size();
         items.add(ItemInner.asCheck(LocaleController.getString(R.string.FolderShowTags)));
@@ -717,6 +729,14 @@ public class FiltersSetupActivity extends BaseFragment implements NotificationCe
                 }
             } else if (item.viewType == VIEW_TYPE_BUTTON) {
                 createFolder(getParentLayout());
+            } else if (item.viewType == VIEW_TYPE_MILLIY) {
+                if (item.milliy >= 0) {
+                    boolean on = !org.telegram.milliy.MilliyAdminFolders.enabled(item.milliy);
+                    org.telegram.milliy.MilliyAdminFolders.setEnabled(currentAccount, item.milliy, on);
+                    ((TextCell) view).setChecked(on);
+                } else {
+                    org.telegram.milliy.MilliyFolders.showHiddenFolders(this, () -> updateRows(true));
+                }
             }
         });
 
@@ -785,6 +805,7 @@ public class FiltersSetupActivity extends BaseFragment implements NotificationCe
     private static final int VIEW_TYPE_BUTTON = 4;
     private static final int VIEW_TYPE_FILTER_SUGGESTION = 5;
     private static final int VIEW_TYPE_CHECK = 6;
+    private static final int VIEW_TYPE_MILLIY = 7; // Milliygram jildi (yoqish/o'chirish) yoki yashirin jildlar
 
     private int shiftDp = -4;
 
@@ -797,6 +818,14 @@ public class FiltersSetupActivity extends BaseFragment implements NotificationCe
         MessagesController.DialogFilter filter;
         int filterColor;
         TLRPC.TL_dialogFilterSuggested suggested;
+        int milliy = -1; // VIEW_TYPE_MILLIY: virtual jild turi, -1 — yashirin jildlar
+        int count; // yashirin jildlar soni (o'zgarsa qator qayta chiziladi)
+
+        public static ItemInner asMilliy(int type) {
+            ItemInner i = new ItemInner(VIEW_TYPE_MILLIY);
+            i.milliy = type;
+            return i;
+        }
 
         public static ItemInner asHeader(CharSequence text) {
             ItemInner i = new ItemInner(VIEW_TYPE_HEADER);
@@ -849,6 +878,9 @@ public class FiltersSetupActivity extends BaseFragment implements NotificationCe
                 if (!TextUtils.equals(text, other.text)) {
                     return false;
                 }
+            }
+            if (viewType == VIEW_TYPE_MILLIY && (milliy != other.milliy || count != other.count)) {
+                return false;
             }
             if (viewType == VIEW_TYPE_FILTER) {
                 if ((filter == null) != (other.filter == null)) {
@@ -919,6 +951,12 @@ public class FiltersSetupActivity extends BaseFragment implements NotificationCe
                                 presentFragment(new FilterCreateActivity(filter));
                             }
                         });
+                        options.add(R.drawable.msg_emoji_cat, LocaleController.getString(R.string.MilliyFolderIcon), () -> org.telegram.milliy.MilliyFolders.chooseIcon(FiltersSetupActivity.this, filter));
+                        if (org.telegram.milliy.MilliyFolders.isHidden(currentAccount, filter.id)) {
+                            options.add(R.drawable.msg_message, LocaleController.getString(R.string.MilliyFolderShow), () -> org.telegram.milliy.MilliyFolders.unhideAndNotify(currentAccount, filter.id));
+                        } else {
+                            options.add(R.drawable.msg_archive, LocaleController.getString(R.string.MilliyFolderHide), () -> org.telegram.milliy.MilliyFolders.hide(currentAccount, filter.id));
+                        }
                         options.add(R.drawable.msg_delete, LocaleController.getString(R.string.FilterDeleteItem), true, () -> {
                             if (filter.isChatlist()) {
                                 FolderBottomSheet.showForDeletion(FiltersSetupActivity.this, filter.id, success -> {
@@ -972,6 +1010,7 @@ public class FiltersSetupActivity extends BaseFragment implements NotificationCe
                     view = new TextInfoPrivacyCell(mContext);
                     break;
                 case VIEW_TYPE_BUTTON:
+                case VIEW_TYPE_MILLIY:
                     view = new TextCell(mContext);
                     break;
                 case VIEW_TYPE_CHECK:
@@ -1094,6 +1133,17 @@ public class FiltersSetupActivity extends BaseFragment implements NotificationCe
                 case VIEW_TYPE_FILTER_SUGGESTION: {
                     SuggestedFilterCell filterCell = (SuggestedFilterCell) holder.itemView;
                     filterCell.setFilter(item.suggested, divider);
+                    break;
+                }
+                case VIEW_TYPE_MILLIY: {
+                    TextCell cell = (TextCell) holder.itemView;
+                    if (item.milliy >= 0) {
+                        cell.setTextAndCheckAndIcon(LocaleController.getString(org.telegram.milliy.MilliyAdminFolders.NAMES[item.milliy]),
+                                org.telegram.milliy.MilliyAdminFolders.enabled(item.milliy), org.telegram.milliy.MilliyAdminFolders.ICONS[item.milliy], divider);
+                    } else {
+                        cell.setTextAndValueAndIcon(LocaleController.getString(R.string.MilliyHiddenFolders),
+                                String.valueOf(item.count), R.drawable.msg_archive, divider);
+                    }
                     break;
                 }
             }

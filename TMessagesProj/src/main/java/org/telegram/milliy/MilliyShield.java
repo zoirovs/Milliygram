@@ -39,11 +39,11 @@ public class MilliyShield {
 
     // ---------- HTTP ----------
 
-    private interface Result {
+    interface Result {
         void run(int code, String body);
     }
 
-    private static void http(String method, String path, byte[] body, String contentType, int timeoutMs, Result result) {
+    static void http(String method, String path, byte[] body, String contentType, int timeoutMs, Result result) {
         Utilities.globalQueue.postRunnable(() -> {
             int code = 0;
             String text = null;

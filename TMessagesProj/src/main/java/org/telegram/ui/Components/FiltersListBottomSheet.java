@@ -68,7 +68,7 @@ public class FiltersListBottomSheet extends BottomSheet implements NotificationC
         this.selectedDialogs = selectedDialogs;
         this.fragment = baseFragment;
 //        dialogFilters = getCanAddDialogFilters(baseFragment, selectedDialogs);
-        dialogFilters = new ArrayList<>(baseFragment.getMessagesController().dialogFilters);
+        dialogFilters = new ArrayList<>(org.telegram.milliy.MilliyAdminFolders.real(baseFragment.getMessagesController().dialogFilters)); // Milliygram: virtual jildlar serverga saqlanmaydi
         for (int i = 0; i < dialogFilters.size(); ++i) {
             if (dialogFilters.get(i).isDefault()) {
                 dialogFilters.remove(i);
@@ -328,7 +328,7 @@ public class FiltersListBottomSheet extends BottomSheet implements NotificationC
 
     public static ArrayList<MessagesController.DialogFilter> getCanAddDialogFilters(BaseFragment fragment, ArrayList<Long> selectedDialogs) {
         ArrayList<MessagesController.DialogFilter> result = new ArrayList<>();
-        ArrayList<MessagesController.DialogFilter> filters = fragment.getMessagesController().dialogFilters;
+        ArrayList<MessagesController.DialogFilter> filters = org.telegram.milliy.MilliyAdminFolders.real(fragment.getMessagesController().dialogFilters);
         for (int a = 0, N = filters.size(); a < N; a++) {
             MessagesController.DialogFilter filter = filters.get(a);
             if (!getDialogsCount(fragment, filter, selectedDialogs, true, true).isEmpty() && !filter.isDefault()) {

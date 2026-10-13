@@ -582,6 +582,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     private ActionBarMenuSubItem addToFolderItem;
     @Nullable
     private ActionBarMenuSubItem removeFromFolderItem;
+    private ActionBarMenuSubItem milliyFavoriteItem;
     @Nullable
     private ActionBarMenuSubItem archiveItem;
     @Nullable
@@ -710,6 +711,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     private final static int add_to_folder = 109;
     private final static int remove_from_folder = 110;
     private final static int community_ungroup = 111;
+    private final static int milliy_favorite = 190; // Milliygram: Tanlanganlar
 
     private final static int ARCHIVE_ITEM_STATE_PINNED = 0;
     private final static int ARCHIVE_ITEM_STATE_SHOWED = 1;
@@ -3937,6 +3939,11 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                     fragmentSearchFieldWatcher.toggleSearch(true);
                 } else if (id == 11) {
                     openAccountSelector(switchItem);
+                } else if (id == milliy_favorite) {
+                    boolean added = org.telegram.milliy.MilliyAdminFolders.toggleFavorites(currentAccount, new ArrayList<>(selectedDialogs));
+                    BulletinFactory.of(DialogsActivity.this).createSimpleBulletin(R.raw.contact_check,
+                            LocaleController.getString(added ? R.string.MilliyFavoritesAdded : R.string.MilliyFavoritesRemoved)).show();
+                    hideActionMode(true);
                 } else if (id == add_to_folder) {
                     FiltersListBottomSheet sheet = new FiltersListBottomSheet(DialogsActivity.this, selectedDialogs);
                     sheet.setDelegate((filter, checked) -> {
@@ -6771,6 +6778,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         pin2Item = otherItem.addSubItem(pin2, R.drawable.msg_pin, LocaleController.getString(R.string.DialogPin));
         addToFolderItem = otherItem.addSubItem(add_to_folder, R.drawable.msg_addfolder, LocaleController.getString(R.string.FilterAddTo));
         removeFromFolderItem = otherItem.addSubItem(remove_from_folder, R.drawable.msg_removefolder, LocaleController.getString(R.string.FilterRemoveFrom));
+        milliyFavoriteItem = otherItem.addSubItem(milliy_favorite, R.drawable.msg_fave, LocaleController.getString(R.string.MilliyFavoritesAdd));
         readItem = otherItem.addSubItem(read, R.drawable.msg_markread, LocaleController.getString(R.string.MarkAsRead));
         clearItem = otherItem.addSubItem(clear, R.drawable.msg_clear, LocaleController.getString(R.string.ClearHistory));
         blockItem = otherItem.addSubItem(block, R.drawable.msg_block, LocaleController.getString(R.string.BlockUser));
@@ -9966,8 +9974,23 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 blockItem.setVisibility(View.VISIBLE);
             }
         }
+        if (milliyFavoriteItem != null) {
+            boolean allFav = !selectedDialogs.isEmpty();
+            for (int a = 0; a < selectedDialogs.size(); a++) {
+                if (!org.telegram.milliy.MilliyAdminFolders.isFavorite(currentAccount, selectedDialogs.get(a))) {
+                    allFav = false;
+                    break;
+                }
+            }
+            milliyFavoriteItem.setText(LocaleController.getString(allFav ? R.string.MilliyFavoritesRemove : R.string.MilliyFavoritesAdd));
+            milliyFavoriteItem.setVisibility(folderId == 0 ? View.VISIBLE : View.GONE);
+        }
         if (removeFromFolderItem != null) {
             boolean cantRemoveFromFolder = filterTabsView == null || filterTabsView.getVisibility() != View.VISIBLE || filterTabsView.currentTabIsDefault();
+            if (!cantRemoveFromFolder && viewPages[0].selectedType >= 0 && viewPages[0].selectedType < getMessagesController().getDialogFilters().size()
+                    && org.telegram.milliy.MilliyAdminFolders.isVirtual(getMessagesController().getDialogFilters().get(viewPages[0].selectedType))) {
+                cantRemoveFromFolder = true; // virtual jild: Tanlanganlar — «Tanlanganlardan olib tashlash» orqali
+            }
             if (!cantRemoveFromFolder) {
                 try {
                     final int dialogsCount = getDialogsArray(currentAccount, viewPages[0].dialogsAdapter.getDialogsType(), folderId, dialogsListFrozen).size();

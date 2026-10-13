@@ -14,6 +14,7 @@ import android.text.TextPaint;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.FileLog;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessagesController;
@@ -28,38 +29,70 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 /**
- * Milliygram belgilari: rasmiy kanallar (yashil «✓ RASMIY») va firibgar kanallar (qizil «! FIRIBGAR»).
+ * Milliygram belgilari: rasmiy kanallar (havo rang «✓ RASMIY»), tasdiqlangan kanallar (havo rang «✓ TASDIQLANGAN») va firibgar kanallar (qizil «! FIRIBGAR»).
  * Ro'yxat serverdagi /panel/badges dan boshqariladi. Telegram'ning o'z scam/fake belgisi bo'lsa, u ustun turadi.
  */
 public class MilliyBadges {
 
-    public static final int NONE = 0, OFFICIAL = 1, SCAM = 2;
+    public static final int NONE = 0, OFFICIAL = 1, SCAM = 2, VERIFIED = 3;
 
     private static final String PATH = "badges";
-    private static final long MAX_AGE = 60 * 60 * 1000L;
+    private static final long MAX_AGE = 60 * 60 * 1000L; // to'liq ro'yxat baribir soatda bir yangilanadi
+    private static final long CHECK_EVERY = 60 * 1000L; // ilova ochiq bo'lsa — har daqiqada versiya (≈45 bayt) tekshiriladi
     private static final long CHANNEL_SHIFT = -1000000000000L; // Bot API: kanal ID = -100…
 
     private static HashMap<Long, Integer> byId = new HashMap<>();
     private static HashMap<String, Integer> byUsername = new HashMap<>();
     private static String loadedBody;
+    private static String loadedVersion = "";
+    private static long lastCheck;
+    private static boolean loopRunning;
     private static final HashSet<Long> warned = new HashSet<>();
 
     static {
         apply(MilliyData.cached(PATH));
     }
 
-    /** Serverdan yangilaydi (kesh 1 soat). O'zgargan bo'lsa ro'yxatlar qayta chiziladi. */
+    /**
+     * Serverdan yangilaydi: avval kichik versiya so'raladi, o'zgargan bo'lsa (yoki soat o'tgan bo'lsa) to'liq ro'yxat.
+     * Ilova ochiq turganda har daqiqada takrorlanadi — admin bergan belgi ~1 daqiqada hammada ko'rinadi.
+     */
     public static void refresh() {
-        MilliyData.get(PATH, MAX_AGE, body -> {
-            if (body != null && !body.equals(loadedBody)) {
-                apply(body);
-                for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
-                    if (UserConfig.getInstance(a).isClientActivated()) {
-                        NotificationCenter.getInstance(a).postNotificationName(NotificationCenter.updateInterfaces, MessagesController.UPDATE_MASK_NAME);
-                    }
+        long now = System.currentTimeMillis();
+        if (now - lastCheck >= CHECK_EVERY - 1000) {
+            lastCheck = now;
+            MilliyData.get(PATH + "/version", 0, body -> {
+                String v = null;
+                try {
+                    v = new JSONObject(body).optString("v", null);
+                } catch (Exception ignore) {
+                }
+                boolean changed = v != null && !v.equals(loadedVersion);
+                MilliyData.get(PATH, changed ? 0 : MAX_AGE, MilliyBadges::onBody, null);
+            }, () -> MilliyData.get(PATH, MAX_AGE, MilliyBadges::onBody, null));
+        }
+        if (!loopRunning) {
+            loopRunning = true;
+            AndroidUtilities.runOnUIThread(MilliyBadges::loop, CHECK_EVERY);
+        }
+    }
+
+    private static void loop() {
+        loopRunning = false;
+        if (!ApplicationLoader.mainInterfacePaused) { // fonda bo'lsa to'xtaydi; ilova ochilganda onResume qayta boshlaydi
+            refresh();
+        }
+    }
+
+    private static void onBody(String body) {
+        if (body != null && !body.equals(loadedBody)) {
+            apply(body);
+            for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
+                if (UserConfig.getInstance(a).isClientActivated()) {
+                    NotificationCenter.getInstance(a).postNotificationName(NotificationCenter.updateInterfaces, MessagesController.UPDATE_MASK_NAME);
                 }
             }
-        }, null);
+        }
     }
 
     private static void apply(String body) {
@@ -79,7 +112,8 @@ public class MilliyBadges {
             JSONArray items = root.getJSONArray("items");
             for (int i = 0; i < items.length(); i++) {
                 JSONObject o = items.getJSONObject(i);
-                int type = "s".equals(o.optString("t")) ? SCAM : OFFICIAL;
+                String t = o.optString("t");
+                int type = "s".equals(t) ? SCAM : "v".equals(t) ? VERIFIED : OFFICIAL;
                 if (!o.isNull("id")) {
                     // ID ma'lum bo'lsa faqat shu bo'yicha: username boshqa birovga o'tsa belgi ko'chmaydi
                     ids.put(o.getLong("id"), type);
@@ -94,6 +128,10 @@ public class MilliyBadges {
         byId = ids;
         byUsername = names;
         loadedBody = body;
+        try {
+            loadedVersion = new JSONObject(body).optString("v", "");
+        } catch (Exception ignore) {
+        }
     }
 
     public static int of(TLRPC.Chat chat) {
@@ -143,7 +181,30 @@ public class MilliyBadges {
     }
 
     public static String description(int type) {
-        return LocaleController.getString(type == SCAM ? R.string.MilliyBadgeScamDescr : R.string.MilliyBadgeOfficialDescr);
+        return LocaleController.getString(type == SCAM ? R.string.MilliyBadgeScamDescr
+                : type == VERIFIED ? R.string.MilliyBadgeVerifiedDescr : R.string.MilliyBadgeOfficialDescr);
+    }
+
+    /**
+     * «Tasdiqlash belgisini so'rash» qaysi profil uchun ko'rinadi: egasi ochgan ommaviy kanal/guruh yoki o'z boti
+     * (belgisi hali yo'q). Forma: MilliyVerifyActivity; so'rovni admin panelda tasdiqlaydi yoki rad etadi.
+     */
+    public static String verifyStartParam(TLRPC.Chat chat, TLRPC.User user) {
+        if (chat != null) {
+            return chat.creator && org.telegram.messenger.ChatObject.isPublic(chat) && of(chat) == NONE ? "vc" + chat.id : null;
+        }
+        if (user != null && user.bot && user.bot_can_edit && of(user) == NONE) {
+            String u = org.telegram.messenger.UserObject.getPublicUsername(user);
+            return u != null ? "vb_" + u : null;
+        }
+        return null;
+    }
+
+    /** Ilova ichidagi forma: bot admin (shu sahifadan), telefon, ixtiyoriy OneID. */
+    public static void requestVerify(BaseFragment fragment, TLRPC.Chat chat, TLRPC.User user) {
+        if (verifyStartParam(chat, user) != null) {
+            fragment.presentFragment(new MilliyVerifyActivity(chat, chat == null ? user : null));
+        }
     }
 
     /** Firibgar kanal/foydalanuvchi ochilganda bir marta (ilova sessiyasida) ogohlantiradi. */
@@ -191,8 +252,9 @@ public class MilliyBadges {
 
         public BadgeDrawable(int type) {
             this.type = type;
-            bg.setColor(type == SCAM ? 0xFFD93025 : 0xFF1E9E5A);
+            bg.setColor(type == SCAM ? 0xFFD93025 : 0xFF1A86D0); // rasmiy va tasdiqlangan: Telegram tasdiq belgisi (#33A8E6) tusi, oq yozuv o'qilishi uchun to'qroq
             text.setColor(0xFFFFFFFF);
+            text.setShadowLayer(dp(1), 0, dp(0.5f), 0x40000000);
             text.setTextSize(dp(10));
             text.setTypeface(AndroidUtilities.bold());
             icon.setColor(0xFFFFFFFF);
@@ -204,7 +266,8 @@ public class MilliyBadges {
         }
 
         void checkText() {
-            String s = LocaleController.getString(type == SCAM ? R.string.MilliyBadgeScam : R.string.MilliyBadgeOfficial);
+            String s = LocaleController.getString(type == SCAM ? R.string.MilliyBadgeScam
+                    : type == VERIFIED ? R.string.MilliyBadgeVerified : R.string.MilliyBadgeOfficial);
             if (!s.equals(label)) {
                 label = s;
                 labelWidth = (int) Math.ceil(text.measureText(label));

@@ -116,13 +116,11 @@ public class MilliyProActivity extends BaseFragment {
 
         // Adminlar uchun
         header(R.string.MilliyForAdmins);
-        check(R.string.MilliyAdminFolders, R.string.MilliyAdminFoldersInfo, "admin_folders", false, () -> MilliyAdminFolders.apply(currentAccount));
         info(R.string.MilliyAdminsHint);
 
-        // Jildlar
-        header(R.string.MilliyFolders);
-        action(LocaleController.getString(R.string.MilliyHiddenFolders), String.valueOf(hiddenFolders().size()), this::showHiddenFolders);
-        info(R.string.MilliyFoldersHint);
+        // Jildlar — Sozlamalar → Chat jildlari (Milliygram bo'limida)
+        action(LocaleController.getString(R.string.SettingsFolders), "",
+                () -> presentFragment(new org.telegram.ui.FiltersSetupActivity()));
 
         // Media va trafik
         header(R.string.MilliyMedia);
@@ -162,36 +160,6 @@ public class MilliyProActivity extends BaseFragment {
             org.telegram.ui.Components.BulletinFactory.of(this).createCopyLinkBulletin().show();
         });
         info(R.string.MilliyOtherHint);
-    }
-
-    private java.util.ArrayList<org.telegram.messenger.MessagesController.DialogFilter> hiddenFolders() {
-        java.util.ArrayList<org.telegram.messenger.MessagesController.DialogFilter> out = new java.util.ArrayList<>();
-        for (org.telegram.messenger.MessagesController.DialogFilter f : getMessagesController().getDialogFilters()) {
-            if (!f.isDefault() && MilliyFolders.isHidden(currentAccount, f.id)) {
-                out.add(f);
-            }
-        }
-        return out;
-    }
-
-    private void showHiddenFolders() {
-        java.util.ArrayList<org.telegram.messenger.MessagesController.DialogFilter> list = hiddenFolders();
-        AlertDialog.Builder b = new AlertDialog.Builder(getParentActivity());
-        b.setTitle(LocaleController.getString(R.string.MilliyHiddenFolders));
-        if (list.isEmpty()) {
-            b.setMessage(LocaleController.getString(R.string.MilliyHiddenFoldersEmpty));
-            b.setPositiveButton(LocaleController.getString(R.string.OK), null);
-        } else {
-            CharSequence[] items = new CharSequence[list.size()];
-            for (int i = 0; i < list.size(); i++) {
-                items[i] = list.get(i).name;
-            }
-            b.setItems(items, (d, w) -> {
-                MilliyFolders.unhideAndNotify(currentAccount, list.get(w).id);
-                build();
-            });
-        }
-        showDialog(b.create());
     }
 
     private void editAutoReply() {

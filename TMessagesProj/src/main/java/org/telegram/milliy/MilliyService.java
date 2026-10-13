@@ -37,6 +37,10 @@ public class MilliyService {
         }
     }
 
+    public static String getBotUsername() {
+        return botUsername != null && !botUsername.isEmpty() ? botUsername : "milliygramsupportbot";
+    }
+
     public static long getBotId() {
         return botId;
     }

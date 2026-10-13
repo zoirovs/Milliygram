@@ -932,7 +932,7 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
         return botVerificationDrawable;
     }
 
-    /** Milliygram belgisi (MilliyBadges.OFFICIAL / SCAM); keyingi setTitle() da qo'llanadi. */
+    /** Milliygram belgisi (MilliyBadges.OFFICIAL / SCAM / VERIFIED); keyingi setTitle() da qo'llanadi. */
     public int milliyBadge;
 
     public void setTitle(CharSequence value) {

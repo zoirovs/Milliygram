@@ -29,7 +29,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Plus uslubidagi papkalar: [ikonka] | Shaxsiy | Guruhlar | Kanallar | Botlar — doim shu tartibda, ikonkalar bilan.
+ * Plus uslubidagi jildlar: Barcha | Shaxsiy | Guruhlar | Kanallar | Botlar — birinchi kirishda yaratiladi.
+ * Tablarda faqat ikonka (nomi Sozlamalar → Chat jildlari'da ko'rinadi); tartibni foydalanuvchi o'sha yerda o'zgartiradi.
  * Har bir akkauntda bir marta yaratiladi; foydalanuvchi o'chirsa — qayta yaratilmaydi.
  * Milliygram o'rnatilgunga qadar boshqa klientlarda yaratilgan papkalar faqat bu ilovada yashiriladi (serverda qoladi);
  * foydalanuvchi ularni «Jildlar» bo'limidan tahrirlab saqlasa, yana ko'rinadi. Keyin yaratilganlari oxirida chiqadi.
@@ -48,7 +49,7 @@ public class MilliyFolders {
     };
     private static final int[] ICONS = {R.drawable.msg_folders_private, R.drawable.msg_folders_groups, R.drawable.msg_folders_channels, R.drawable.msg_folders_bots};
     private static final int ICON_ALL = R.drawable.msg_limit_chats;
-    private static final int[] ICON_ADMIN = {R.drawable.msg_folders_groups, R.drawable.msg_folders_channels, R.drawable.msg_fave, R.drawable.msg_fave};
+    private static final int ICON_DEFAULT = R.drawable.msg_folders;
 
     /** Foydalanuvchi tanlay oladigan jild ikonkalari. */
     public static final int[] ICON_CHOICES = {
@@ -69,7 +70,7 @@ public class MilliyFolders {
         return MessagesController.getMainSettings(account).getInt("milliy_folder_icon_" + filterId, -1);
     }
 
-    /** Tab uchun ikonka: tanlangani, bo'lmasa milliy/admin papka ikonkasi, bo'lmasa yo'q (0). */
+    /** Jild ikonkasi: tanlangani, bo'lmasa milliy/virtual jild ikonkasi, bo'lmasa umumiy jild ikonkasi. */
     public static int iconFor(int account, MessagesController.DialogFilter f) {
         int c = customIcon(account, f.id);
         if (c >= 0 && c < ICON_CHOICES.length) {
@@ -79,10 +80,10 @@ public class MilliyFolders {
         if (t >= 0) {
             return ICONS[t];
         }
-        if (f.milliyAdmin >= 0 && f.milliyAdmin < ICON_ADMIN.length) {
-            return ICON_ADMIN[f.milliyAdmin];
+        if (f.milliyAdmin >= 0 && f.milliyAdmin < MilliyAdminFolders.ICONS.length) {
+            return MilliyAdminFolders.ICONS[f.milliyAdmin];
         }
-        return 0;
+        return ICON_DEFAULT;
     }
 
     public static void chooseIcon(BaseFragment fragment, MessagesController.DialogFilter f) {
@@ -156,51 +157,72 @@ public class MilliyFolders {
         }
     }
 
-    /** Tablar tartibi (getDialogFilters() indekslari): Barchasi, 4 ta milliy papka, so'ng qolganlari; yashirinlari tashlanadi. */
+    /** Tablar tartibi (getDialogFilters() indekslari): foydalanuvchi belgilagan tartibda, yashirinlari tashlanadi. */
     public static ArrayList<Integer> tabOrder(int account, ArrayList<MessagesController.DialogFilter> filters) {
         final Set<String> hide = hidden(account);
         ArrayList<Integer> order = new ArrayList<>();
-        int[] milliy = {-1, -1, -1, -1};
-        ArrayList<Integer> rest = new ArrayList<>();
-        int def = -1;
         for (int a = 0; a < filters.size(); a++) {
             MessagesController.DialogFilter f = filters.get(a);
-            int t = milliyType(f);
-            if (f.isDefault()) {
-                def = a;
-            } else if (t >= 0 && milliy[t] < 0 && !hide.contains(String.valueOf(f.id))) {
-                milliy[t] = a;
-            } else if (t >= 0 && milliy[t] < 0) {
-                milliy[t] = -2; // foydalanuvchi yashirgan milliy papka
-            } else if (!hide.contains(String.valueOf(f.id))) {
-                rest.add(a);
+            if (f.isDefault() || !hide.contains(String.valueOf(f.id))) {
+                order.add(a);
             }
         }
-        if (def >= 0) {
-            order.add(def);
-        }
-        for (int m : milliy) {
-            if (m >= 0) {
-                order.add(m);
-            }
-        }
-        order.addAll(rest);
         return order;
     }
 
-    /** Tab sarlavhasi: Barchasi — faqat ikonka, milliy papkalar — ikonka + nom, boshqalar — nomning o'zi. */
+    /** Tab sarlavhasi: faqat ikonka (nomsiz). */
     public static CharSequence tabTitle(int account, MessagesController.DialogFilter f, CharSequence name) {
         if (f == null || f.isDefault()) {
             return allTitle();
         }
-        int icon = iconFor(account, f);
-        if (icon == 0) {
-            return name;
-        }
         SpannableStringBuilder sb = new SpannableStringBuilder("\u2060");
-        sb.setSpan(new IconSpan(icon, dp(5)), 0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        sb.setSpan(new IconSpan(iconFor(account, f), 0), 0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        return sb;
+    }
+
+    /** Sozlamalardagi ro'yxat uchun: ikonka + nom. */
+    public static CharSequence labelWithIcon(int account, MessagesController.DialogFilter f, CharSequence name) {
+        SpannableStringBuilder sb = new SpannableStringBuilder("\u2060");
+        sb.setSpan(new IconSpan(f == null || f.isDefault() ? ICON_ALL : iconFor(account, f), dp(8)), 0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         sb.append(name);
         return sb;
+    }
+
+    public static ArrayList<MessagesController.DialogFilter> hiddenFolders(int account) {
+        ArrayList<MessagesController.DialogFilter> out = new ArrayList<>();
+        for (MessagesController.DialogFilter f : MessagesController.getInstance(account).getDialogFilters()) {
+            if (!f.isDefault() && isHidden(account, f.id)) {
+                out.add(f);
+            }
+        }
+        return out;
+    }
+
+    /** Yashirin jildlar ro'yxati: bosilgani qayta ko'rsatiladi. */
+    public static void showHiddenFolders(BaseFragment fragment, Runnable onChange) {
+        if (fragment.getParentActivity() == null) {
+            return;
+        }
+        int account = fragment.getCurrentAccount();
+        ArrayList<MessagesController.DialogFilter> list = hiddenFolders(account);
+        org.telegram.ui.ActionBar.AlertDialog.Builder b = new org.telegram.ui.ActionBar.AlertDialog.Builder(fragment.getParentActivity());
+        b.setTitle(LocaleController.getString(R.string.MilliyHiddenFolders));
+        if (list.isEmpty()) {
+            b.setMessage(LocaleController.getString(R.string.MilliyHiddenFoldersEmpty));
+            b.setPositiveButton(LocaleController.getString(R.string.OK), null);
+        } else {
+            CharSequence[] items = new CharSequence[list.size()];
+            for (int i = 0; i < list.size(); i++) {
+                items[i] = list.get(i).name;
+            }
+            b.setItems(items, (d, w) -> {
+                unhideAndNotify(account, list.get(w).id);
+                if (onChange != null) {
+                    onChange.run();
+                }
+            });
+        }
+        fragment.showDialog(b.create());
     }
 
     private static CharSequence allTitle;
