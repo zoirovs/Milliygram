@@ -195,6 +195,10 @@ public class MilliyChatGuard implements NotificationCenter.NotificationCenterDel
             sb.append(" · ").append(LocaleController.getString(R.string.MilliyGuardRegistered)).append(" ")
                     .append(UserInfoCell.displayDate(ps.registration_month));
         }
+        String changed = MilliyContacts.recentChangeWarning(account, dialogId); // Milliygram: yaqinda ism/raqam almashtirgan
+        if (changed != null) {
+            sb.append(" · ").append(changed);
+        }
         TLRPC.UserFull full = MessagesController.getInstance(account).getUserFull(dialogId);
         if (full != null) {
             sb.append(" · ").append(full.common_chats_count > 0

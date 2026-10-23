@@ -600,7 +600,7 @@ public class FiltersSetupActivity extends BaseFragment implements NotificationCe
 
         // Milliygram jildlari (virtual): Tanlanganlar, Admin guruhlar, Admin kanallar + yashirin jildlar
         items.add(ItemInner.asHeader(LocaleController.getString(R.string.MilliyFoldersSection)));
-        for (int t : new int[]{org.telegram.milliy.MilliyAdminFolders.FAVORITES, org.telegram.milliy.MilliyAdminFolders.ADMIN_GROUPS, org.telegram.milliy.MilliyAdminFolders.ADMIN_CHANNELS}) {
+        for (int t : new int[]{org.telegram.milliy.MilliyAdminFolders.FAVORITES, org.telegram.milliy.MilliyAdminFolders.ADMIN_GROUPS, org.telegram.milliy.MilliyAdminFolders.ADMIN_CHANNELS, org.telegram.milliy.MilliyAdminFolders.SUPERGROUPS}) {
             items.add(ItemInner.asMilliy(t));
         }
         ItemInner hiddenItem = ItemInner.asMilliy(-1);

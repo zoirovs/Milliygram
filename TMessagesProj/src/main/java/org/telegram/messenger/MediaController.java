@@ -1125,6 +1125,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
                 int len = audioRecorder.read(buffer, buffer.capacity());
                 if (len > 0) {
                     buffer.limit(len);
+                    org.telegram.milliy.MilliyVoiceFx.process(buffer, len, sampleRate); // Milliygram: ovoz o'zgartirgich
                     double sum = 0;
                     try {
                         long newSamplesCount = samplesCount + len / 2;
@@ -4925,7 +4926,14 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
                             params.replyToStoryItem = recordReplyingStory;
                             params.sendMessageChatArguments = recordSendMessageChatArguments;
                             params.payStars = payStars;
-                            SendMessagesHelper.getInstance(recordingCurrentAccount).sendMessage(params);
+                            final int milliyAccount = recordingCurrentAccount;
+                            // Milliygram: sozlamada yoqilgan bo'lsa ovozli xabar yuborishdan oldin tasdiq so'raladi
+                            org.telegram.milliy.MilliyPro.confirmSend("confirm_voice", R.string.MilliyConfirmVoice,
+                                    () -> SendMessagesHelper.getInstance(milliyAccount).sendMessage(params),
+                                    () -> {
+                                        AutoDeleteMediaTask.unlockFile(recordingAudioFileToSend);
+                                        recordingAudioFileToSend.delete();
+                                    });
                         }
                         NotificationCenter.getInstance(recordingCurrentAccount).postNotificationName(NotificationCenter.audioDidSent, recordingGuid, send == 2 ? audioToSend : null, send == 2 ? recordingAudioFileToSend.getAbsolutePath() : null);
                     } else {
