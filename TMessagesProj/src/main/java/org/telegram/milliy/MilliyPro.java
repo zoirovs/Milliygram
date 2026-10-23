@@ -92,6 +92,68 @@ public class MilliyPro {
         return get("story_download", true);
     }
 
+    /** Ovozli xabar va dumaloq video yozish boshlanganda «bir martalik» rejimi yoqilgan bo'ladi. */
+    public static boolean oneTimeVoice() {
+        return get("one_time_voice", false);
+    }
+
+    /** Boshqa tildagi chatlar avtomatik tarjima qilinadi (Premium'siz ham — bepul tarjimon orqali). */
+    public static boolean autoTranslate() {
+        return get("auto_translate", false);
+    }
+
+    /** Premium bo'lmasa tarjima serverdan emas, bepul tarjimon orqali qilinadi. */
+    public static boolean useFreeTranslate(int account) {
+        return autoTranslate() && !org.telegram.messenger.UserConfig.getInstance(account).isPremium();
+    }
+
+    public static boolean hideTabs() {
+        return get("hide_tabs", false);
+    }
+
+    public static boolean timeSeconds() {
+        return get("time_seconds", false);
+    }
+
+    public static boolean avatarProfile() {
+        return get("avatar_profile", false);
+    }
+
+    private static java.text.SimpleDateFormat secondsFormat;
+    private static boolean secondsFormat24;
+
+    /** Xabar vaqti: sozlama yoqilgan bo'lsa soniyasi bilan (12:01:45). */
+    public static String formatTime(long unixSeconds) {
+        if (!timeSeconds()) {
+            return org.telegram.messenger.LocaleController.getInstance().getFormatterDay().format(unixSeconds * 1000);
+        }
+        boolean is24 = org.telegram.messenger.LocaleController.is24HourFormat;
+        if (secondsFormat == null || secondsFormat24 != is24) {
+            secondsFormat = new java.text.SimpleDateFormat(is24 ? "HH:mm:ss" : "h:mm:ss a", java.util.Locale.US);
+            secondsFormat24 = is24;
+        }
+        return secondsFormat.format(new java.util.Date(unixSeconds * 1000));
+    }
+
+    /** Chatlar ro'yxatida avatar bosilganda chat o'rniga profil ochiladi. true — profil ochildi. */
+    public static boolean openProfile(org.telegram.ui.ActionBar.BaseFragment fragment, long dialogId) {
+        if (fragment == null || dialogId == 0 || DialogObject.isEncryptedDialog(dialogId) || DialogObject.isFolderDialogId(dialogId)) {
+            return false;
+        }
+        int account = fragment.getCurrentAccount();
+        if (dialogId == org.telegram.messenger.UserConfig.getInstance(account).getClientUserId()) {
+            return false;
+        }
+        android.os.Bundle args = new android.os.Bundle();
+        if (dialogId > 0) {
+            args.putLong("user_id", dialogId);
+        } else {
+            args.putLong("chat_id", -dialogId);
+        }
+        fragment.presentFragment(new org.telegram.ui.ProfileActivity(args));
+        return true;
+    }
+
     // ---- Akkauntga bog'liq to'plamlar (qulf, seyf, mahalliy pin) ----
     public static Set<Long> idSet(int account, String name) {
         Set<String> raw = prefs().getStringSet(name + "_" + account, null);

@@ -55,15 +55,49 @@ public class MilliyKeep {
         return deleted[account];
     }
 
+    /** Kim o'chirgani: 1 — men, 2 — boshqa tomon (suhbatdosh, kanal yoki admin). */
+    private static final int BY_SELF = 1, BY_OTHER = 2;
+
     private static synchronized void mark(int account, String k, boolean on) {
+        mark(account, k, on, 0);
+    }
+
+    private static synchronized void mark(int account, String k, boolean on, int by) {
         HashSet<String> s = deletedSet(account);
         if (on) {
             s.add(k);
-            prefs(account).edit().putBoolean("d_" + k, true).apply();
+            SharedPreferences.Editor e = prefs(account).edit().putBoolean("d_" + k, true);
+            if (by != 0) {
+                e.putInt("w_" + k, by);
+            }
+            e.apply();
         } else {
             s.remove(k);
-            prefs(account).edit().remove("d_" + k).apply();
+            prefs(account).edit().remove("d_" + k).remove("w_" + k).apply();
         }
+    }
+
+    /** Vaqt yonidagi belgi: kim o'chirgani bilan. */
+    public static String deletedMark(MessageObject m) {
+        long channelId = m.messageOwner.peer_id != null ? m.messageOwner.peer_id.channel_id : 0;
+        int by = prefs(m.currentAccount).getInt("w_" + key(channelId, m.getId()), 0);
+        if (by == BY_SELF) {
+            return LocaleController.getString(R.string.MilliyDeletedBySelf);
+        }
+        if (by == BY_OTHER) {
+            long dialogId = m.getDialogId();
+            if (dialogId > 0) {
+                return LocaleController.getString(R.string.MilliyDeletedByPeer);
+            }
+            TLRPC.Chat chat = org.telegram.messenger.MessagesController.getInstance(m.currentAccount).getChat(-dialogId);
+            if (chat != null && org.telegram.messenger.ChatObject.isChannelAndNotMegaGroup(chat)) {
+                return LocaleController.getString(R.string.MilliyDeletedByChannel);
+            }
+            if (m.isOutOwner()) {
+                return LocaleController.getString(R.string.MilliyDeletedByAdmin);
+            }
+        }
+        return LocaleController.getString(R.string.MilliyDeletedMark);
     }
 
     public static boolean isDeleted(MessageObject m) {
@@ -92,10 +126,11 @@ public class MilliyKeep {
         synchronized (MilliyKeep.class) {
             for (Integer mid : ids) {
                 String k = key(channelId, mid);
-                if (recentSelf.remove(k) && mode == 1) {
+                boolean self = recentSelf.remove(k);
+                if (self && mode == 1) {
                     really.add(mid); // o'zim o'chirganman — saqlanmaydi (mahalliy nusxa allaqachon o'chgan)
                 } else {
-                    mark(account, k, true);
+                    mark(account, k, true, self ? BY_SELF : BY_OTHER);
                 }
             }
         }
@@ -123,7 +158,7 @@ public class MilliyKeep {
                     mark(account, k, false);
                     local.add(mid);
                 } else if (mode == 2 && forAll) {
-                    mark(account, k, true);
+                    mark(account, k, true, BY_SELF);
                     recentSelf.add(k);
                     kept++;
                 } else {

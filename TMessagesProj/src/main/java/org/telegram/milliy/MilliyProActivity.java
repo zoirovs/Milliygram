@@ -56,6 +56,13 @@ public class MilliyProActivity extends BaseFragment {
     private void build() {
         root.removeAllViews();
 
+        // Mening holatim
+        header(R.string.MilliyStatus);
+        String status = MilliyStatus.current(currentAccount);
+        action(LocaleController.getString(R.string.MilliyStatus), status != null ? status : LocaleController.getString(R.string.MilliyNotSet),
+                () -> MilliyStatus.show(this));
+        info(R.string.MilliyStatusInfo);
+
         // Ghost
         header(R.string.MilliyGhost);
         check(R.string.MilliyGhost, R.string.MilliyGhostInfo, "ghost", false, this::build);
@@ -82,7 +89,22 @@ public class MilliyProActivity extends BaseFragment {
         });
         check(R.string.MilliyKeepEdits, 0, "keep_edits", false, null);
         check(R.string.MilliyConfirmGift, 0, "confirm_gift", true, null);
+        check(R.string.MilliyOneTimeVoice, R.string.MilliyOneTimeVoiceInfo, "one_time_voice", false, null);
+        check(R.string.MilliyTimeSeconds, R.string.MilliyTimeSecondsInfo, "time_seconds", false,
+                () -> getNotificationCenter().postNotificationName(NotificationCenter.updateInterfaces, 0));
         info(R.string.MilliyKeepHint);
+
+        // Tarjima
+        header(R.string.MilliyTranslate);
+        check(R.string.MilliyAutoTranslate, R.string.MilliyAutoTranslateInfo, "auto_translate", false, null);
+        info(R.string.MilliyAutoTranslateHint);
+
+        // Ko'rinish
+        header(R.string.MilliyView);
+        check(R.string.MilliyHideTabs, R.string.MilliyHideTabsInfo, "hide_tabs", false,
+                () -> getNotificationCenter().postNotificationName(NotificationCenter.dialogFiltersUpdated));
+        check(R.string.MilliyAvatarProfile, R.string.MilliyAvatarProfileInfo, "avatar_profile", false, null);
+        info(R.string.MilliyViewHint);
 
         // Qulf va seyf
         header(R.string.MilliyPrivacyHeader);
@@ -155,6 +177,8 @@ public class MilliyProActivity extends BaseFragment {
         // Boshqa
         header(R.string.MilliyOther);
         check(R.string.MilliyShowId, 0, "show_id", true, null);
+        action(LocaleController.getString(R.string.MilliyApkShield), LocaleController.getString(R.string.MilliyOn), null);
+        action(LocaleController.getString(R.string.MilliySecretCodes), ".heart · .typer", null);
         action(LocaleController.getString(R.string.MilliyCopySettingsLink), "tg://settings/milliy", () -> {
             org.telegram.messenger.AndroidUtilities.addToClipboard("tg://settings/milliy");
             org.telegram.ui.Components.BulletinFactory.of(this).createCopyLinkBulletin().show();

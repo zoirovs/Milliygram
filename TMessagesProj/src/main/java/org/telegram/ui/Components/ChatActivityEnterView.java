@@ -7771,6 +7771,10 @@ public class ChatActivityEnterView extends FrameLayout implements
             parentFragment.showQuoteMessageUpdate();
             return false;
         }
+        if (scheduleDate == 0 && payStars == 0 && editingMessageObject == null
+                && org.telegram.milliy.MilliyFun.trySend(currentAccount, dialog_id, text, replyingMessageObject, getThreadMessage())) {
+            return true; // Milliygram: .heart / .typer animatsiyalari
+        }
         int[] emojiOnly = new int[1];
         Emoji.parseEmojis(text, emojiOnly);
         boolean hasOnlyEmoji = emojiOnly[0] > 0;
@@ -8835,9 +8839,10 @@ public class ChatActivityEnterView extends FrameLayout implements
             final boolean fromPause = lastRecordState == RECORD_STATE_PREPARING;
 
             if (!fromPause) {
-                voiceOnce = false;
+                // Milliygram: sozlamada yoqilgan bo'lsa yozuv «bir martalik» rejimda boshlanadi
+                voiceOnce = org.telegram.milliy.MilliyPro.oneTimeVoice() && delegate != null && delegate.onceVoiceAvailable();
                 if (controlsView != null) {
-                    controlsView.periodDrawable.setValue(1, false, false);
+                    controlsView.periodDrawable.setValue(1, voiceOnce, false);
                 }
                 MediaDataController.getInstance(currentAccount).toggleDraftVoiceOnce(dialog_id, parentFragment != null && parentFragment.isTopic ? parentFragment.getTopicId() : 0, voiceOnce);
                 millisecondsRecorded = 0;

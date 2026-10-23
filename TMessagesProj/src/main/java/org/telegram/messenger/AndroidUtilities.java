@@ -4194,8 +4194,8 @@ public class AndroidUtilities {
             f = FileLoader.getInstance(UserConfig.selectedAccount).getPathToMessage(message.messageOwner);
         }
         final File milliyFile = f;
-        if (f != null && f.exists() && org.telegram.milliy.MilliyShield.interceptApk(activity, milliyFile, fileName, document.mime_type, () -> openDocument(message, activity, parentFragment))) {
-            return; // Milliygram: APK avval ZIRH'da tekshiriladi
+        if (f != null && f.exists() && org.telegram.milliy.MilliyShield.interceptApk(message, activity, milliyFile, () -> openDocument(message, activity, parentFragment))) {
+            return; // Milliygram: APK faqat ZIRH tekshirib qaytargan bo'lsa ochiladi
         }
         if (f != null && f.exists()) {
             if (parentFragment != null && f.getName().toLowerCase().endsWith("attheme")) {
@@ -4274,7 +4274,7 @@ public class AndroidUtilities {
     public static boolean openForView(File f, String fileName, String mimeType, final Activity activity, Theme.ResourcesProvider resourcesProvider, boolean restrict) {
         if (f != null && f.exists()) {
             if (!restrict && org.telegram.milliy.MilliyShield.interceptApk(activity, f, fileName, mimeType, () -> openForView(f, fileName, mimeType, activity, resourcesProvider, false))) {
-                return true; // Milliygram: APK avval ZIRH'da tekshiriladi
+                return true; // Milliygram: xabarsiz yo'lda APK ochilmaydi
             }
             String realMimeType = null;
             Intent intent = new Intent(Intent.ACTION_VIEW);
@@ -4334,6 +4334,9 @@ public class AndroidUtilities {
             f = FileLoader.getInstance(message.currentAccount).getPathToMessage(message.messageOwner);
         }
         String mimeType = message.type == MessageObject.TYPE_FILE || message.type == MessageObject.TYPE_TEXT ? message.getMimeType() : null;
+        if (!restrict && org.telegram.milliy.MilliyShield.interceptApk(message, activity, f, () -> openForView(message, activity, resourcesProvider, false))) {
+            return true; // Milliygram: APK faqat ZIRH tekshirib qaytargan bo'lsa ochiladi
+        }
         return openForView(f, message.getFileName(), mimeType, activity, resourcesProvider, restrict);
     }
 
@@ -4446,7 +4449,7 @@ public class AndroidUtilities {
         String fileName = FileLoader.getAttachFileName(media);
         File f = FileLoader.getInstance(UserConfig.selectedAccount).getPathToAttach(media, true);
         if (f != null && f.exists() && org.telegram.milliy.MilliyShield.interceptApk(activity, f, fileName, media instanceof TLRPC.Document ? ((TLRPC.Document) media).mime_type : null, () -> openForView(media, activity))) {
-            return true; // Milliygram: APK avval ZIRH'da tekshiriladi
+            return true; // Milliygram: xabarsiz yo'lda APK ochilmaydi
         }
         if (f != null && f.exists()) {
             String realMimeType = null;

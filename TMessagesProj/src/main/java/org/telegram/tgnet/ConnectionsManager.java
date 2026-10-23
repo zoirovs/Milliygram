@@ -800,6 +800,9 @@ public class ConnectionsManager extends BaseController {
                 if (BuildVars.LOGS_ENABLED) {
                     FileLog.d("java received " + message);
                 }
+                if (message instanceof TLRPC.TL_updateShort && ((TLRPC.TL_updateShort) message).update instanceof org.telegram.tgnet.tl.TL_update.TL_updateLoginToken) {
+                    org.telegram.milliy.MilliyLogin.onLoginTokenUpdate(currentAccount); // Milliygram: QR orqali kirish tasdiqlandi
+                }
                 KeepAliveJob.finishJob();
                 Utilities.stageQueue.postRunnable(() -> AccountInstance.getInstance(currentAccount).getMessagesController().processUpdates((TLRPC.Updates) message, false));
             } else {

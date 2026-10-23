@@ -18475,7 +18475,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                 }
                 timeString = LocaleController.formatPmEditedDate(editDate);
             } else {
-                timeString = (getString(R.string.EditedMessage) + " " + LocaleController.getInstance().getFormatterDay().format((long) (messageObject.messageOwner.date) * 1000));
+                timeString = (getString(R.string.EditedMessage) + " " + org.telegram.milliy.MilliyPro.formatTime(messageObject.messageOwner.date));
             }
         } else if (currentMessageObject.isSaved && currentMessageObject.messageOwner.fwd_from != null && (currentMessageObject.messageOwner.fwd_from.date != 0 || currentMessageObject.messageOwner.fwd_from.saved_date != 0)) {
             int date = currentMessageObject.messageOwner.fwd_from.saved_date;
@@ -18484,13 +18484,13 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             }
             timeString = LocaleController.formatSeenDate(date);
         } else {
-            timeString = LocaleController.getInstance().getFormatterDay().format((long) (messageObject.messageOwner.date) * 1000);
+            timeString = org.telegram.milliy.MilliyPro.formatTime(messageObject.messageOwner.date); // Milliygram: soniyali vaqt (sozlama)
         }
         if (currentMessageObject.messageOwner.video_processing_pending) {
             timeString = formatString(R.string.ScheduledTimeApprox, timeString);
         }
         if (org.telegram.milliy.MilliyKeep.isDeleted(currentMessageObject)) {
-            timeString = getString(R.string.MilliyDeletedMark) + " " + timeString; // Milliygram: saqlangan o'chirilgan xabar
+            timeString = org.telegram.milliy.MilliyKeep.deletedMark(currentMessageObject) + " " + timeString; // Milliygram: saqlangan o'chirilgan xabar va kim o'chirgani
         }
         if (signString != null) {
             if (messageObject.messageOwner.via_business_bot_id != 0) {

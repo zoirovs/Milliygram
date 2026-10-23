@@ -18,8 +18,8 @@ public class MilliyTwoFa {
 
     public static void check(BaseFragment fragment) {
         final int account = fragment.getCurrentAccount();
-        if (!UserConfig.getInstance(account).isClientActivated() || checking[account]) {
-            return;
+        if (!UserConfig.getInstance(account).isClientActivated() || checking[account] || MilliyLogin.isBot(account)) {
+            return; // bot sifatida kirilgan akkauntda 2FA va hudud so'ralmaydi
         }
         if (verified[account]) {
             MilliyRegionActivity.checkRequired(fragment); // 2FA tayyor — endi hudud tanlash

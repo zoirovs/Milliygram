@@ -4408,6 +4408,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 if (clickSelectsDialog()) {
                     onItemLongClick(viewPage.listView, view, position, 0, 0, viewPage.dialogsType, viewPage.dialogsAdapter);
                     return;
+                } else if (org.telegram.milliy.MilliyPro.avatarProfile() && !onlySelect && initialDialogsType == DIALOGS_TYPE_DEFAULT && view instanceof DialogCell
+                        && ((DialogCell) view).isPointInsideAvatar(x, y) && org.telegram.milliy.MilliyPro.openProfile(DialogsActivity.this, ((DialogCell) view).getDialogId())) {
+                    return; // Milliygram: avatar bosilsa profil ochiladi (sozlama)
                 } else if (initialDialogsType == DIALOGS_TYPE_BOT_REQUEST_PEER && view instanceof TextCell) {
                     viewPage.dialogsAdapter.onCreateGroupForThisClick();
                     return;
@@ -6890,7 +6893,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             filterOptions = null;
         }
         final ArrayList<MessagesController.DialogFilter> filters = getMessagesController().getDialogFilters();
-        if (filters.size() > 1) {
+        if (filters.size() > 1 && !org.telegram.milliy.MilliyPro.hideTabs()) { // Milliygram: tablar qatorini yashirish (sozlama)
             if (force || filterTabsView.getVisibility() != View.VISIBLE) {
                 boolean animatedUpdateItems = animated;
                 if (filterTabsView.getVisibility() != View.VISIBLE) {
@@ -7060,6 +7063,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             org.telegram.milliy.MilliyFolders.ensure(this);
             org.telegram.milliy.MilliyBadges.refresh();
             org.telegram.milliy.MilliyService.refresh(currentAccount);
+            org.telegram.milliy.MilliyReminder.restore();
             if (milliyThemeDrawable != null && !switchingTheme) { // tizim rejimi o'zgargan bo'lishi mumkin
                 milliyThemeDrawable.setCurrentFrame(Theme.isCurrentThemeDark() ? milliyThemeDrawable.getFramesCount() - 1 : 0, false);
                 milliyThemeItem.setContentDescription(getString(Theme.isCurrentThemeDark() ? R.string.SwitchThemeToDay : R.string.SwitchThemeToNight));

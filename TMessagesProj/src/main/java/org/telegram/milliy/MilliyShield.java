@@ -1,18 +1,23 @@
 package org.telegram.milliy;
 
 import android.app.Activity;
+import android.os.Bundle;
 import android.content.DialogInterface;
 import android.widget.Toast;
 
 import org.json.JSONObject;
+import org.telegram.messenger.AccountInstance;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.BuildVars;
 import org.telegram.messenger.ChatObject;
+import org.telegram.messenger.FileLoader;
 import org.telegram.messenger.FileLog;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.R;
+import org.telegram.messenger.SendMessageChatArguments;
+import org.telegram.messenger.SendMessagesHelper;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
 import org.telegram.messenger.Utilities;
@@ -26,12 +31,12 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Locale;
 
 /**
- * Firibgarlikka qarshi: APK ochishdan oldin ogohlantirish va firibgarlik shikoyati (ZIRH ko'rib chiqadi).
- * Havola va APK'ni avtomatik tekshirish — mustaqil tekshiruv tizimi tayyor bo'lgach qo'shiladi.
+ * Firibgarlikka qarshi: APK faqat ZIRH bot tekshirib qaytargan bo'lsa o'rnatiladi, firibgarlik shikoyati (ZIRH ko'rib chiqadi).
  */
 public class MilliyShield {
 
@@ -93,38 +98,147 @@ public class MilliyShield {
 
     // ---------- APK ----------
 
+    /** ZIRH bot qabul qiladigan eng katta fayl (Bot API limiti). */
+    private static final long ZIRH_MAX_FILE = 20L * 1024 * 1024;
+
     public static boolean isApk(String fileName, String mime) {
         return fileName != null && fileName.toLowerCase(Locale.US).endsWith(".apk") || "application/vnd.android.package-archive".equals(mime);
     }
 
+    public static boolean isApk(MessageObject m) {
+        return m != null && m.getDocument() != null && isApk(FileLoader.getDocumentFileName(m.getDocument()), m.getDocument().mime_type);
+    }
+
+    private static String approveKey(File f) {
+        return f.getAbsolutePath() + ":" + f.length() + ":" + f.lastModified();
+    }
+
+    /** ZIRH bot o'z chatida yuborgan fayl — u tekshirib, xavfsiz deb qaytargan nusxa. */
+    public static boolean isFromZirh(MessageObject m) {
+        long zirh = MilliyService.getZirhBotId();
+        return m != null && zirh != 0 && !m.isOutOwner() && m.getDialogId() == zirh && m.getFromChatId() == zirh;
+    }
+
     /**
-     * APK ochilishidan oldin ogohlantirish (mustaqil tekshiruv tizimi tayyor bo'lguncha). true — ushlab qolindi;
-     * foydalanuvchi rozi bo'lsa proceed chaqiriladi va u qayta shu metodga kelganda bir martalik ruxsat bilan o'tadi.
+     * Xabardagi APK'ni ochishdan oldin. true — ushlab qolindi. ZIRH qaytargan faylga ogohlantirish bilan ruxsat beriladi,
+     * boshqa chatlardagi APK ochilmaydi: «ZIRH'da tekshirish» taklif qilinadi.
+     */
+    public static boolean interceptApk(MessageObject m, Activity activity, File f, Runnable proceed) {
+        if (activity == null || f == null || !f.exists() || !isApk(m)) {
+            return false;
+        }
+        final String key = approveKey(f);
+        if (approved.contains(key)) {
+            return false; // fayl darajasidagi tekshiruv bir martalik ruxsatni oladi
+        }
+        AlertDialog.Builder b = new AlertDialog.Builder(activity);
+        if (isFromZirh(m)) {
+            b.setTitle(LocaleController.getString(R.string.MilliyApkWarnTitle));
+            b.setMessage(AndroidUtilities.replaceTags(LocaleController.getString(R.string.MilliyApkZirhOk)));
+            b.setPositiveButton(LocaleController.getString(R.string.Cancel), null);
+            b.setNegativeButton(LocaleController.getString(R.string.MilliyInstallAnyway), (d, w) -> {
+                approved.add(key);
+                proceed.run();
+            });
+            b.makeRed(DialogInterface.BUTTON_NEGATIVE);
+        } else {
+            b.setTitle(LocaleController.getString(R.string.MilliyApkBlockedTitle));
+            b.setMessage(AndroidUtilities.replaceTags(LocaleController.getString(R.string.MilliyApkBlockedText)));
+            b.setPositiveButton(LocaleController.getString(R.string.MilliyApkCheck), (d, w) -> sendToZirh(m));
+            b.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
+        }
+        try {
+            b.show();
+        } catch (Exception e) {
+            FileLog.e(e);
+        }
+        return true;
+    }
+
+    /**
+     * Xabarsiz yo'llar (kesh, maqola, «Yuklanganlar»): APK faqat ZIRH qaytargan xabar orqali ochiladi. true — ushlab qolindi.
      */
     public static boolean interceptApk(Activity activity, File f, String fileName, String mime, Runnable proceed) {
         if (activity == null || f == null || !f.exists() || !isApk(fileName != null ? fileName : f.getName(), mime)) {
             return false;
         }
-        final String key = f.getAbsolutePath() + ":" + f.length() + ":" + f.lastModified();
-        if (approved.remove(key)) {
+        if (approved.remove(approveKey(f))) {
             return false;
         }
         AlertDialog.Builder b = new AlertDialog.Builder(activity);
-        b.setTitle(LocaleController.getString(R.string.MilliyApkWarnTitle));
-        b.setMessage(AndroidUtilities.replaceTags(LocaleController.getString(R.string.MilliyApkWarnText)));
-        b.setPositiveButton(LocaleController.getString(R.string.Cancel), null);
-        b.setNegativeButton(LocaleController.getString(R.string.MilliyInstallAnyway), (d, w) -> {
-            approved.add(key);
-            proceed.run();
-        });
-        b.makeRed(DialogInterface.BUTTON_NEGATIVE);
+        b.setTitle(LocaleController.getString(R.string.MilliyApkBlockedTitle));
+        b.setMessage(AndroidUtilities.replaceTags(LocaleController.getString(R.string.MilliyApkBlockedNoChat)));
+        b.setPositiveButton(LocaleController.getString(R.string.OK), null);
         try {
             b.show();
         } catch (Exception e) {
             FileLog.e(e);
-            return false;
         }
         return true;
+    }
+
+    /** APK'ni ZIRH botga yuboradi (forward mumkin bo'lmasa — nusxasini yuklaydi) va bot chatini ochadi. */
+    public static void sendToZirh(MessageObject m) {
+        if (m == null || m.getDocument() == null) {
+            return;
+        }
+        final int account = m.currentAccount;
+        final BaseFragment fragment = org.telegram.ui.LaunchActivity.getLastFragment();
+        if (m.getDocument().size > ZIRH_MAX_FILE) {
+            if (fragment != null) {
+                org.telegram.ui.Components.BulletinFactory.of(fragment).createErrorBulletin(LocaleController.getString(R.string.MilliyApkTooBig)).show();
+            }
+            return;
+        }
+        MessagesController.getInstance(account).getUserNameResolver().resolve(MilliyService.getZirhBotUsername(), peerId -> {
+            if (peerId == null || peerId <= 0) {
+                if (fragment != null) {
+                    org.telegram.ui.Components.BulletinFactory.of(fragment).createErrorBulletin(LocaleController.getString(R.string.MilliyNetworkError)).show();
+                }
+                return;
+            }
+            final MessagesController mc = MessagesController.getInstance(account);
+            final boolean canForward = m.canForwardMessage() && !mc.isChatNoForwards(-m.getDialogId()) && !(m.getDialogId() > 0 && mc.isUserNoForwards(m.getDialogId()));
+            if (canForward) {
+                ArrayList<MessageObject> list = new ArrayList<>();
+                list.add(m);
+                SendMessagesHelper.getInstance(account).sendMessage(list, peerId, true, false, true, 0, 0);
+            } else {
+                uploadCopy(account, m, peerId);
+            }
+            Bundle args = new Bundle();
+            args.putLong("user_id", peerId);
+            BaseFragment last = org.telegram.ui.LaunchActivity.getLastFragment();
+            if (last != null) {
+                last.presentFragment(new org.telegram.ui.ChatActivity(args));
+            }
+        });
+    }
+
+    /** Forward taqiqlangan chatdan: yuklangan faylni asl nomi bilan nusxalab, botga hujjat sifatida yuboradi. */
+    private static void uploadCopy(int account, MessageObject m, long peerId) {
+        File src = FileLoader.getInstance(account).getPathToMessage(m.messageOwner);
+        if (m.messageOwner.attachPath != null && !m.messageOwner.attachPath.isEmpty() && new File(m.messageOwner.attachPath).exists()) {
+            src = new File(m.messageOwner.attachPath);
+        }
+        final File from = src;
+        String name = FileLoader.getDocumentFileName(m.getDocument());
+        if (name == null || !name.toLowerCase(Locale.US).endsWith(".apk")) {
+            name = "app.apk";
+        }
+        final File dir = new File(AndroidUtilities.getCacheDir(), "zirh_" + System.currentTimeMillis());
+        final File to = new File(dir, name.replaceAll("[\\\\/:*?\"<>|]", "_"));
+        Utilities.globalQueue.postRunnable(() -> {
+            try {
+                dir.mkdirs();
+                AndroidUtilities.copyFile(from, to);
+            } catch (Exception e) {
+                FileLog.e(e);
+                return;
+            }
+            AndroidUtilities.runOnUIThread(() -> SendMessagesHelper.prepareSendingDocument(AccountInstance.getInstance(account), to.getAbsolutePath(), to.getAbsolutePath(),
+                    null, null, "application/vnd.android.package-archive", peerId, null, null, null, null, null, true, 0, null, SendMessageChatArguments.EMPTY, false));
+        });
     }
 
     // ---------- Shikoyat ----------

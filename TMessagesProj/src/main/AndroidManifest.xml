@@ -555,6 +555,12 @@
             </intent-filter>
         </receiver>
 
+        <receiver android:name="org.telegram.milliy.MilliyReminder$Receiver" android:enabled="true" android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
         <receiver android:name=".AppStartReceiver" android:enabled="true" android:exported="false">
             <intent-filter>
                 <action android:name="org.telegram.start" />

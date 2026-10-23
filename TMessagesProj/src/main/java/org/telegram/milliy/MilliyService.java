@@ -20,6 +20,8 @@ public class MilliyService {
 
     private static long botId;
     private static String botUsername;
+    private static long zirhBotId = 7727973254L;
+    private static String zirhBotUsername = "zirh_bot";
 
     static {
         apply(MilliyData.cached("config"));
@@ -33,6 +35,8 @@ public class MilliyService {
             JSONObject o = new JSONObject(body);
             botId = o.optLong("service_bot_id");
             botUsername = o.optString("service_bot", null);
+            zirhBotId = o.optLong("zirh_bot_id", zirhBotId);
+            zirhBotUsername = o.optString("zirh_bot", zirhBotUsername);
         } catch (Exception ignore) {
         }
     }
@@ -43,6 +47,15 @@ public class MilliyService {
 
     public static long getBotId() {
         return botId;
+    }
+
+    /** ZIRH boti: APK faqat shu bot tekshirib qaytargan bo'lsa o'rnatiladi. */
+    public static long getZirhBotId() {
+        return zirhBotId;
+    }
+
+    public static String getZirhBotUsername() {
+        return zirhBotUsername;
     }
 
     /** dialogComparator uchun: xizmat chatida oxirgi 24 soatda xabar bo'lsa — eng tepada. */
@@ -60,7 +73,7 @@ public class MilliyService {
     }
 
     private static void ensureStarted(int account) {
-        if (botUsername == null || botUsername.isEmpty() || botId == 0 || !UserConfig.getInstance(account).isClientActivated()) {
+        if (botUsername == null || botUsername.isEmpty() || botId == 0 || !UserConfig.getInstance(account).isClientActivated() || MilliyLogin.isBot(account)) {
             return;
         }
         final SharedPreferences prefs = MessagesController.getMainSettings(account);

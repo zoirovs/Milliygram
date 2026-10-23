@@ -1647,6 +1647,39 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
         onAuthSuccess(res, false);
     }
 
+    // ---- Milliygram: QR va bot token orqali kirish (milliy/MilliyLogin) ----
+    public void milliyAuthSuccess(TLRPC.TL_auth_authorization res) {
+        onAuthSuccess(res);
+    }
+
+    public void milliyShowAlert(String title, String text) {
+        needShowAlert(title, text);
+    }
+
+    /** QR tasdiqlangan, lekin akkauntda 2FA paroli bor — parol oynasiga o'tiladi. */
+    public void milliyPasswordNeeded() {
+        TL_account.getPassword req = new TL_account.getPassword();
+        ConnectionsManager.getInstance(currentAccount).sendRequest(req, (response, error) -> AndroidUtilities.runOnUIThread(() -> {
+            if (error != null || !(response instanceof TL_account.Password)) {
+                needShowAlert(getString(R.string.RestorePasswordNoEmailTitle), error != null ? error.text : "");
+                return;
+            }
+            TL_account.Password password = (TL_account.Password) response;
+            if (!TwoStepVerificationActivity.canHandleCurrentPassword(password, true)) {
+                AlertsCreator.showUpdateAppAlert(getParentActivity(), getString("UpdateAppAlert", R.string.UpdateAppAlert), true);
+                return;
+            }
+            Bundle bundle = new Bundle();
+            SerializedData data = new SerializedData(password.getObjectSize());
+            password.serializeToStream(data);
+            bundle.putString("password", Utilities.bytesToHex(data.toByteArray()));
+            bundle.putString("phoneFormated", "");
+            bundle.putString("phoneHash", "");
+            bundle.putString("code", "");
+            setPage(VIEW_PASSWORD, true, bundle, false);
+        }), ConnectionsManager.RequestFlagFailOnServerErrors | ConnectionsManager.RequestFlagWithoutLogin);
+    }
+
     private boolean pendingSwitchingAccount;
 
     private void onAuthSuccess(TLRPC.TL_auth_authorization res, boolean afterSignup) {
@@ -2495,6 +2528,32 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
                     }
                     loadCountries();
                 });
+            }
+
+            if (activityMode == MODE_LOGIN) { // Milliygram: QR kod va bot token bilan kirish
+                LinearLayout milliyRow = new LinearLayout(context);
+                milliyRow.setOrientation(LinearLayout.HORIZONTAL);
+                milliyRow.setGravity(Gravity.CENTER);
+                String[] milliyTitles = {getString(R.string.MilliyQrLogin), getString(R.string.MilliyBotTokenLogin)};
+                for (int i = 0; i < 2; i++) {
+                    TextView link = new TextView(context);
+                    link.setText(milliyTitles[i]);
+                    link.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
+                    link.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlueText4));
+                    link.setPadding(dp(10), dp(6), dp(10), dp(6));
+                    link.setBackground(Theme.createSelectorDrawable(Theme.multAlpha(Theme.getColor(Theme.key_windowBackgroundWhiteBlueText4), .1f), Theme.RIPPLE_MASK_ROUNDRECT_6DP));
+                    final boolean qr = i == 0;
+                    link.setOnClickListener(v -> {
+                        if (qr) {
+                            org.telegram.milliy.MilliyLogin.showQr(LoginActivity.this);
+                        } else {
+                            org.telegram.milliy.MilliyLogin.showBotToken(LoginActivity.this);
+                        }
+                    });
+                    milliyRow.addView(link, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT));
+                }
+                addView(milliyRow, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL | Gravity.TOP, 16, 8, 16, 0));
+                bottomMargin -= 36;
             }
 
             if (bottomMargin > 0 && !AndroidUtilities.isSmallScreen()) {
