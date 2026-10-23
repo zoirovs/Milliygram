@@ -584,6 +584,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     private final static int report = 24;
     private final static int milliy_report = 950;
     private final static int milliy_verify = 951;
+    private final static int milliy_special = 952;
 
     private final static int edit_info = 30;
     private final static int logout = 31;
@@ -2643,6 +2644,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     if (button != null) {
                         button.setTextColor(Theme.getColor(Theme.key_text_RedBold));
                     }
+                } else if (id == milliy_special) {
+                    org.telegram.milliy.MilliyContacts.toggleSpecial(ProfileActivity.this, userId);
                 } else if (id == milliy_verify) {
                     org.telegram.milliy.MilliyBadges.requestVerify(ProfileActivity.this, currentChat, userId != 0 ? getMessagesController().getUser(userId) : null);
                 } else if (id == milliy_report) {
@@ -12363,6 +12366,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         // Milliygram: tasdiqlash belgisini so'rash (egasi uchun)
         if (!myProfile && org.telegram.milliy.MilliyBadges.verifyStartParam(currentChat, userId != 0 ? getMessagesController().getUser(userId) : null) != null) {
             otherItem.addSubItem(milliy_verify, R.drawable.msg_customize, LocaleController.getString(R.string.MilliyVerifyRequest));
+        }
+        // Milliygram: maxsus kontakt (o'zgarishlari va onlayn bo'lishi haqida bildirishnoma)
+        if (userId != 0 && !myProfile && !selfUser && getMessagesController().getUser(userId) != null && !getMessagesController().getUser(userId).bot) {
+            otherItem.addSubItem(milliy_special, R.drawable.msg_fave, LocaleController.getString(
+                    org.telegram.milliy.MilliyContacts.isSpecial(currentAccount, userId) ? R.string.MilliySpecialRemove : R.string.MilliySpecialAdd));
         }
         // Milliygram: firibgarlik shikoyati (ZIRH'ga)
         if (!selfUser && !myProfile && getDialogId() != 0 && getDialogId() != 777000 && getDialogId() != getUserConfig().getClientUserId()) {

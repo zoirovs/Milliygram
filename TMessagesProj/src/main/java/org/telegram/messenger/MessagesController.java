@@ -6937,6 +6937,9 @@ public class MessagesController extends BaseController implements NotificationCe
         } else {
             if (!fromCache) {
                 users.put(user.id, user);
+                if (oldUser != null && oldUser != user) {
+                    org.telegram.milliy.MilliyContacts.onUserUpdate(currentAccount, oldUser, user); // Milliygram: kontakt o'zgarishlari
+                }
                 if (user.id == getUserConfig().getClientUserId()) {
                     getUserConfig().setCurrentUser(user);
                     getUserConfig().saveConfig(true);
@@ -19942,6 +19945,7 @@ public class MessagesController extends BaseController implements NotificationCe
                     } else if (baseUpdate instanceof TL_update.TL_updateUserStatus) {
                         TL_update.TL_updateUserStatus update = (TL_update.TL_updateUserStatus) baseUpdate;
                         TLRPC.User currentUser = getUser(update.user_id);
+                        org.telegram.milliy.MilliyContacts.onStatus(currentAccount, update.user_id, currentUser != null ? currentUser.status : null, update.status); // Milliygram: maxsus kontakt onlayn
 
                         if (update.status instanceof TLRPC.TL_userStatusRecently) {
                             update.status.expires = -100;

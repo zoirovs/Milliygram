@@ -1231,6 +1231,7 @@ public class ChatActivity extends BaseFragment implements
     public final static int OPTION_MILLIY_EDIT_HISTORY = 903;
     public final static int OPTION_MILLIY_REMINDER = 904;
     public final static int OPTION_MILLIY_ZIRH_CHECK = 905;
+    public final static int OPTION_MILLIY_AI = 906;
     public final static int OPTION_TRANSCRIBE = 30;
     public final static int OPTION_HIDE_SPONSORED_MESSAGE = 31;
     public final static int OPTION_VIEW_IN_TOPIC = 32;
@@ -33464,6 +33465,10 @@ public class ChatActivity extends BaseFragment implements
                 org.telegram.milliy.MilliyShield.sendToZirh(selectedObject);
                 break;
             }
+            case OPTION_MILLIY_AI: {
+                org.telegram.milliy.MilliyAI.showForMessage(this, selectedObject);
+                break;
+            }
             case OPTION_MILLIY_REPORT: {
                 org.telegram.milliy.MilliyShield.report(this, selectedObject.getSenderId(), selectedObject);
                 break;
@@ -46438,6 +46443,12 @@ public class ChatActivity extends BaseFragment implements
             items.add(getString(R.string.MilliyRemind));
             options.add(OPTION_MILLIY_REMINDER);
             icons.add(R.drawable.msg_mute_period);
+        }
+        if (chatMode != MODE_SCHEDULED && message != null && message.messageOwner != null && !android.text.TextUtils.isEmpty(message.messageOwner.message)
+                && message.messageOwner.message.length() >= 20) { // Milliygram: AI yordamchi
+            items.add(getString(R.string.MilliyAi));
+            options.add(OPTION_MILLIY_AI);
+            icons.add(R.drawable.menu_feature_translate);
         }
         if (message != null && org.telegram.milliy.MilliyShield.isApk(message) && !org.telegram.milliy.MilliyShield.isFromZirh(message)) {
             items.add(getString(R.string.MilliyApkCheck));

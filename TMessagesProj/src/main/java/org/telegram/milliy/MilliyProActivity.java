@@ -143,7 +143,29 @@ public class MilliyProActivity extends BaseFragment {
         // Ovoz va tarjima
         header(R.string.MilliyDictation);
         action(LocaleController.getString(R.string.MilliyDictationLang), MilliyDictation.languageName(), () -> MilliyDictation.chooseLanguage(this, this::build));
+        String[] fx = {LocaleController.getString(R.string.MilliyOff), LocaleController.getString(R.string.MilliyFxChild), LocaleController.getString(R.string.MilliyFxDeep),
+                LocaleController.getString(R.string.MilliyFxRobot), LocaleController.getString(R.string.MilliyFxEcho)};
+        action(LocaleController.getString(R.string.MilliyVoiceFx), fx[Math.min(fx.length - 1, MilliyVoiceFx.effect())], () -> {
+            AlertDialog.Builder b = new AlertDialog.Builder(getParentActivity());
+            b.setTitle(LocaleController.getString(R.string.MilliyVoiceFx));
+            b.setItems(fx, (d, w) -> {
+                MilliyPro.prefs().edit().putInt("voice_fx", w).apply();
+                build();
+            });
+            showDialog(b.create());
+        });
         info(R.string.MilliyDictationHint);
+
+        // AI yordamchi
+        header(R.string.MilliyAi);
+        info(R.string.MilliyAiHint);
+
+        // Kontaktlar
+        header(R.string.MilliyContactsHeader);
+        check(R.string.MilliyContactLogTitle, R.string.MilliyContactLogInfo, "contact_log", true, null);
+        action(LocaleController.getString(R.string.MilliyContactLog), "", () -> presentFragment(new MilliyContacts.LogActivity()));
+        action(LocaleController.getString(R.string.MilliySpecialList), String.valueOf(MilliyPro.getSet(currentAccount, "special").size()), null);
+        info(R.string.MilliyContactsHint);
 
         // Zaxira
         header(R.string.MilliyBackup);

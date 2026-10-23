@@ -5134,6 +5134,15 @@ public class ChatActivityEnterView extends FrameLayout implements
                 org.telegram.milliy.MilliyTranslateSend.show(this);
             });
         }
+        if (editingMessageObject == null && messageEditText != null && messageEditText.length() > 0) {
+            options.add(R.drawable.msg_edit, getString(R.string.MilliyAiImprove), () -> { // Milliygram: AI bilan matnni yaxshilash
+                if (messageSendPreview != null) {
+                    messageSendPreview.dismiss(false);
+                    messageSendPreview = null;
+                }
+                org.telegram.milliy.MilliyAI.showForInput(this);
+            });
+        }
         if (sendWithoutSoundButtonValue) {
             options.add(R.drawable.input_notify_off, getString(R.string.SendWithoutSound), () -> {
                 sentFromPreview = System.currentTimeMillis();
@@ -12607,9 +12616,9 @@ public class ChatActivityEnterView extends FrameLayout implements
         checkChannelRights();
     }
 
-    @Override
     private boolean milliyConfirmed; // Milliygram: tasdiqlangan yuborish qayta so'ralmaydi
 
+    @Override
     public void onStickerSelected(TLRPC.Document sticker, String query, Object parent, MessageObject.SendAnimationData sendAnimationData, boolean clearsInputField, boolean notify, int scheduleDate, int scheduleRepeatPeriod) {
         if (isLiveComment) return;
         if (!milliyConfirmed && org.telegram.milliy.MilliyPro.get("confirm_sticker", false)) {
