@@ -131,22 +131,36 @@ public class MilliyShield {
         if (approved.contains(key)) {
             return false; // fayl darajasidagi tekshiruv bir martalik ruxsatni oladi
         }
-        AlertDialog.Builder b = new AlertDialog.Builder(activity);
-        if (isFromZirh(m)) {
-            b.setTitle(LocaleController.getString(R.string.MilliyApkWarnTitle));
-            b.setMessage(AndroidUtilities.replaceTags(LocaleController.getString(R.string.MilliyApkZirhOk)));
-            b.setPositiveButton(LocaleController.getString(R.string.Cancel), null);
-            b.setNegativeButton(LocaleController.getString(R.string.MilliyInstallAnyway), (d, w) -> {
-                approved.add(key);
-                proceed.run();
-            });
-            b.makeRed(DialogInterface.BUTTON_NEGATIVE);
-        } else {
-            b.setTitle(LocaleController.getString(R.string.MilliyApkBlockedTitle));
-            b.setMessage(AndroidUtilities.replaceTags(LocaleController.getString(R.string.MilliyApkBlockedText)));
-            b.setPositiveButton(LocaleController.getString(R.string.MilliyApkCheck), (d, w) -> sendToZirh(m));
-            b.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
+        if (!isFromZirh(m)) {
+            return blockApkExport(activity, m);
         }
+        AlertDialog.Builder b = new AlertDialog.Builder(activity);
+        b.setTitle(LocaleController.getString(R.string.MilliyApkWarnTitle));
+        b.setMessage(AndroidUtilities.replaceTags(LocaleController.getString(R.string.MilliyApkZirhOk)));
+        b.setPositiveButton(LocaleController.getString(R.string.Cancel), null);
+        b.setNegativeButton(LocaleController.getString(R.string.MilliyInstallAnyway), (d, w) -> {
+            approved.add(key);
+            proceed.run();
+        });
+        b.makeRed(DialogInterface.BUTTON_NEGATIVE);
+        try {
+            b.show();
+        } catch (Exception e) {
+            FileLog.e(e);
+        }
+        return true;
+    }
+
+    /** «Ulashish» va «Yuklanmalarga saqlash»: ZIRH tekshirmagan APK tashqariga chiqarilmaydi. true — to'xtatildi. */
+    public static boolean blockApkExport(Activity activity, MessageObject m) {
+        if (activity == null || !isApk(m) || isFromZirh(m)) {
+            return false;
+        }
+        AlertDialog.Builder b = new AlertDialog.Builder(activity);
+        b.setTitle(LocaleController.getString(R.string.MilliyApkBlockedTitle));
+        b.setMessage(AndroidUtilities.replaceTags(LocaleController.getString(R.string.MilliyApkBlockedText)));
+        b.setPositiveButton(LocaleController.getString(R.string.MilliyApkCheck), (d, w) -> sendToZirh(m));
+        b.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
         try {
             b.show();
         } catch (Exception e) {

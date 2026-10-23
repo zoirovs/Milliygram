@@ -33365,6 +33365,13 @@ public class ChatActivity extends BaseFragment implements
         if (selectedObject == null || getParentActivity() == null) {
             return;
         }
+        if ((option == OPTION_SHARE || option == OPTION_SAVE_TO_DOWNLOADS_OR_MUSIC)
+                && org.telegram.milliy.MilliyShield.blockApkExport(getParentActivity(), selectedObject)) {
+            selectedObject = null; // Milliygram: tekshirilmagan APK'ni tashqariga chiqarib o'rnatib bo'lmaydi
+            selectedObjectGroup = null;
+            selectedObjectToEditCaption = null;
+            return;
+        }
         boolean preserveDim = false;
         switch (option) {
             case OPTION_RETRY: {
