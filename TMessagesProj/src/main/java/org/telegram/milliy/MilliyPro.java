@@ -154,6 +154,65 @@ public class MilliyPro {
         return true;
     }
 
+    /**
+     * Yuborishdan oldin tasdiq (stiker, GIF, ovozli xabar). Sozlama o'chiq bo'lsa darhol yuboriladi.
+     * cancel — «Bekor qilish» bosilganda (masalan, yozilgan ovoz faylini o'chirish uchun), bo'lishi shart emas.
+     */
+    public static void confirmSend(String key, int textRes, Runnable go, Runnable cancel) {
+        org.telegram.ui.ActionBar.BaseFragment f = org.telegram.ui.LaunchActivity.getLastFragment();
+        if (!get(key, false) || f == null || f.getParentActivity() == null) {
+            go.run();
+            return;
+        }
+        boolean[] done = new boolean[1];
+        org.telegram.ui.ActionBar.AlertDialog.Builder b = new org.telegram.ui.ActionBar.AlertDialog.Builder(f.getParentActivity(), f.getResourceProvider());
+        b.setTitle(org.telegram.messenger.LocaleController.getString(org.telegram.messenger.R.string.MilliyConfirmTitle));
+        b.setMessage(org.telegram.messenger.LocaleController.getString(textRes));
+        b.setPositiveButton(org.telegram.messenger.LocaleController.getString(org.telegram.messenger.R.string.Send), (d, w) -> {
+            done[0] = true;
+            go.run();
+        });
+        b.setNegativeButton(org.telegram.messenger.LocaleController.getString(org.telegram.messenger.R.string.Cancel), null);
+        org.telegram.ui.ActionBar.AlertDialog dialog = b.create();
+        dialog.setOnDismissListener(d -> {
+            if (!done[0] && cancel != null) {
+                cancel.run();
+            }
+        });
+        dialog.show();
+    }
+
+    /** Avatar shakli: 0 — doira (Telegram), 1 — yumaloq kvadrat, 2 — kvadrat. */
+    public static int avatarRadius(int circleRadius) {
+        switch (prefs().getInt("avatar_shape", 0)) {
+            case 1:
+                return Math.round(circleRadius * 0.45f);
+            case 2:
+                return org.telegram.messenger.AndroidUtilities.dp(3);
+            default:
+                return circleRadius;
+        }
+    }
+
+    // ---- Lite rejim: animatsiya, avto-ijro va effektlar o'chadi; o'chirilganda avvalgi holat qaytadi ----
+    public static boolean lite() {
+        return get("lite", false);
+    }
+
+    public static void setLite(boolean on) {
+        if (on == lite()) {
+            return;
+        }
+        if (on) {
+            prefs().edit().putInt("lite_prev_flags", org.telegram.messenger.LiteMode.getValue(true)).putBoolean("lite", true).apply();
+            org.telegram.messenger.LiteMode.setAllFlags(0);
+        } else {
+            int prev = prefs().getInt("lite_prev_flags", org.telegram.messenger.LiteMode.PRESET_HIGH);
+            prefs().edit().putBoolean("lite", false).apply();
+            org.telegram.messenger.LiteMode.setAllFlags(prev);
+        }
+    }
+
     // ---- Akkauntga bog'liq to'plamlar (qulf, seyf, mahalliy pin) ----
     public static Set<Long> idSet(int account, String name) {
         Set<String> raw = prefs().getStringSet(name + "_" + account, null);

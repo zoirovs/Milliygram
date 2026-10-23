@@ -17,16 +17,20 @@ import java.util.Set;
 
 /**
  * Milliygram jildlari (Sozlamalar → Chat jildlari → «Milliygram jildlari», har biri alohida yoqiladi):
- * Admin guruhlar, Admin kanallar (yaratgan yoki admin bo'lgan), Tanlanganlar (foydalanuvchi belgilagan chatlar).
+ * Admin guruhlar, Admin kanallar (yaratgan yoki admin bo'lgan), Tanlanganlar (foydalanuvchi belgilagan chatlar), Superguruhlar
+ * va foydalanuvchi kategoriyalari.
  * Bular faqat shu ilovadagi «virtual» jildlar — serverga yuborilmaydi, limitga kirmaydi.
  */
 public class MilliyAdminFolders {
 
-    public static final int ADMIN_GROUPS = 0, ADMIN_CHANNELS = 1, FAVORITES = 2;
-    public static final int COUNT = 3;
+    public static final int ADMIN_GROUPS = 0, ADMIN_CHANNELS = 1, FAVORITES = 2, SUPERGROUPS = 3;
+    public static final int COUNT = 4;
     private static final int BASE_ID = 250;
-    public static final int[] NAMES = {R.string.MilliyAdminGroups, R.string.MilliyAdminChannels, R.string.MilliyFavorites};
-    public static final int[] ICONS = {R.drawable.msg_folders_groups, R.drawable.msg_folders_channels, R.drawable.msg_fave};
+    /** Foydalanuvchi kategoriyalari: tur = CATEGORY_BASE + kategoriya raqami, jild id = CATEGORY_ID_BASE + raqam. */
+    public static final int CATEGORY_BASE = 100;
+    private static final int CATEGORY_ID_BASE = 400;
+    public static final int[] NAMES = {R.string.MilliyAdminGroups, R.string.MilliyAdminChannels, R.string.MilliyFavorites, R.string.MilliySupergroups};
+    public static final int[] ICONS = {R.drawable.msg_folders_groups, R.drawable.msg_folders_channels, R.drawable.msg_fave, R.drawable.msg_groups};
     private static final String KEY_FAV = "milliy_favorites";
     private static final HashSet<Long>[] favorites = new HashSet[UserConfig.MAX_ACCOUNT_COUNT];
 
@@ -81,6 +85,28 @@ public class MilliyAdminFolders {
             mc.dialogFilters.add(f);
             mc.dialogFiltersById.put(id, f);
         }
+        // Kategoriyalar (bo'sh bo'lmaganlari)
+        int account = 0;
+        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
+            if (MessagesController.getInstance(a) == mc) {
+                account = a;
+                break;
+            }
+        }
+        for (Category c : categories(account)) {
+            int id = CATEGORY_ID_BASE + c.id;
+            if (c.chats.isEmpty() || mc.dialogFiltersById.get(id) != null) {
+                continue;
+            }
+            MessagesController.DialogFilter f = new MessagesController.DialogFilter();
+            f.id = id;
+            f.milliyAdmin = CATEGORY_BASE + c.id;
+            f.name = c.name;
+            f.color = -1;
+            f.order = 200000 + c.id;
+            mc.dialogFilters.add(f);
+            mc.dialogFiltersById.put(id, f);
+        }
     }
 
     /** Yoqilganda/o'chirilganda yoki Tanlanganlar o'zgarganda. */
@@ -96,6 +122,10 @@ public class MilliyAdminFolders {
         if (type == FAVORITES) {
             return favorites(account).contains(dialogId);
         }
+        if (type >= CATEGORY_BASE) {
+            Category c = category(account, type - CATEGORY_BASE);
+            return c != null && c.chats.contains(dialogId);
+        }
         if (dialogId >= 0) {
             return false;
         }
@@ -110,6 +140,8 @@ public class MilliyAdminFolders {
                 return !channel && admin;
             case ADMIN_CHANNELS:
                 return channel && admin;
+            case SUPERGROUPS:
+                return ChatObject.isMegagroup(chat);
         }
         return false;
     }
@@ -154,6 +186,152 @@ public class MilliyAdminFolders {
             apply(account);
         }
         return !all;
+    }
+
+    // ---------- Kategoriyalar (mahalliy, cheksiz, serverga yuborilmaydi) ----------
+
+    public static class Category {
+        public int id;
+        public String name;
+        public final HashSet<Long> chats = new HashSet<>();
+    }
+
+    private static final String KEY_CATS = "milliy_categories";
+    private static final ArrayList<Category>[] cats = new ArrayList[UserConfig.MAX_ACCOUNT_COUNT];
+
+    public static ArrayList<Category> categories(int account) {
+        if (cats[account] == null) {
+            ArrayList<Category> list = new ArrayList<>();
+            try {
+                org.json.JSONArray arr = new org.json.JSONArray(MessagesController.getMainSettings(account).getString(KEY_CATS, "[]"));
+                for (int i = 0; i < arr.length(); i++) {
+                    org.json.JSONObject o = arr.getJSONObject(i);
+                    Category c = new Category();
+                    c.id = o.getInt("id");
+                    c.name = o.getString("name");
+                    org.json.JSONArray ch = o.optJSONArray("chats");
+                    for (int j = 0; ch != null && j < ch.length(); j++) {
+                        c.chats.add(ch.getLong(j));
+                    }
+                    list.add(c);
+                }
+            } catch (Exception e) {
+                org.telegram.messenger.FileLog.e(e);
+            }
+            cats[account] = list;
+        }
+        return cats[account];
+    }
+
+    private static Category category(int account, int id) {
+        for (Category c : categories(account)) {
+            if (c.id == id) {
+                return c;
+            }
+        }
+        return null;
+    }
+
+    public static void saveCategories(int account) {
+        org.json.JSONArray arr = new org.json.JSONArray();
+        try {
+            for (Category c : categories(account)) {
+                org.json.JSONArray ch = new org.json.JSONArray();
+                for (Long d : c.chats) {
+                    ch.put(d);
+                }
+                arr.put(new org.json.JSONObject().put("id", c.id).put("name", c.name).put("chats", ch));
+            }
+        } catch (Exception e) {
+            org.telegram.messenger.FileLog.e(e);
+        }
+        MessagesController.getMainSettings(account).edit().putString(KEY_CATS, arr.toString()).apply();
+        apply(account);
+    }
+
+    public static Category createCategory(int account, String name) {
+        int next = 0;
+        for (Category c : categories(account)) {
+            next = Math.max(next, c.id + 1);
+        }
+        Category c = new Category();
+        c.id = next;
+        c.name = name;
+        categories(account).add(c);
+        return c;
+    }
+
+    public static void deleteCategory(int account, Category c) {
+        categories(account).remove(c);
+        saveCategories(account);
+    }
+
+    /** Tanlangan chatlarni kategoriyaga qo'shish (yoki yangi kategoriya yaratish). */
+    public static void showAddToCategory(org.telegram.ui.ActionBar.BaseFragment fragment, ArrayList<Long> dialogIds) {
+        final int account = fragment.getCurrentAccount();
+        ArrayList<Category> list = categories(account);
+        CharSequence[] items = new CharSequence[list.size() + 1];
+        for (int i = 0; i < list.size(); i++) {
+            Category c = list.get(i);
+            items[i] = (c.chats.containsAll(dialogIds) ? "✓ " : "") + c.name;
+        }
+        items[list.size()] = "➕ " + LocaleController.getString(R.string.MilliyCategoryNew);
+        org.telegram.ui.ActionBar.AlertDialog.Builder b = new org.telegram.ui.ActionBar.AlertDialog.Builder(fragment.getParentActivity());
+        b.setTitle(LocaleController.getString(R.string.MilliyCategoryAdd));
+        b.setItems(items, (d, w) -> {
+            if (w == list.size()) {
+                askName(fragment, null, name -> {
+                    Category c = createCategory(account, name);
+                    c.chats.addAll(dialogIds);
+                    saveCategories(account);
+                    added(fragment, c.name);
+                });
+                return;
+            }
+            Category c = list.get(w);
+            if (c.chats.containsAll(dialogIds)) {
+                c.chats.removeAll(dialogIds);
+                saveCategories(account);
+                org.telegram.ui.Components.BulletinFactory.of(fragment).createSimpleBulletin(R.raw.contact_check,
+                        LocaleController.formatString(R.string.MilliyCategoryRemoved, c.name)).show();
+            } else {
+                c.chats.addAll(dialogIds);
+                saveCategories(account);
+                added(fragment, c.name);
+            }
+        });
+        fragment.showDialog(b.create());
+    }
+
+    private static void added(org.telegram.ui.ActionBar.BaseFragment fragment, String name) {
+        org.telegram.ui.Components.BulletinFactory.of(fragment).createSimpleBulletin(R.raw.contact_check,
+                LocaleController.formatString(R.string.MilliyCategoryAdded, name)).show();
+    }
+
+    public static void askName(org.telegram.ui.ActionBar.BaseFragment fragment, String current, org.telegram.messenger.Utilities.Callback<String> done) {
+        android.widget.EditText edit = new android.widget.EditText(fragment.getParentActivity());
+        edit.setTextSize(android.util.TypedValue.COMPLEX_UNIT_DIP, 16);
+        edit.setTextColor(org.telegram.ui.ActionBar.Theme.getColor(org.telegram.ui.ActionBar.Theme.key_dialogTextBlack));
+        edit.setHintTextColor(org.telegram.ui.ActionBar.Theme.getColor(org.telegram.ui.ActionBar.Theme.key_dialogTextGray3));
+        edit.setHint(LocaleController.getString(R.string.MilliyCategoryNameHint));
+        edit.setSingleLine(true);
+        edit.setBackground(org.telegram.ui.ActionBar.Theme.createEditTextDrawable(fragment.getParentActivity(), true));
+        if (current != null) {
+            edit.setText(current);
+        }
+        android.widget.LinearLayout box = new android.widget.LinearLayout(fragment.getParentActivity());
+        box.addView(edit, org.telegram.ui.Components.LayoutHelper.createLinear(org.telegram.ui.Components.LayoutHelper.MATCH_PARENT, org.telegram.ui.Components.LayoutHelper.WRAP_CONTENT, 24, 4, 24, 8));
+        org.telegram.ui.ActionBar.AlertDialog.Builder b = new org.telegram.ui.ActionBar.AlertDialog.Builder(fragment.getParentActivity());
+        b.setTitle(LocaleController.getString(R.string.MilliyCategoryNew));
+        b.setView(box);
+        b.setPositiveButton(LocaleController.getString(R.string.Save), (d, w) -> {
+            String t = edit.getText().toString().trim();
+            if (!t.isEmpty()) {
+                done.run(t.length() > 24 ? t.substring(0, 24) : t);
+            }
+        });
+        b.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
+        fragment.showDialog(b.create());
     }
 
     // ----------

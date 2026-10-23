@@ -1698,6 +1698,8 @@ public class ChatActivity extends BaseFragment implements
     private final static int milliy_signature = 992;
     private final static int milliy_first = 993;
     private final static int milliy_round = 994;
+    private final static int milliy_dictate = 995;
+    private final static int milliy_download_all = 996;
 
     private final static int id_chat_compose_panel = 1000;
 
@@ -3914,6 +3916,10 @@ public class ChatActivity extends BaseFragment implements
                     org.telegram.milliy.MilliySignature.showMenu(ChatActivity.this);
                 } else if (id == milliy_first) {
                     jumpToDate(1);
+                } else if (id == milliy_dictate) {
+                    org.telegram.milliy.MilliyDictation.start(ChatActivity.this);
+                } else if (id == milliy_download_all) {
+                    org.telegram.milliy.MilliyDownloads.showDownloadAll(ChatActivity.this);
                 } else if (id == milliy_round) {
                     org.telegram.milliy.MilliyRound.pick(ChatActivity.this);
                 } else if (id == add_shortcut) {
@@ -4472,7 +4478,9 @@ public class ChatActivity extends BaseFragment implements
                 if (currentUser != null ? !currentUser.bot : currentChat != null && ChatObject.canSendMessages(currentChat)) {
                     headerItem.lazilyAddSubItem(milliy_signature, R.drawable.msg_edit, LocaleController.getString(R.string.MilliySig));
                     headerItem.lazilyAddSubItem(milliy_round, R.drawable.input_video, LocaleController.getString(R.string.MilliyRoundFromGallery));
+                    headerItem.lazilyAddSubItem(milliy_dictate, R.drawable.input_mic, LocaleController.getString(R.string.MilliyDictation));
                 }
+                headerItem.lazilyAddSubItem(milliy_download_all, R.drawable.msg_download, LocaleController.getString(R.string.MilliyDownloadAll));
             }
             if (currentUser != null && currentUser.self && getDialogId() != UserObject.VERIFY) {
                 headerItem.lazilyAddSubItem(add_shortcut, R.drawable.msg_home, LocaleController.getString(R.string.AddShortcut));
@@ -20353,6 +20361,10 @@ public class ChatActivity extends BaseFragment implements
 
     @Override
     public void onActivityResultFragment(int requestCode, int resultCode, Intent data) {
+        if (requestCode == org.telegram.milliy.MilliyDictation.REQUEST_CODE) {
+            org.telegram.milliy.MilliyDictation.onResult(this, resultCode, data); // Milliygram: ovoz bilan yozish
+            return;
+        }
         if (requestCode == org.telegram.milliy.MilliyRound.REQUEST_CODE) {
             if (resultCode == Activity.RESULT_OK) {
                 org.telegram.milliy.MilliyRound.onPicked(this, data); // Milliygram: galereyadan dumaloq video

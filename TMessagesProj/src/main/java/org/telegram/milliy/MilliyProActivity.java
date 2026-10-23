@@ -104,7 +104,52 @@ public class MilliyProActivity extends BaseFragment {
         check(R.string.MilliyHideTabs, R.string.MilliyHideTabsInfo, "hide_tabs", false,
                 () -> getNotificationCenter().postNotificationName(NotificationCenter.dialogFiltersUpdated));
         check(R.string.MilliyAvatarProfile, R.string.MilliyAvatarProfileInfo, "avatar_profile", false, null);
+        String[] shapes = {LocaleController.getString(R.string.MilliyAvatarCircle), LocaleController.getString(R.string.MilliyAvatarRounded), LocaleController.getString(R.string.MilliyAvatarSquare)};
+        action(LocaleController.getString(R.string.MilliyAvatarShape), shapes[Math.min(2, MilliyPro.prefs().getInt("avatar_shape", 0))], () -> {
+            AlertDialog.Builder b = new AlertDialog.Builder(getParentActivity());
+            b.setTitle(LocaleController.getString(R.string.MilliyAvatarShape));
+            b.setItems(shapes, (d, w) -> {
+                MilliyPro.prefs().edit().putInt("avatar_shape", w).apply();
+                getNotificationCenter().postNotificationName(NotificationCenter.updateInterfaces, org.telegram.messenger.MessagesController.UPDATE_MASK_AVATAR);
+                build();
+            });
+            showDialog(b.create());
+        });
+        action(LocaleController.getString(R.string.MilliyThemeEditor), "", () -> presentFragment(new org.telegram.ui.ThemeActivity(org.telegram.ui.ThemeActivity.THEME_TYPE_BASIC)));
+        TextCheckCell lite = new TextCheckCell(getParentActivity());
+        lite.setBackground(Theme.getSelectorDrawable(true));
+        lite.setTextAndValueAndCheck(LocaleController.getString(R.string.MilliyLite), LocaleController.getString(R.string.MilliyLiteInfo), MilliyPro.lite(), true, true);
+        lite.setOnClickListener(v -> {
+            MilliyPro.setLite(!MilliyPro.lite());
+            lite.setChecked(MilliyPro.lite());
+        });
+        root.addView(lite, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
         info(R.string.MilliyViewHint);
+
+        // Chatlar: tezkor panel, kategoriyalar, yuklab olish menejeri
+        header(R.string.MilliyChatsHeader);
+        check(R.string.MilliyQuickBar, R.string.MilliyQuickBarInfo, "quick_bar", false, null);
+        action(LocaleController.getString(R.string.MilliyCategories), String.valueOf(MilliyAdminFolders.categories(currentAccount).size()), this::manageCategories);
+        action(LocaleController.getString(R.string.MilliyDlManager), "", () -> MilliyDownloads.open(this));
+        info(R.string.MilliyChatsHint);
+
+        // Yuborishdan oldin so'rash
+        header(R.string.MilliyConfirmHeader);
+        check(R.string.MilliyConfirmStickerTitle, 0, "confirm_sticker", false, null);
+        check(R.string.MilliyConfirmGifTitle, 0, "confirm_gif", false, null);
+        check(R.string.MilliyConfirmVoiceTitle, 0, "confirm_voice", false, null);
+        info(R.string.MilliyConfirmHint);
+
+        // Ovoz va tarjima
+        header(R.string.MilliyDictation);
+        action(LocaleController.getString(R.string.MilliyDictationLang), MilliyDictation.languageName(), () -> MilliyDictation.chooseLanguage(this, this::build));
+        info(R.string.MilliyDictationHint);
+
+        // Zaxira
+        header(R.string.MilliyBackup);
+        action(LocaleController.getString(R.string.MilliyBackupExport), null, () -> MilliyBackup.export(this));
+        action(LocaleController.getString(R.string.MilliyBackupRestore), null, () -> MilliyBackup.pick(this));
+        info(R.string.MilliyBackupHint);
 
         // Qulf va seyf
         header(R.string.MilliyPrivacyHeader);
@@ -184,6 +229,52 @@ public class MilliyProActivity extends BaseFragment {
             org.telegram.ui.Components.BulletinFactory.of(this).createCopyLinkBulletin().show();
         });
         info(R.string.MilliyOtherHint);
+    }
+
+    @Override
+    public void onActivityResultFragment(int requestCode, int resultCode, android.content.Intent data) {
+        if (requestCode == MilliyBackup.REQUEST_CODE) {
+            MilliyBackup.onPicked(this, resultCode, data);
+            build();
+        }
+    }
+
+    private void manageCategories() {
+        java.util.ArrayList<MilliyAdminFolders.Category> list = MilliyAdminFolders.categories(currentAccount);
+        CharSequence[] items = new CharSequence[list.size() + 1];
+        for (int i = 0; i < list.size(); i++) {
+            items[i] = list.get(i).name + " (" + list.get(i).chats.size() + ")";
+        }
+        items[list.size()] = "➕ " + LocaleController.getString(R.string.MilliyCategoryNew);
+        AlertDialog.Builder b = new AlertDialog.Builder(getParentActivity());
+        b.setTitle(LocaleController.getString(R.string.MilliyCategories));
+        b.setItems(items, (d, w) -> {
+            if (w == list.size()) {
+                MilliyAdminFolders.askName(this, null, name -> {
+                    MilliyAdminFolders.createCategory(currentAccount, name);
+                    MilliyAdminFolders.saveCategories(currentAccount);
+                    build();
+                });
+                return;
+            }
+            MilliyAdminFolders.Category c = list.get(w);
+            AlertDialog.Builder b2 = new AlertDialog.Builder(getParentActivity());
+            b2.setTitle(c.name);
+            b2.setItems(new CharSequence[]{LocaleController.getString(R.string.MilliyCategoryRename), LocaleController.getString(R.string.MilliyCategoryDelete)}, (d2, w2) -> {
+                if (w2 == 0) {
+                    MilliyAdminFolders.askName(this, c.name, name -> {
+                        c.name = name;
+                        MilliyAdminFolders.saveCategories(currentAccount);
+                        build();
+                    });
+                } else {
+                    MilliyAdminFolders.deleteCategory(currentAccount, c);
+                    build();
+                }
+            });
+            showDialog(b2.create());
+        });
+        showDialog(b.create());
     }
 
     private void editAutoReply() {

@@ -5125,6 +5125,15 @@ public class ChatActivityEnterView extends FrameLayout implements
             ;*/
         }
 
+        if (editingMessageObject == null && messageEditText != null && messageEditText.length() > 0) {
+            options.add(R.drawable.menu_feature_translate, getString(R.string.MilliyTranslateSend), () -> { // Milliygram
+                if (messageSendPreview != null) {
+                    messageSendPreview.dismiss(false);
+                    messageSendPreview = null;
+                }
+                org.telegram.milliy.MilliyTranslateSend.show(this);
+            });
+        }
         if (sendWithoutSoundButtonValue) {
             options.add(R.drawable.input_notify_off, getString(R.string.SendWithoutSound), () -> {
                 sentFromPreview = System.currentTimeMillis();
@@ -12242,6 +12251,17 @@ public class ChatActivityEnterView extends FrameLayout implements
             }
 
             public void onGifSelected(View view, Object gif, String query, Object parent, boolean notify, int scheduleDate, int scheduleRepeatPeriod, MediaController.PhotoEntry entry, boolean invertMedia) {
+                if (!milliyConfirmed && org.telegram.milliy.MilliyPro.get("confirm_gif", false)) {
+                    org.telegram.milliy.MilliyPro.confirmSend("confirm_gif", R.string.MilliyConfirmGif, () -> {
+                        milliyConfirmed = true;
+                        try {
+                            onGifSelected(view, gif, query, parent, notify, scheduleDate, scheduleRepeatPeriod, entry, invertMedia);
+                        } finally {
+                            milliyConfirmed = false;
+                        }
+                    }, null);
+                    return;
+                }
                 if (replyingQuote != null && parentFragment != null && replyingQuote.outdated) {
                     parentFragment.showQuoteMessageUpdate();
                     return;
@@ -12588,8 +12608,21 @@ public class ChatActivityEnterView extends FrameLayout implements
     }
 
     @Override
+    private boolean milliyConfirmed; // Milliygram: tasdiqlangan yuborish qayta so'ralmaydi
+
     public void onStickerSelected(TLRPC.Document sticker, String query, Object parent, MessageObject.SendAnimationData sendAnimationData, boolean clearsInputField, boolean notify, int scheduleDate, int scheduleRepeatPeriod) {
         if (isLiveComment) return;
+        if (!milliyConfirmed && org.telegram.milliy.MilliyPro.get("confirm_sticker", false)) {
+            org.telegram.milliy.MilliyPro.confirmSend("confirm_sticker", R.string.MilliyConfirmSticker, () -> {
+                milliyConfirmed = true;
+                try {
+                    onStickerSelected(sticker, query, parent, sendAnimationData, clearsInputField, notify, scheduleDate, scheduleRepeatPeriod);
+                } finally {
+                    milliyConfirmed = false;
+                }
+            }, null);
+            return;
+        }
         if (replyingQuote != null && parentFragment != null && replyingQuote.outdated) {
             parentFragment.showQuoteMessageUpdate();
             return;

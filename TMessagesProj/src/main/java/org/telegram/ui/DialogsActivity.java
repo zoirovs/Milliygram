@@ -583,6 +583,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     @Nullable
     private ActionBarMenuSubItem removeFromFolderItem;
     private ActionBarMenuSubItem milliyFavoriteItem;
+    private ActionBarMenuSubItem milliyCategoryItem;
+    private org.telegram.milliy.MilliyQuickBar milliyQuickBar;
     @Nullable
     private ActionBarMenuSubItem archiveItem;
     @Nullable
@@ -712,6 +714,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     private final static int remove_from_folder = 110;
     private final static int community_ungroup = 111;
     private final static int milliy_favorite = 190; // Milliygram: Tanlanganlar
+    private final static int milliy_category = 191; // Milliygram: kategoriyalar
 
     private final static int ARCHIVE_ITEM_STATE_PINNED = 0;
     private final static int ARCHIVE_ITEM_STATE_SHOWED = 1;
@@ -3944,6 +3947,12 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                     BulletinFactory.of(DialogsActivity.this).createSimpleBulletin(R.raw.contact_check,
                             LocaleController.getString(added ? R.string.MilliyFavoritesAdded : R.string.MilliyFavoritesRemoved)).show();
                     hideActionMode(true);
+                    if (milliyQuickBar != null) {
+                        topPanelLayout.setViewVisible(milliyQuickBar, milliyQuickBar.refresh());
+                    }
+                } else if (id == milliy_category) {
+                    org.telegram.milliy.MilliyAdminFolders.showAddToCategory(DialogsActivity.this, new ArrayList<>(selectedDialogs));
+                    hideActionMode(true);
                 } else if (id == add_to_folder) {
                     FiltersListBottomSheet sheet = new FiltersListBottomSheet(DialogsActivity.this, selectedDialogs);
                     sheet.setDelegate((filter, checked) -> {
@@ -4887,6 +4896,11 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 updateDialogsHint();
             });
             topPanelLayout.addView(dialogsHintCell);
+            if (folderId == 0) { // Milliygram: tezkor panel (Tanlanganlar)
+                milliyQuickBar = new org.telegram.milliy.MilliyQuickBar(context, this);
+                topPanelLayout.addView(milliyQuickBar);
+                topPanelLayout.setViewVisible(milliyQuickBar, milliyQuickBar.refresh(), false);
+            }
 
 
             if (communityId != 0) {
@@ -6782,6 +6796,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         addToFolderItem = otherItem.addSubItem(add_to_folder, R.drawable.msg_addfolder, LocaleController.getString(R.string.FilterAddTo));
         removeFromFolderItem = otherItem.addSubItem(remove_from_folder, R.drawable.msg_removefolder, LocaleController.getString(R.string.FilterRemoveFrom));
         milliyFavoriteItem = otherItem.addSubItem(milliy_favorite, R.drawable.msg_fave, LocaleController.getString(R.string.MilliyFavoritesAdd));
+        milliyCategoryItem = otherItem.addSubItem(milliy_category, R.drawable.msg_folders, LocaleController.getString(R.string.MilliyCategoryAdd));
         readItem = otherItem.addSubItem(read, R.drawable.msg_markread, LocaleController.getString(R.string.MarkAsRead));
         clearItem = otherItem.addSubItem(clear, R.drawable.msg_clear, LocaleController.getString(R.string.ClearHistory));
         blockItem = otherItem.addSubItem(block, R.drawable.msg_block, LocaleController.getString(R.string.BlockUser));
@@ -7064,6 +7079,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             org.telegram.milliy.MilliyBadges.refresh();
             org.telegram.milliy.MilliyService.refresh(currentAccount);
             org.telegram.milliy.MilliyReminder.restore();
+            if (milliyQuickBar != null && topPanelLayout != null) {
+                topPanelLayout.setViewVisible(milliyQuickBar, milliyQuickBar.refresh());
+            }
             if (milliyThemeDrawable != null && !switchingTheme) { // tizim rejimi o'zgargan bo'lishi mumkin
                 milliyThemeDrawable.setCurrentFrame(Theme.isCurrentThemeDark() ? milliyThemeDrawable.getFramesCount() - 1 : 0, false);
                 milliyThemeItem.setContentDescription(getString(Theme.isCurrentThemeDark() ? R.string.SwitchThemeToDay : R.string.SwitchThemeToNight));
@@ -9988,6 +10006,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             }
             milliyFavoriteItem.setText(LocaleController.getString(allFav ? R.string.MilliyFavoritesRemove : R.string.MilliyFavoritesAdd));
             milliyFavoriteItem.setVisibility(folderId == 0 ? View.VISIBLE : View.GONE);
+        }
+        if (milliyCategoryItem != null) {
+            milliyCategoryItem.setVisibility(folderId == 0 ? View.VISIBLE : View.GONE);
         }
         if (removeFromFolderItem != null) {
             boolean cantRemoveFromFolder = filterTabsView == null || filterTabsView.getVisibility() != View.VISIBLE || filterTabsView.currentTabIsDefault();
