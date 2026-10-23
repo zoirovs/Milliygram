@@ -2532,7 +2532,7 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
 
             if (activityMode == MODE_LOGIN) { // Milliygram: QR kod va bot token bilan kirish
                 LinearLayout milliyRow = new LinearLayout(context);
-                milliyRow.setOrientation(LinearLayout.HORIZONTAL);
+                milliyRow.setOrientation(LinearLayout.VERTICAL); // tor ekranlarda ham sig'ishi uchun ikki qator
                 milliyRow.setGravity(Gravity.CENTER);
                 String[] milliyTitles = {getString(R.string.MilliyQrLogin), getString(R.string.MilliyBotTokenLogin)};
                 for (int i = 0; i < 2; i++) {
@@ -2550,10 +2550,10 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
                             org.telegram.milliy.MilliyLogin.showBotToken(LoginActivity.this);
                         }
                     });
-                    milliyRow.addView(link, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT));
+                    milliyRow.addView(link, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL));
                 }
-                addView(milliyRow, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL | Gravity.TOP, 16, 8, 16, 0));
-                bottomMargin -= 36;
+                addView(milliyRow, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL | Gravity.TOP, 16, 4, 16, 0));
+                bottomMargin -= 64;
             }
 
             if (bottomMargin > 0 && !AndroidUtilities.isSmallScreen()) {
