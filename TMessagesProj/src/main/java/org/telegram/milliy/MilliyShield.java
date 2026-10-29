@@ -131,6 +131,9 @@ public class MilliyShield {
         if (approved.contains(key)) {
             return false; // fayl darajasidagi tekshiruv bir martalik ruxsatni oladi
         }
+        if (MilliyApkGuard.isEnabled()) {
+            return MilliyApkGuard.interceptApk(activity, m, f, proceed);
+        }
         if (!isFromZirh(m)) {
             return blockApkExport(activity, m);
         }
@@ -178,6 +181,9 @@ public class MilliyShield {
         }
         if (approved.remove(approveKey(f))) {
             return false;
+        }
+        if (MilliyApkGuard.isEnabled()) {
+            return MilliyApkGuard.interceptApk(activity, null, f, proceed);
         }
         AlertDialog.Builder b = new AlertDialog.Builder(activity);
         b.setTitle(LocaleController.getString(R.string.MilliyApkBlockedTitle));
