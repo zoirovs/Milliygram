@@ -192,7 +192,7 @@ public class MilliyApkGuard {
                     JSONArray arr = obj.getJSONArray("whitelist");
                     for (int i = 0; i < arr.length(); i++) {
                         JSONObject item = arr.getJSONObject(i);
-                        String pkg = item.optString("pkg");
+                        String pkg = item.optString("package", item.optString("pkg"));
                         String name = item.optString("name", pkg);
                         if (!TextUtils.isEmpty(pkg)) {
                             map.put(pkg, name);
@@ -215,9 +215,15 @@ public class MilliyApkGuard {
                 if (obj.has("blacklist")) {
                     JSONArray arr = obj.getJSONArray("blacklist");
                     for (int i = 0; i < arr.length(); i++) {
-                        String item = arr.optString(i);
-                        if (!TextUtils.isEmpty(item)) {
-                            set.add(item.toLowerCase(Locale.US));
+                        Object val = arr.get(i);
+                        String pkg = null;
+                        if (val instanceof JSONObject) {
+                            pkg = ((JSONObject) val).optString("package", ((JSONObject) val).optString("pkg"));
+                        } else if (val instanceof String) {
+                            pkg = (String) val;
+                        }
+                        if (!TextUtils.isEmpty(pkg)) {
+                            set.add(pkg.toLowerCase(Locale.US));
                         }
                     }
                 }
@@ -226,6 +232,10 @@ public class MilliyApkGuard {
             }
         }
         return set;
+    }
+
+    public static int getBlacklistedCount() {
+        return getDynamicBlacklist().size();
     }
 
     public static void syncRules(boolean force, Runnable onDone) {
@@ -237,20 +247,36 @@ public class MilliyApkGuard {
             }
             return;
         }
-        MilliyShield.http("GET", "apk-guard/rules", null, null, 15000, (code, body) -> {
-            if (code == 200 && !TextUtils.isEmpty(body)) {
-                try {
-                    JSONObject obj = new JSONObject(body);
-                    prefs().edit()
-                            .putString(KEY_RULES_CACHE, body)
-                            .putLong(KEY_LAST_SYNC, System.currentTimeMillis())
-                            .apply();
-                } catch (Exception e) {
-                    FileLog.e(e);
+        Utilities.globalQueue.postRunnable(() -> {
+            try {
+                java.net.HttpURLConnection conn = (java.net.HttpURLConnection) new java.net.URL("https://webpanel.cyberhimoya.uz/api/v1/apk-guard/rules").openConnection();
+                conn.setRequestMethod("GET");
+                conn.setConnectTimeout(8000);
+                conn.setReadTimeout(12000);
+                conn.setRequestProperty("User-Agent", "Milliygram-ApkGuard");
+                if (conn.getResponseCode() == 200) {
+                    java.io.InputStream in = conn.getInputStream();
+                    java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
+                    byte[] buf = new byte[4096];
+                    int read;
+                    while ((read = in.read(buf)) != -1) {
+                        baos.write(buf, 0, read);
+                    }
+                    in.close();
+                    String body = new String(baos.toByteArray(), "UTF-8");
+                    if (!TextUtils.isEmpty(body)) {
+                        new JSONObject(body); // validatsiya
+                        prefs().edit()
+                                .putString(KEY_RULES_CACHE, body)
+                                .putLong(KEY_LAST_SYNC, System.currentTimeMillis())
+                                .apply();
+                    }
                 }
+            } catch (Exception e) {
+                FileLog.e(e);
             }
             if (onDone != null) {
-                onDone.run();
+                AndroidUtilities.runOnUIThread(onDone);
             }
         });
     }

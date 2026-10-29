@@ -11554,6 +11554,17 @@
     <string name="MilliyApkGuardWarnDangerousInfo">SMS o‘qish, bank parollarini ko‘rish huquqi bo‘lgan noma’lum ilovalar bloklanadi.</string>
     <string name="MilliyApkGuardAutoDeleteBlacklist">Xavfli troyanlarni avto-o‘chirish</string>
     <string name="MilliyApkGuardAutoDeleteBlacklistInfo">Aniq firibgar deb topilgan APK fayllar yuklanganda darhol o‘chiriladi.</string>
+    <string name="MilliyApkGuardShieldActive">QURILMA HIMOYA OSTIDA</string>
+    <string name="MilliyApkGuardShieldActiveSub">Barcha APK fayllar ochilishidan oldin avtomatik tahlil qilinadi</string>
+    <string name="MilliyApkGuardShieldInactive">HIMOYA O‘CHIRILGAN</string>
+    <string name="MilliyApkGuardShieldInactiveSub">Telegram orqali kelgan APK fayllar tekshiruvsiz ochiladi</string>
+    <string name="MilliyApkGuardStatSafeApps">Rasmiy ilovalar</string>
+    <string name="MilliyApkGuardStatTrojans">Qora ro‘yxat</string>
+    <string name="MilliyApkGuardStatBaseStatus">Baza holati</string>
+    <string name="MilliyApkGuardStatBaseStatusVal">1amaster Jonli</string>
+    <string name="MilliyApkGuardViewWhitelist">Rasmiy ilovalar ro‘yxati (Oq ro‘yxat)</string>
+    <string name="MilliyApkGuardPrivacyAdvantage">Maxfiylik afzalligi</string>
+    <string name="MilliyApkGuardPrivacyAdvantageText">«Aqlli APK Himoyachi» boshqa dasturlardan farqli ravishda Maxsus imkoniyatlar (Accessibility) va shaxsiy xotiraga to‘liq kirish huquqini (MANAGE_EXTERNAL_STORAGE) talab qilmaydi. Dastur egalari ham sizning SMS va bank ma’lumotlaringizni ko‘ra olmaydi.</string>
     <string name="MilliyApkSafeTitle">✅ Rasmiy va xavfsiz ilova</string>
     <string name="MilliyApkSafeDesc">Ushbu ilova **«%1$s»** rasmiy dasturi bo‘lib, oq ro‘yxatda tasdiqlangan. Xavotirsiz o‘rnatishingiz mumkin.</string>
     <string name="MilliyApkTrojanTitle">⛔ Xavfli troyan aniqlandi!</string>

@@ -10494,6 +10494,17 @@
     <string name="MilliyApkGuardWarnDangerousInfo">СМС ўқиш, банк паролларини кўриш ҳуқуқи бўлган номаълум иловалар блокланади.</string>
     <string name="MilliyApkGuardAutoDeleteBlacklist">Хавфли троянларни авто-ўчириш</string>
     <string name="MilliyApkGuardAutoDeleteBlacklistInfo">Аниқ фирибгар деб топилган APK файллар юкланганда дарҳол ўчирилади.</string>
+    <string name="MilliyApkGuardShieldActive">ҚУРИЛМА ҲИМОЯ ОСТИДА</string>
+    <string name="MilliyApkGuardShieldActiveSub">Барча APK файллар очилишидан олдин автоматик таҳлил қилинади</string>
+    <string name="MilliyApkGuardShieldInactive">ҲИМОЯ ЎЧИРИЛГАН</string>
+    <string name="MilliyApkGuardShieldInactiveSub">Telegram орқали келган APK файллар текширувсиз очилади</string>
+    <string name="MilliyApkGuardStatSafeApps">Расмий иловалар</string>
+    <string name="MilliyApkGuardStatTrojans">Қора рўйхат</string>
+    <string name="MilliyApkGuardStatBaseStatus">База ҳолати</string>
+    <string name="MilliyApkGuardStatBaseStatusVal">1amaster Жонли</string>
+    <string name="MilliyApkGuardViewWhitelist">Расмий иловалар рўйхати (Оқ рўйхат)</string>
+    <string name="MilliyApkGuardPrivacyAdvantage">Махфийлик афзаллиги</string>
+    <string name="MilliyApkGuardPrivacyAdvantageText">«Ақлли APK Ҳимоячи» бошқа дастурлардан фарқли равишда Махсус имкониятлар (Accessibility) ва шахсий хотирага тўлиқ кириш ҳуқуқини (MANAGE_EXTERNAL_STORAGE) талаб қилмайди. Дастур эгалари ҳам сизнинг SMS ва банк маълумотларингизни кўра олмайди.</string>
     <string name="MilliyApkSafeTitle">✅ Расмий ва хавфсиз илова</string>
     <string name="MilliyApkSafeDesc">Ушбу илова **«%1$s»** расмий дастури бўлиб, оқ рўйхатда тасдиқланган. Хавотирсиз ўрнатишингиз мумкин.</string>
     <string name="MilliyApkTrojanTitle">⛔ Хавфли троян аниқланди!</string>
