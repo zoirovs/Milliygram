@@ -184,8 +184,14 @@ public final class TelegramQRCodeWriter {
       }
     }
 
-    Bitmap icon = SvgHelper.getBitmap(readRes(R.raw.qr_logo), imageSize, imageSize, false);
-    canvas.drawBitmap(icon, imageX, imageX, null);
+    // Milliygram: QR markazida o'z logotipimiz
+    Bitmap icon = android.graphics.BitmapFactory.decodeResource(ApplicationLoader.applicationContext.getResources(), R.mipmap.ic_launcher_round);
+    if (icon != null) {
+      canvas.drawBitmap(icon, null, new android.graphics.Rect(imageX, imageX, imageX + imageSize, imageX + imageSize), new Paint(Paint.FILTER_BITMAP_FLAG | Paint.ANTI_ALIAS_FLAG));
+    } else {
+      icon = SvgHelper.getBitmap(readRes(R.raw.qr_logo), imageSize, imageSize, false);
+      canvas.drawBitmap(icon, imageX, imageX, null);
+    }
     icon.recycle();
 
     canvas.setBitmap(null);

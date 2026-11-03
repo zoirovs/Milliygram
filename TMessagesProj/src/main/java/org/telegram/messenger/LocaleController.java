@@ -1476,6 +1476,9 @@ public class LocaleController {
         if (value == null) {
             return "LOC_ERR:" + key;
         }
+        if (res == R.string.AppName || res == R.string.Page1Title || res == R.string.TelegramVersion) {
+            return value.replace("Telegram", "Milliygram"); // Milliygram: serverdagi til paketi ilova nomini qaytarib qo'ymasin
+        }
         return value;
     }
 
