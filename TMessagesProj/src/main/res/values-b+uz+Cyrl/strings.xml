@@ -10199,6 +10199,7 @@
     <string name="MilliyWeather">Об-ҳаво</string>
     <string name="MilliyCurrency">Валюта курси</string>
     <string name="MilliyCurrencyDate">Марказий банк курси, %1$s</string>
+    <string name="MilliyCurrencyMarketDate">Бозор курси (тахминий), %1$s</string>
     <string name="MilliyWeatherFeels">Ҳис қилинади: %1$s</string>
     <string name="MilliyWeatherWind">Шамол: %1$d км/соат · Намлик: %2$d%%</string>
     <string name="MilliyToday">Бугун</string>

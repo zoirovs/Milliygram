@@ -11259,6 +11259,7 @@
     <string name="MilliyWeather">Ob-havo</string>
     <string name="MilliyCurrency">Valyuta kursi</string>
     <string name="MilliyCurrencyDate">Markaziy bank kursi, %1$s</string>
+    <string name="MilliyCurrencyMarketDate">Bozor kursi (taxminiy), %1$s</string>
     <string name="MilliyWeatherFeels">His qilinadi: %1$s</string>
     <string name="MilliyWeatherWind">Shamol: %1$d km/soat · Namlik: %2$d%%</string>
     <string name="MilliyToday">Bugun</string>
