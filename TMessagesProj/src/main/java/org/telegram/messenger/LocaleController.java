@@ -1476,8 +1476,13 @@ public class LocaleController {
         if (value == null) {
             return "LOC_ERR:" + key;
         }
+        return milliyBrand(res, value);
+    }
+
+    /** Milliygram: serverdagi til paketi ilova nomini qaytarib qo'ymasin. */
+    private static String milliyBrand(int res, String value) {
         if (res == R.string.AppName || res == R.string.Page1Title || res == R.string.TelegramVersion) {
-            return value.replace("Telegram", "Milliygram"); // Milliygram: serverdagi til paketi ilova nomini qaytarib qo'ymasin
+            return value.replace("Telegram", "Milliygram");
         }
         return value;
     }
@@ -1657,10 +1662,11 @@ public class LocaleController {
 
     private static String formatString(String key, String fallback, int res, Object... args) {
         try {
-            final String value = getInstance().getStringV2(key, res, fallback);
+            String value = getInstance().getStringV2(key, res, fallback);
             if (value == null) {
                 return "LOC_ERR: " + key;
             }
+            value = milliyBrand(res, value);
 
             if (getInstance().currentLocale != null) {
                 return String.format(getInstance().currentLocale, value, args);
