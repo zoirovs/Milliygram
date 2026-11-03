@@ -100,7 +100,7 @@ public class MilliyInfo {
                 JSONArray arr = new JSONArray(body);
                 StringBuilder sb = new StringBuilder();
                 if (arr.length() > 0) {
-                    sb.append(LocaleController.formatString(R.string.MilliyCurrencyDate, arr.getJSONObject(0).optString("date"))).append("\n\n");
+                    sb.append(LocaleController.formatString("market".equals(arr.getJSONObject(0).optString("source")) ? R.string.MilliyCurrencyMarketDate : R.string.MilliyCurrencyDate, arr.getJSONObject(0).optString("date"))).append("\n\n");
                 }
                 for (int i = 0; i < arr.length(); i++) {
                     JSONObject c = arr.getJSONObject(i);
