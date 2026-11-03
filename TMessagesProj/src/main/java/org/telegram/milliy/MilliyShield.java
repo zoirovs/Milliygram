@@ -140,6 +140,7 @@ public class MilliyShield {
         b.setPositiveButton(LocaleController.getString(R.string.Cancel), null);
         b.setNegativeButton(LocaleController.getString(R.string.MilliyInstallAnyway), (d, w) -> {
             approved.add(key);
+            MilliyApkGuard.allowInstall(); // ZIRH tasdiqlagan: Qo'riqchi tizim oynasini yopmasin
             proceed.run();
         });
         b.makeRed(DialogInterface.BUTTON_NEGATIVE);
