@@ -78,6 +78,7 @@ public class ApplicationLoaderImpl extends ApplicationLoader {
             String fileName = FileLoader.getAttachFileName(document);
             File f = FileLoader.getInstance(UserConfig.selectedAccount).getPathToAttach(document, true);
             if (exists = f.exists()) {
+                org.telegram.milliy.MilliyApkGuard.allowInstall(); // Milliygramning o'z yangilanishi
                 Intent intent = new Intent(Intent.ACTION_VIEW);
                 intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
