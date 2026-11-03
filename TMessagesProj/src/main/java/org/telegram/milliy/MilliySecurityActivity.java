@@ -207,14 +207,6 @@ public class MilliySecurityActivity extends BaseFragment implements Notification
         addRow(R.string.MilliySecPasscode, passcode ? OK : WARN, passcode ? R.string.MilliySecPasscodeOn : R.string.MilliySecPasscodeOff,
                 () -> presentFragment(PasscodeActivity.determineOpenFragment()));
 
-        // 7. Aqlli APK himoyachi
-        total++;
-        boolean apkGuardOn = MilliyApkGuard.isEnabled();
-        if (apkGuardOn) good++;
-        addRow(R.string.MilliyApkGuardTitle, apkGuardOn ? OK : WARN,
-                apkGuardOn ? R.string.MilliyApkGuardOn : R.string.MilliyApkGuardOff,
-                () -> presentFragment(new MilliyApkGuardActivity()));
-
         int color = good == total ? OK : good >= total - 2 ? WARN : BAD;
         scoreView.setTextColor(color);
         scoreView.setText(LocaleController.formatString(R.string.MilliySecScore, good, total));
