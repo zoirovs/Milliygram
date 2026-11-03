@@ -534,7 +534,9 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
         titleView.setText(UserObject.getUserName(user));
         final StringBuilder sb = new StringBuilder();
         if (user != null) {
-            sb.append(PhoneFormat.getInstance().format("+" + user.phone));
+            if (!TextUtils.isEmpty(user.phone)) { // Milliygram: bot akkauntda raqam yo'q («+null» chiqardi)
+                sb.append(PhoneFormat.getInstance().format("+" + user.phone));
+            }
         }
         final String username = UserObject.getPublicUsername(user);
         if (username != null) {
