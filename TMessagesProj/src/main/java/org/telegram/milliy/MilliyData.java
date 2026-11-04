@@ -29,7 +29,11 @@ import java.util.Set;
 /** Milliygram server bilan ishlash (hududlar, kanallar, valyuta, ob-havo) va akkaunt bo'yicha sozlamalar. */
 public class MilliyData {
 
-    public static final String API = "https://platforma.cyberhimoya.uz/api/v1/";
+    /** Asosiy manzil. Eski manzil zaxira: yangi domen ishlamaguncha va tarmoqda muammo bo'lganda ilova to'xtab qolmaydi. */
+    private static final String API_MAIN = "https://milliygram.milliysi.uz/api/v1/";
+    private static final String API_RESERVE = "https://platforma.cyberhimoya.uz/api/v1/";
+    private static volatile String apiBase;
+    private static boolean mainProbed;
 
     private static final String KEY_DISTRICT = "milliy_district";
     private static final String KEY_DISTRICT_NAME = "milliy_district_name";
@@ -58,29 +62,13 @@ public class MilliyData {
             return;
         }
         Utilities.globalQueue.postRunnable(() -> {
-            String body = null;
-            HttpURLConnection connection = null;
-            try {
-                connection = (HttpURLConnection) new URL(API + path).openConnection();
-                connection.setConnectTimeout(10000);
-                connection.setReadTimeout(15000);
-                connection.setRequestProperty("User-Agent", "Milliygram/" + BuildVars.BUILD_VERSION_STRING);
-                if (connection.getResponseCode() == 200) {
-                    try (InputStream in = connection.getInputStream()) {
-                        ByteArrayOutputStream out = new ByteArrayOutputStream();
-                        byte[] buf = new byte[8192];
-                        int n;
-                        while ((n = in.read(buf)) > 0) {
-                            out.write(buf, 0, n);
-                        }
-                        body = out.toString("UTF-8");
-                    }
-                }
-            } catch (Exception e) {
-                FileLog.e(e);
-            } finally {
-                if (connection != null) {
-                    connection.disconnect();
+            final String base = api();
+            String body = fetch(base + path, 10000);
+            if (body == null) {
+                final String other = API_MAIN.equals(base) ? API_RESERVE : API_MAIN;
+                body = fetch(other + path, 10000);
+                if (body != null) {
+                    setApiBase(other);
                 }
             }
             if (body != null) {
@@ -95,6 +83,55 @@ public class MilliyData {
                 }
             });
         });
+    }
+
+    /** Hozir ishlayotgan API manzili. Zaxirada turgan bo'lsa, asosiy manzil bir marta tekshiriladi. */
+    public static String api() {
+        if (apiBase == null) {
+            apiBase = cachePrefs().getString("api_base", API_RESERVE);
+        }
+        if (API_RESERVE.equals(apiBase) && !mainProbed) {
+            mainProbed = true;
+            Utilities.globalQueue.postRunnable(() -> {
+                if (fetch(API_MAIN + "config", 5000) != null) {
+                    setApiBase(API_MAIN);
+                }
+            });
+        }
+        return apiBase;
+    }
+
+    private static void setApiBase(String base) {
+        apiBase = base;
+        cachePrefs().edit().putString("api_base", base).apply();
+    }
+
+    private static String fetch(String url, int connectTimeout) {
+        HttpURLConnection connection = null;
+        try {
+            connection = (HttpURLConnection) new URL(url).openConnection();
+            connection.setConnectTimeout(connectTimeout);
+            connection.setReadTimeout(15000);
+            connection.setRequestProperty("User-Agent", "Milliygram/" + BuildVars.BUILD_VERSION_STRING);
+            if (connection.getResponseCode() == 200) {
+                try (InputStream in = connection.getInputStream()) {
+                    ByteArrayOutputStream out = new ByteArrayOutputStream();
+                    byte[] buf = new byte[8192];
+                    int n;
+                    while ((n = in.read(buf)) > 0) {
+                        out.write(buf, 0, n);
+                    }
+                    return out.toString("UTF-8");
+                }
+            }
+        } catch (Exception e) {
+            FileLog.e(e);
+        } finally {
+            if (connection != null) {
+                connection.disconnect();
+            }
+        }
+        return null;
     }
 
     public static String enc(String s) {

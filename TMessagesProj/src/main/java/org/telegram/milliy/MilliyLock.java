@@ -56,6 +56,17 @@ public class MilliyLock {
         return !TextUtils.isEmpty(MilliyPro.prefs().getString(kind + "_pin", null));
     }
 
+    /** Shu chatning alohida paroli uchun kalit. */
+    private static String chatKind(int account, long dialogId) {
+        return "chat_" + account + "_" + dialogId;
+    }
+
+    /** Chat alohida parol bilan qulflangan bo'lsa o'sha parol, aks holda umumiy parol. */
+    private static String kindFor(int account, long dialogId) {
+        String own = chatKind(account, dialogId);
+        return hasPin(own) ? own : LOCK;
+    }
+
     private static String hash(String pin) {
         return Utilities.bytesToHex(Utilities.computeSHA256(("milliy:" + pin).getBytes(StandardCharsets.UTF_8)));
     }
@@ -105,11 +116,15 @@ public class MilliyLock {
         }
         int account = params.fragment.getCurrentAccount();
         long dialogId = dialogIdOf(params.fragment.getArguments());
-        if (dialogId == 0 || !isLocked(account, dialogId) || isUnlocked(dialogId) || !hasPin(LOCK)) {
+        if (dialogId == 0 || !isLocked(account, dialogId) || isUnlocked(dialogId)) {
+            return false;
+        }
+        final String kind = kindFor(account, dialogId);
+        if (!hasPin(kind)) {
             return false;
         }
         BaseFragment fragment = params.fragment;
-        ask(last, LOCK, LocaleController.getString(R.string.MilliyLockAsk), () -> {
+        ask(last, kind, LocaleController.getString(R.string.MilliyLockAsk), () -> {
             unlocked.put(dialogId, System.currentTimeMillis());
             layout.presentFragment(new INavigationLayout.NavigationParams(fragment));
         });
@@ -191,7 +206,7 @@ public class MilliyLock {
         box.addView(p1, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 44, 24, 0, 24, 8));
         box.addView(p2, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 44, 24, 0, 24, 8));
         AlertDialog.Builder b = new AlertDialog.Builder(context);
-        b.setTitle(LocaleController.getString(VAULT.equals(kind) ? R.string.MilliyVaultPinTitle : R.string.MilliyLockPinTitle));
+        b.setTitle(LocaleController.getString(VAULT.equals(kind) ? R.string.MilliyVaultPinTitle : kind.startsWith("chat_") ? R.string.MilliyLockOwnTitle : R.string.MilliyLockPinTitle));
         b.setView(box);
         b.setPositiveButton(LocaleController.getString(R.string.Save), (d, w) -> {
             String a = p1.getText().toString(), c = p2.getText().toString();
@@ -236,17 +251,32 @@ public class MilliyLock {
     // ---- Chat menyusidagi amallar ----
     public static void toggleLock(BaseFragment fragment, long dialogId) {
         int account = fragment.getCurrentAccount();
-        if (!hasPin(LOCK)) {
-            setupPin(fragment, LOCK, () -> toggleLock(fragment, dialogId));
+        if (isLocked(account, dialogId)) {
+            MilliyPro.prefs().edit().remove(chatKind(account, dialogId) + "_pin").apply();
+            MilliyPro.toggleSet(account, "locked", dialogId, false);
+            BulletinFactory.of(fragment).createSimpleBulletin(R.raw.contact_check, LocaleController.getString(R.string.MilliyUnlockDone)).show();
             return;
         }
-        boolean lock = !isLocked(account, dialogId);
-        MilliyPro.toggleSet(account, "locked", dialogId, lock);
-        if (lock) {
-            unlocked.put(dialogId, System.currentTimeMillis());
+        if (fragment.getParentActivity() == null) {
+            return;
         }
-        BulletinFactory.of(fragment).createSimpleBulletin(lock ? R.raw.passcode_lock_close : R.raw.contact_check,
-                LocaleController.getString(lock ? R.string.MilliyLockDone : R.string.MilliyUnlockDone)).show();
+        AlertDialog.Builder b = new AlertDialog.Builder(fragment.getParentActivity());
+        b.setTitle(LocaleController.getString(R.string.MilliyLockHow));
+        b.setItems(new CharSequence[]{LocaleController.getString(R.string.MilliyLockCommon), LocaleController.getString(R.string.MilliyLockOwn)}, (d, w) -> {
+            Runnable lock = () -> {
+                MilliyPro.toggleSet(account, "locked", dialogId, true);
+                unlocked.put(dialogId, System.currentTimeMillis());
+                BulletinFactory.of(fragment).createSimpleBulletin(R.raw.passcode_lock_close, LocaleController.getString(R.string.MilliyLockDone)).show();
+            };
+            if (w == 1) {
+                setupPin(fragment, chatKind(account, dialogId), lock);
+            } else if (hasPin(LOCK)) {
+                lock.run();
+            } else {
+                setupPin(fragment, LOCK, lock);
+            }
+        });
+        fragment.showDialog(b.create());
     }
 
     public static void toggleVault(BaseFragment fragment, long dialogId) {
