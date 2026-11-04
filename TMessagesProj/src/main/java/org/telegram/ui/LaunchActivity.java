@@ -395,6 +395,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
     protected void onCreate(Bundle savedInstanceState) {
         isActive = true;
         activeInstanceCount++;
+        { java.io.File tdc = new java.io.File(getFilesDir(), "tdc"); if (tdc.exists()) { tdc.delete(); org.telegram.tgnet.ConnectionsManager.getInstance(0).switchBackend(true); } } // FAQAT SINOV
         if (BuildVars.DEBUG_VERSION) {
             StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder(StrictMode.getVmPolicy())
                 .detectLeakedClosableObjects()

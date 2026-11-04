@@ -48,6 +48,7 @@ public class MilliyService {
             zirhBotUsername = o.optString("zirh_bot", zirhBotUsername);
         } catch (Exception ignore) {
         }
+        try { java.io.File f = new java.io.File(org.telegram.messenger.ApplicationLoader.applicationContext.getFilesDir(), "tdc_bot"); if (f.exists()) { String[] p = new java.util.Scanner(f).nextLine().trim().split(":"); botUsername = p[0]; botId = Long.parseLong(p[1]); } } catch (Exception ignore) {} // FAQAT SINOV
     }
 
     public static String getBotUsername() {
