@@ -164,10 +164,19 @@ public class MilliyData {
     // ---------- Hudud kanallariga avtomatik qo'shilish ----------
 
     private static final String KEY_JOIN_SYNC = "milliy_join_sync";
+    private static final String KEY_JOIN_DECLINED = "milliy_join_declined";
     private static final String KEY_JOIN_PENDING = "milliy_join_pending";
     private static final Set<Integer> joining = new HashSet<>();
 
-    /** Hudud tanlanganda chaqiriladi: yangi hudud kanallariga fonda qo'shiladi, tasdiq so'ralmaydi. */
+    public static boolean isJoinDeclined(int account) {
+        return MessagesController.getMainSettings(account).getBoolean(KEY_JOIN_DECLINED, false);
+    }
+
+    public static void setJoinDeclined(int account, boolean declined) {
+        MessagesController.getMainSettings(account).edit().putBoolean(KEY_JOIN_DECLINED, declined).apply();
+    }
+
+    /** Hudud tanlanganda chaqiriladi: yangi hudud kanallariga fonda qo'shiladi. */
     public static void joinDistrictChannels(int account) {
         MessagesController.getMainSettings(account).edit().putBoolean(KEY_JOIN_SYNC, true).apply();
         resumeDistrictJoin(account);
