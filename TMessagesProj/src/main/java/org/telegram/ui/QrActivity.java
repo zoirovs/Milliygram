@@ -370,9 +370,12 @@ public class QrActivity extends BaseFragment {
         rootLayout.addView(qrView);
 
         logoImageView = new RLottieImageView(context);
-        logoImageView.setAutoRepeat(true);
-        logoImageView.setAnimation(R.raw.plane_logo_plain, 60, 60);
-        logoImageView.playAnimation();
+        logoImageView.setImageResource(R.mipmap.ic_launcher_round);
+        // Ulashiladigan rasm uchun ham o'sha belgi (logoImageView rasmga chizilmaydi).
+        final Drawable milliyLogo = context.getResources().getDrawable(R.mipmap.ic_launcher_round, null);
+        logoOptimal = Bitmap.createBitmap(dp(60), dp(60), Bitmap.Config.ARGB_8888);
+        milliyLogo.setBounds(0, 0, logoOptimal.getWidth(), logoOptimal.getHeight());
+        milliyLogo.draw(new Canvas(logoOptimal));
         rootLayout.addView(logoImageView);
 
         avatarImageView = new BackupImageView(context);
