@@ -54,7 +54,7 @@ public class MilliyShield {
             String text = null;
             HttpURLConnection c = null;
             try {
-                c = (HttpURLConnection) new URL(MilliyData.API + path).openConnection();
+                c = (HttpURLConnection) new URL(MilliyData.api() + path).openConnection();
                 c.setRequestMethod(method);
                 c.setConnectTimeout(10000);
                 c.setReadTimeout(timeoutMs);
