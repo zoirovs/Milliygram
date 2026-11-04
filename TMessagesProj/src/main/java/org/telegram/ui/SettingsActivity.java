@@ -725,7 +725,11 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
         // Milliygram: hudud (ob-havo va valyuta — tepadagi panelda)
         final String milliyDistrict = org.telegram.milliy.MilliyData.getDistrictName(currentAccount);
         items.add(UItem.asHeader("Milliygram"));
-        items.add(SettingCell.Factory.of(104, 0xFF26C281, 0xFF1E9E5A, R.drawable.settings_privacy, getString(R.string.MilliySecurity), getString(R.string.MilliySecuritySubtitle)));
+        // Bot akkauntda 2FA/seans so'rovlari ishlamaydi: ekran doim «Yuklanmoqda» va 0/6 ko'rsatardi
+        final TLRPC.User milliyUser = UserConfig.getInstance(currentAccount).getCurrentUser();
+        if (milliyUser == null || !milliyUser.bot) {
+            items.add(SettingCell.Factory.of(104, 0xFF26C281, 0xFF1E9E5A, R.drawable.settings_privacy, getString(R.string.MilliySecurity), getString(R.string.MilliySecuritySubtitle)));
+        }
         items.add(SettingCell.Factory.of(105, 0xFF7E57C2, 0xFF5E35B1, R.drawable.settings_features, getString(R.string.MilliyPro), getString(R.string.MilliyProSubtitle)));
         items.add(SettingCell.Factory.of(7, IconBackgroundColors.BLUE_ALT.top, IconBackgroundColors.BLUE_ALT.bottom, R.drawable.settings_folders, getString(R.string.SettingsFolders), getString(R.string.MilliyFoldersSettingsInfo))); // Telegram'ning «Chat jildlari» + Milliygram jildlari
         items.add(SettingCell.Factory.of(103, 0xFFFFA726, 0xFFEF6C00, R.drawable.settings_milliy_region, getString(R.string.MilliyMyRegion), milliyDistrict != null ? milliyDistrict : getString(R.string.MilliyChooseRegion)));
