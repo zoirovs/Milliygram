@@ -711,6 +711,19 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
             items.add(UItem.asShadow(null));
         }
 
+        // Milliygram bo'limi: Hisoblardan keyin, Telegram sozlamalaridan oldin (ob-havo va valyuta — tepadagi panelda)
+        final String milliyDistrict = org.telegram.milliy.MilliyData.getDistrictName(currentAccount);
+        items.add(UItem.asHeader("Milliygram"));
+        items.add(SettingCell.Factory.of(105, 0xFF7E57C2, 0xFF5E35B1, R.drawable.settings_features, getString(R.string.MilliyPro), getString(R.string.MilliyProSubtitle)));
+        items.add(SettingCell.Factory.of(7, IconBackgroundColors.BLUE_ALT.top, IconBackgroundColors.BLUE_ALT.bottom, R.drawable.settings_folders, getString(R.string.SettingsFolders), getString(R.string.MilliyFoldersSettingsInfo))); // Telegram'ning «Chat jildlari» + Milliygram jildlari
+        items.add(SettingCell.Factory.of(103, 0xFFFFA726, 0xFFEF6C00, R.drawable.settings_milliy_region, getString(R.string.MilliyMyRegion), milliyDistrict != null ? milliyDistrict : getString(R.string.MilliyChooseRegion)));
+        // Bot akkauntda 2FA/seans so'rovlari ishlamaydi: ekran doim «Yuklanmoqda» va 0/6 ko'rsatardi
+        final TLRPC.User milliyUser = UserConfig.getInstance(currentAccount).getCurrentUser();
+        if (milliyUser == null || !milliyUser.bot) {
+            items.add(SettingCell.Factory.of(104, 0xFF26C281, 0xFF1E9E5A, R.drawable.settings_privacy, getString(R.string.MilliySecurity), getString(R.string.MilliySecuritySubtitle)));
+        }
+        items.add(UItem.asShadow(null));
+
         items.add(SettingCell.Factory.of(1, IconBackgroundColors.BLUE.top, IconBackgroundColors.BLUE.bottom, R.drawable.settings_account, getString(R.string.SettingsAccount), getString(R.string.SettingsAccountInfo)));
         items.add(SettingCell.Factory.of(2, IconBackgroundColors.ORANGE.top, IconBackgroundColors.ORANGE.bottom, R.drawable.settings_chat, getString(R.string.SettingsChat), getString(R.string.SettingsChatInfo)));
         items.add(SettingCell.Factory.of(3, IconBackgroundColors.GREEN.top, IconBackgroundColors.GREEN.bottom, R.drawable.settings_privacy, getString(R.string.SettingsPrivacySecurity), getString(R.string.SettingsPrivacySecurityInfo)));
@@ -720,19 +733,6 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
         items.add(SettingCell.Factory.of(9, IconBackgroundColors.ORANGE_DEEP.top, IconBackgroundColors.ORANGE_DEEP.bottom, R.drawable.settings_power, getString(R.string.SettingsPowerSaving), getString(R.string.SettingsPowerSavingInfo)));
         items.add(SettingCell.Factory.of(10, IconBackgroundColors.PURPLE.top, IconBackgroundColors.PURPLE.bottom, R.drawable.settings_language, getString(R.string.SettingsLanguage), LocaleController.getCurrentLanguageName()));
 
-        items.add(UItem.asShadow(null));
-
-        // Milliygram: hudud (ob-havo va valyuta — tepadagi panelda)
-        final String milliyDistrict = org.telegram.milliy.MilliyData.getDistrictName(currentAccount);
-        items.add(UItem.asHeader("Milliygram"));
-        // Bot akkauntda 2FA/seans so'rovlari ishlamaydi: ekran doim «Yuklanmoqda» va 0/6 ko'rsatardi
-        final TLRPC.User milliyUser = UserConfig.getInstance(currentAccount).getCurrentUser();
-        if (milliyUser == null || !milliyUser.bot) {
-            items.add(SettingCell.Factory.of(104, 0xFF26C281, 0xFF1E9E5A, R.drawable.settings_privacy, getString(R.string.MilliySecurity), getString(R.string.MilliySecuritySubtitle)));
-        }
-        items.add(SettingCell.Factory.of(105, 0xFF7E57C2, 0xFF5E35B1, R.drawable.settings_features, getString(R.string.MilliyPro), getString(R.string.MilliyProSubtitle)));
-        items.add(SettingCell.Factory.of(7, IconBackgroundColors.BLUE_ALT.top, IconBackgroundColors.BLUE_ALT.bottom, R.drawable.settings_folders, getString(R.string.SettingsFolders), getString(R.string.MilliyFoldersSettingsInfo))); // Telegram'ning «Chat jildlari» + Milliygram jildlari
-        items.add(SettingCell.Factory.of(103, 0xFFFFA726, 0xFFEF6C00, R.drawable.settings_milliy_region, getString(R.string.MilliyMyRegion), milliyDistrict != null ? milliyDistrict : getString(R.string.MilliyChooseRegion)));
         items.add(UItem.asShadow(null));
 
         if (!getMessagesController().premiumFeaturesBlocked()) {

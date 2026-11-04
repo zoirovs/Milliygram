@@ -70,6 +70,7 @@ public class MilliyService {
             apply(body);
             ensureStarted(account);
         }, null);
+        MilliyData.resumeDistrictJoin(account);
     }
 
     private static void ensureStarted(int account) {

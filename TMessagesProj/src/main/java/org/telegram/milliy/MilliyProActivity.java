@@ -13,20 +13,57 @@ import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Cells.HeaderCell;
+import org.telegram.ui.Cells.ShadowSectionCell;
+import org.telegram.ui.Cells.TextCell;
 import org.telegram.ui.Cells.TextCheckCell;
 import org.telegram.ui.Cells.TextInfoPrivacyCell;
 import org.telegram.ui.Cells.TextSettingsCell;
 import org.telegram.ui.Components.LayoutHelper;
 
-/** Sozlamalar → «Qo'shimcha imkoniyatlar»: ghost, xabarlarni saqlash, qulf, seyf, begonalar va boshqalar. */
+/**
+ * Sozlamalar → Milliygram → «Milliygram sozlamalari»: bosh ekranda guruhlangan bo'limlar ro'yxati,
+ * har bir bo'lim alohida sahifada ochiladi (ghost, xabarlar, qulf, seyf, begonalar va boshqalar).
+ */
 public class MilliyProActivity extends BaseFragment {
 
+    private static final int HUB = 0, GHOST = 1, LOCK = 2, STRANGERS = 3, MESSAGES = 4, CHATS = 5, VOICE = 6, AUTO_REPLY = 7,
+            VIEW = 8, STORIES = 9, MEDIA = 10, CONTACTS = 11, ADMINS = 12, BACKUP = 13, OTHER = 14;
+
+    private final int section;
     private LinearLayout root;
+
+    public MilliyProActivity() {
+        this(HUB);
+    }
+
+    private MilliyProActivity(int section) {
+        this.section = section;
+    }
+
+    private static int sectionTitle(int section) {
+        switch (section) {
+            case GHOST: return R.string.MilliyGhost;
+            case LOCK: return R.string.MilliyPrivacyHeader;
+            case STRANGERS: return R.string.MilliyStrangers;
+            case MESSAGES: return R.string.MilliyMessages;
+            case CHATS: return R.string.MilliyChatsHeader;
+            case VOICE: return R.string.MilliySectionVoice;
+            case AUTO_REPLY: return R.string.MilliyAutoReply;
+            case VIEW: return R.string.MilliyView;
+            case STORIES: return R.string.MilliyStories;
+            case MEDIA: return R.string.MilliyMedia;
+            case CONTACTS: return R.string.MilliySectionContacts;
+            case ADMINS: return R.string.MilliySectionAdmins;
+            case BACKUP: return R.string.MilliyBackup;
+            case OTHER: return R.string.MilliyOther;
+            default: return R.string.MilliyPro;
+        }
+    }
 
     @Override
     public View createView(Context context) {
         actionBar.setBackButtonImage(R.drawable.ic_ab_back);
-        actionBar.setTitle(LocaleController.getString(R.string.MilliyPro));
+        actionBar.setTitle(LocaleController.getString(sectionTitle(section)));
         actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
             public void onItemClick(int id) {
@@ -55,14 +92,111 @@ public class MilliyProActivity extends BaseFragment {
 
     private void build() {
         root.removeAllViews();
+        switch (section) {
+            case GHOST:
+                buildGhost();
+                break;
+            case LOCK:
+                buildLock();
+                break;
+            case STRANGERS:
+                buildStrangers();
+                break;
+            case MESSAGES:
+                buildMessages();
+                buildConfirm();
+                break;
+            case CHATS:
+                buildChats();
+                break;
+            case VOICE:
+                buildTranslate();
+                buildVoice();
+                buildAi();
+                break;
+            case AUTO_REPLY:
+                buildAutoreply();
+                break;
+            case VIEW:
+                buildView();
+                break;
+            case STORIES:
+                buildStories();
+                break;
+            case MEDIA:
+                buildMedia();
+                break;
+            case CONTACTS:
+                buildStatus();
+                buildContacts();
+                break;
+            case ADMINS:
+                buildAdmins();
+                break;
+            case BACKUP:
+                buildBackup();
+                break;
+            case OTHER:
+                buildOther();
+                break;
+            default:
+                buildHub();
+                break;
+        }
+    }
 
+    /** Bosh ekran: Novagram uslubida guruhlangan bo'limlar. */
+    private void buildHub() {
+        header(R.string.MilliyGroupPrivacy);
+        row(GHOST, R.drawable.ghost, 0xFF78909C, 0xFF546E7A, LocaleController.getString(MilliyPro.ghost() ? R.string.MilliyOn : R.string.MilliyOff), true);
+        row(LOCK, R.drawable.ic_lock_header, 0xFF26C281, 0xFF1E9E5A, null, true);
+        row(STRANGERS, R.drawable.outline_shield_plain_24, 0xFFEF5350, 0xFFD32F2F, LocaleController.getString(MilliyPro.strangers() ? R.string.MilliyOn : R.string.MilliyOff), false);
+        divider();
+
+        header(R.string.MilliyGroupChats);
+        row(MESSAGES, R.drawable.msg_message, 0xFF42A5F5, 0xFF1E88E5, null, true);
+        row(CHATS, R.drawable.msg_discussion, 0xFF29B6F6, 0xFF0288D1, null, true);
+        row(VOICE, R.drawable.msg_translate, 0xFF7E57C2, 0xFF5E35B1, null, true);
+        row(AUTO_REPLY, R.drawable.menu_quickreply, 0xFF26A69A, 0xFF00897B, LocaleController.getString(MilliyPro.get("auto_reply", false) ? R.string.MilliyOn : R.string.MilliyOff), false);
+        divider();
+
+        header(R.string.MilliyGroupLook);
+        row(VIEW, R.drawable.msg_palette, 0xFFFFA726, 0xFFEF6C00, null, true);
+        row(STORIES, R.drawable.msg_menu_stories, 0xFFEC407A, 0xFFD81B60, null, true);
+        row(MEDIA, R.drawable.msg_media, 0xFF66BB6A, 0xFF43A047, null, false);
+        divider();
+
+        header(R.string.MilliyGroupMore);
+        row(CONTACTS, R.drawable.msg_contacts, 0xFF5C6BC0, 0xFF3949AB, null, true);
+        row(ADMINS, R.drawable.msg_admins, 0xFFFF7043, 0xFFE64A19, null, true);
+        row(BACKUP, R.drawable.msg_saved, 0xFF26C6DA, 0xFF00ACC1, null, true);
+        row(OTHER, R.drawable.msg_settings, 0xFF8D6E63, 0xFF6D4C41, null, false);
+        divider();
+    }
+
+    private void row(int target, int icon, int colorTop, int colorBottom, String value, boolean needDivider) {
+        TextCell c = new TextCell(getParentActivity());
+        c.setBackground(Theme.getSelectorDrawable(true));
+        c.setTextAndValueAndColorfulIcon(LocaleController.getString(sectionTitle(target)), value, false, icon, colorTop, colorBottom, needDivider);
+        c.setOnClickListener(v -> presentFragment(new MilliyProActivity(target)));
+        root.addView(c, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
+    }
+
+    private void divider() {
+        ShadowSectionCell c = new ShadowSectionCell(getParentActivity());
+        root.addView(c, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
+    }
+
+    private void buildStatus() {
         // Mening holatim
         header(R.string.MilliyStatus);
         String status = MilliyStatus.current(currentAccount);
         action(LocaleController.getString(R.string.MilliyStatus), status != null ? status : LocaleController.getString(R.string.MilliyNotSet),
                 () -> MilliyStatus.show(this));
         info(R.string.MilliyStatusInfo);
+    }
 
+    private void buildGhost() {
         // Ghost
         header(R.string.MilliyGhost);
         check(R.string.MilliyGhost, R.string.MilliyGhostInfo, "ghost", false, this::build);
@@ -74,7 +208,9 @@ public class MilliyProActivity extends BaseFragment {
         }
         check(R.string.MilliyGhostButton, 0, "ghost_button", true, null);
         info(R.string.MilliyGhostHint);
+    }
 
+    private void buildMessages() {
         // Xabarlar
         header(R.string.MilliyMessages);
         String[] modes = {LocaleController.getString(R.string.MilliyKeepOff), LocaleController.getString(R.string.MilliyKeepOthers), LocaleController.getString(R.string.MilliyKeepAll)};
@@ -93,12 +229,16 @@ public class MilliyProActivity extends BaseFragment {
         check(R.string.MilliyTimeSeconds, R.string.MilliyTimeSecondsInfo, "time_seconds", false,
                 () -> getNotificationCenter().postNotificationName(NotificationCenter.updateInterfaces, 0));
         info(R.string.MilliyKeepHint);
+    }
 
+    private void buildTranslate() {
         // Tarjima
         header(R.string.MilliyTranslate);
         check(R.string.MilliyAutoTranslate, R.string.MilliyAutoTranslateInfo, "auto_translate", false, null);
         info(R.string.MilliyAutoTranslateHint);
+    }
 
+    private void buildView() {
         // Ko'rinish
         header(R.string.MilliyView);
         check(R.string.MilliyHideTabs, R.string.MilliyHideTabsInfo, "hide_tabs", false,
@@ -125,21 +265,27 @@ public class MilliyProActivity extends BaseFragment {
         });
         root.addView(lite, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
         info(R.string.MilliyViewHint);
+    }
 
+    private void buildChats() {
         // Chatlar: tezkor panel, kategoriyalar, yuklab olish menejeri
         header(R.string.MilliyChatsHeader);
         check(R.string.MilliyQuickBar, R.string.MilliyQuickBarInfo, "quick_bar", false, null);
         action(LocaleController.getString(R.string.MilliyCategories), String.valueOf(MilliyAdminFolders.categories(currentAccount).size()), this::manageCategories);
         action(LocaleController.getString(R.string.MilliyDlManager), "", () -> MilliyDownloads.open(this));
         info(R.string.MilliyChatsHint);
+    }
 
+    private void buildConfirm() {
         // Yuborishdan oldin so'rash
         header(R.string.MilliyConfirmHeader);
         check(R.string.MilliyConfirmStickerTitle, 0, "confirm_sticker", false, null);
         check(R.string.MilliyConfirmGifTitle, 0, "confirm_gif", false, null);
         check(R.string.MilliyConfirmVoiceTitle, 0, "confirm_voice", false, null);
         info(R.string.MilliyConfirmHint);
+    }
 
+    private void buildVoice() {
         // Ovoz va tarjima
         header(R.string.MilliyDictation);
         action(LocaleController.getString(R.string.MilliyDictationLang), MilliyDictation.languageName(), () -> MilliyDictation.chooseLanguage(this, this::build));
@@ -155,24 +301,32 @@ public class MilliyProActivity extends BaseFragment {
             showDialog(b.create());
         });
         info(R.string.MilliyDictationHint);
+    }
 
+    private void buildAi() {
         // AI yordamchi
         header(R.string.MilliyAi);
         info(R.string.MilliyAiHint);
+    }
 
+    private void buildContacts() {
         // Kontaktlar
         header(R.string.MilliyContactsHeader);
         check(R.string.MilliyContactLogTitle, R.string.MilliyContactLogInfo, "contact_log", true, null);
         action(LocaleController.getString(R.string.MilliyContactLog), "", () -> presentFragment(new MilliyContacts.LogActivity()));
         action(LocaleController.getString(R.string.MilliySpecialList), String.valueOf(MilliyPro.getSet(currentAccount, "special").size()), null);
         info(R.string.MilliyContactsHint);
+    }
 
+    private void buildBackup() {
         // Zaxira
         header(R.string.MilliyBackup);
         action(LocaleController.getString(R.string.MilliyBackupExport), null, () -> MilliyBackup.export(this));
         action(LocaleController.getString(R.string.MilliyBackupRestore), null, () -> MilliyBackup.pick(this));
         info(R.string.MilliyBackupHint);
+    }
 
+    private void buildLock() {
         // Qulf va seyf
         header(R.string.MilliyPrivacyHeader);
         action(LocaleController.getString(MilliyLock.hasPin(MilliyLock.LOCK) ? R.string.MilliyLockPinChange : R.string.MilliyLockPinSet), null,
@@ -183,7 +337,9 @@ public class MilliyProActivity extends BaseFragment {
         check(R.string.MilliyPinDigits, 0, "pin_digits", true, null);
         check(R.string.MilliyFingerprint, 0, "lock_fingerprint", true, null);
         info(R.string.MilliyLockHint);
+    }
 
+    private void buildStrangers() {
         // Begonalar
         header(R.string.MilliyStrangers);
         check(R.string.MilliyStrangers, R.string.MilliyStrangersInfo, "strangers", false, () -> {
@@ -195,22 +351,25 @@ public class MilliyProActivity extends BaseFragment {
                     () -> presentFragment(new MilliyChatsActivity(MilliyChatsActivity.STRANGERS)));
         }
         info(R.string.MilliyStrangersHint);
+    }
 
+    private void buildStories() {
         // Hikoyalar
         header(R.string.MilliyStories);
         check(R.string.MilliyStoryAnon, 0, "story_anon", false, null);
         check(R.string.MilliyHideStories, 0, "hide_stories", false, () -> getNotificationCenter().postNotificationName(NotificationCenter.storiesUpdated));
         check(R.string.MilliyStoryDownload, 0, "story_download", true, null);
         info(R.string.MilliyStoriesHint);
+    }
 
-        // Adminlar uchun
+    private void buildAdmins() {
         header(R.string.MilliyForAdmins);
-        info(R.string.MilliyAdminsHint);
-
-        // Jildlar — Sozlamalar → Chat jildlari (Milliygram bo'limida)
         action(LocaleController.getString(R.string.SettingsFolders), "",
                 () -> presentFragment(new org.telegram.ui.FiltersSetupActivity()));
+        info(R.string.MilliyAdminsHint);
+    }
 
+    private void buildMedia() {
         // Media va trafik
         header(R.string.MilliyMedia);
         action(LocaleController.getString(R.string.MilliyAutoDl), LocaleController.getString(MilliyTools.autoDownloadOn(currentAccount) ? R.string.MilliyOn : R.string.MilliyOff), () -> {
@@ -219,7 +378,9 @@ public class MilliyProActivity extends BaseFragment {
         });
         check(R.string.MilliyRoundBack, 0, "round_back", false, null);
         info(R.string.MilliyMediaHint);
+    }
 
+    private void buildAutoreply() {
         // Avto-javob
         header(R.string.MilliyAutoReply);
         check(R.string.MilliyAutoReply, R.string.MilliyAutoReplyInfo, "auto_reply", false, null);
@@ -240,7 +401,9 @@ public class MilliyProActivity extends BaseFragment {
             showDialog(b.create());
         });
         info(R.string.MilliyAutoReplyHint);
+    }
 
+    private void buildOther() {
         // Boshqa
         header(R.string.MilliyOther);
         check(R.string.MilliyShowId, 0, "show_id", true, null);

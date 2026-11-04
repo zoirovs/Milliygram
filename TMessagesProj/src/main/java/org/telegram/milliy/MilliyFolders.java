@@ -271,7 +271,7 @@ public class MilliyFolders {
         final int account = fragment.getCurrentAccount();
         final SharedPreferences prefs = MessagesController.getMainSettings(account);
         final MessagesController mc = MessagesController.getInstance(account);
-        if (!mc.dialogFiltersLoaded || running.contains(account)) {
+        if (!mc.dialogFiltersLoaded || running.contains(account) || MilliyLogin.isBot(account)) {
             return;
         }
         if (!prefs.getBoolean(KEY_HIDDEN_DONE, false)) {
