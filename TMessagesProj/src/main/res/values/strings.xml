@@ -11256,6 +11256,7 @@
     <string name="MilliyRegionContinue">Davom etish</string>
     <string name="MilliyRegionJoined">%1$d ta hudud kanaliga obuna boʻldingiz</string>
     <string name="MilliyMyRegion">Hududim</string>
+    <string name="MilliyPinLocked">Juda koʻp xato urinish. %1$d soniyadan keyin qayta urinib koʻring</string>
     <string name="MilliyLockHow">Bu chatni qanday qulflaysiz?</string>
     <string name="MilliyLockCommon">Umumiy parol bilan</string>
     <string name="MilliyLockOwn">Alohida parol bilan</string>

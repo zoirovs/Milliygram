@@ -10196,6 +10196,7 @@
     <string name="MilliyRegionContinue">Давом этиш</string>
     <string name="MilliyRegionJoined">%1$d та ҳудуд каналига обуна бўлдингиз</string>
     <string name="MilliyMyRegion">Ҳудудим</string>
+    <string name="MilliyPinLocked">Жуда кўп хато уриниш. %1$d сониядан кейин қайта уриниб кўринг</string>
     <string name="MilliyLockHow">Бу чатни қандай қулфлайсиз?</string>
     <string name="MilliyLockCommon">Умумий парол билан</string>
     <string name="MilliyLockOwn">Алоҳида парол билан</string>
