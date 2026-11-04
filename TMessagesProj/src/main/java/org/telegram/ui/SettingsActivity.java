@@ -717,6 +717,8 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
         items.add(SettingCell.Factory.of(105, 0xFF7E57C2, 0xFF5E35B1, R.drawable.settings_features, getString(R.string.MilliyPro), getString(R.string.MilliyProSubtitle)));
         items.add(SettingCell.Factory.of(7, IconBackgroundColors.BLUE_ALT.top, IconBackgroundColors.BLUE_ALT.bottom, R.drawable.settings_folders, getString(R.string.SettingsFolders), getString(R.string.MilliyFoldersSettingsInfo))); // Telegram'ning «Chat jildlari» + Milliygram jildlari
         items.add(SettingCell.Factory.of(103, 0xFFFFA726, 0xFFEF6C00, R.drawable.settings_milliy_region, getString(R.string.MilliyMyRegion), milliyDistrict != null ? milliyDistrict : getString(R.string.MilliyChooseRegion)));
+        items.add(SettingCell.Factory.of(106, 0xFF66BB6A, 0xFF43A047, R.drawable.msg_download, getString(R.string.MilliyDlManager), getString(R.string.MilliyDlManagerInfo)));
+        items.add(SettingCell.Factory.of(107, 0xFF29B6F6, 0xFF0288D1, R.drawable.msg_search, getString(R.string.MilliyFinder), getString(R.string.MilliyFinderInfo)));
         // Bot akkauntda 2FA/seans so'rovlari ishlamaydi: ekran doim «Yuklanmoqda» va 0/6 ko'rsatardi
         final TLRPC.User milliyUser = UserConfig.getInstance(currentAccount).getCurrentUser();
         if (milliyUser == null || !milliyUser.bot) {
@@ -861,6 +863,12 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
                 break;
             case 104:
                 presentFragment(new org.telegram.milliy.MilliySecurityActivity());
+                break;
+            case 106:
+                org.telegram.milliy.MilliyDownloads.open(this);
+                break;
+            case 107:
+                org.telegram.milliy.MilliyTools.showFinder(this);
                 break;
             case 105:
                 presentFragment(new org.telegram.milliy.MilliyProActivity());

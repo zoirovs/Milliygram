@@ -3,9 +3,16 @@ package org.telegram.milliy;
 import android.content.SharedPreferences;
 
 import org.json.JSONObject;
+import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.UserConfig;
+import org.telegram.messenger.Utilities;
+import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
+import org.telegram.tgnet.tl.TL_update;
+
+import java.util.ArrayList;
+import java.util.HashSet;
 
 /**
  * «Milliygram» xizmat chati (Telegram'ning 777000 chatiga o'xshash): rasmiy bot orqali firibgarlik ogohlantirishlari
@@ -22,6 +29,8 @@ public class MilliyService {
     private static String botUsername;
     private static long zirhBotId = 7727973254L;
     private static String zirhBotUsername = "zirh_bot";
+
+    private static final HashSet<Integer> starting = new HashSet<>();
 
     static {
         apply(MilliyData.cached("config"));
@@ -94,8 +103,80 @@ public class MilliyService {
             String district = MilliyData.getDistrict(account);
             // start parametri: faqat A-Z a-z 0-9 _ - (64 belgigacha)
             String param = district == null ? "milliy" : ("d_" + district.replaceAll("[^A-Za-z0-9_-]", "-"));
-            mc.sendBotStart(bot, param.length() > 64 ? param.substring(0, 64) : param);
-            prefs.edit().putBoolean(key, true).apply();
+            startHidden(account, bot, param.length() > 64 ? param.substring(0, 64) : param, key);
+        });
+    }
+
+    /**
+     * Botni ishga tushiradi, «/start» xabari foydalanuvchiga ko'rinmaydi: javobdagi yangi xabar yangilanishi
+     * o'sha pts'li o'chirish yangilanishiga almashtiriladi (pts ketma-ketligi buzilmaydi), serverdan ham o'chiriladi.
+     * Bot faqat ID bo'yicha aniqlanadi — botga ikkinchi username qo'shilsa ham qayta start bo'lmaydi.
+     */
+    private static void startHidden(int account, TLRPC.User bot, String param, String key) {
+        if (!starting.add(account)) {
+            return;
+        }
+        final MessagesController mc = MessagesController.getInstance(account);
+        TLRPC.TL_messages_startBot req = new TLRPC.TL_messages_startBot();
+        req.bot = mc.getInputUser(bot);
+        req.peer = mc.getInputPeer(bot.id);
+        req.start_param = param;
+        req.random_id = Utilities.random.nextLong();
+        ConnectionsManager.getInstance(account).sendRequest(req, (response, error) -> {
+            if (error != null || !(response instanceof TLRPC.Updates)) {
+                AndroidUtilities.runOnUIThread(() -> starting.remove(account));
+                return; // keyingi ochilishda qayta urinadi
+            }
+            TLRPC.Updates updates = (TLRPC.Updates) response;
+            ArrayList<Integer> hidden = new ArrayList<>();
+            if (updates instanceof TLRPC.TL_updateShortMessage && updates.out) {
+                TL_update.TL_updateDeleteMessages del = new TL_update.TL_updateDeleteMessages();
+                del.messages.add(updates.id);
+                del.pts = updates.pts;
+                del.pts_count = updates.pts_count;
+                TLRPC.TL_updates wrapped = new TLRPC.TL_updates();
+                wrapped.updates.add(del);
+                wrapped.date = updates.date;
+                hidden.add(updates.id);
+                updates = wrapped;
+            } else {
+                for (int i = 0; i < updates.updates.size(); i++) {
+                    TLRPC.Update u = updates.updates.get(i);
+                    if (u instanceof TL_update.TL_updateNewMessage) {
+                        TL_update.TL_updateNewMessage nm = (TL_update.TL_updateNewMessage) u;
+                        if (nm.message != null && nm.message.out) {
+                            TL_update.TL_updateDeleteMessages del = new TL_update.TL_updateDeleteMessages();
+                            del.messages.add(nm.message.id);
+                            del.pts = nm.pts;
+                            del.pts_count = nm.pts_count;
+                            updates.updates.set(i, del);
+                            hidden.add(nm.message.id);
+                        }
+                    }
+                }
+            }
+            mc.processUpdates(updates, false);
+            AndroidUtilities.runOnUIThread(() -> {
+                starting.remove(account);
+                MessagesController.getMainSettings(account).edit().putBoolean(key, true).apply();
+                if (!hidden.isEmpty()) {
+                    deleteHidden(account, hidden, 2);
+                }
+            });
+        });
+    }
+
+    private static void deleteHidden(int account, ArrayList<Integer> ids, int attempts) {
+        TLRPC.TL_messages_deleteMessages req = new TLRPC.TL_messages_deleteMessages();
+        req.revoke = true;
+        req.id = ids;
+        ConnectionsManager.getInstance(account).sendRequest(req, (response, error) -> {
+            if (response instanceof TLRPC.TL_messages_affectedMessages) {
+                TLRPC.TL_messages_affectedMessages res = (TLRPC.TL_messages_affectedMessages) response;
+                MessagesController.getInstance(account).processNewDifferenceParams(-1, res.pts, -1, res.pts_count);
+            } else if (attempts > 1) {
+                AndroidUtilities.runOnUIThread(() -> deleteHidden(account, ids, attempts - 1), 5000);
+            }
         });
     }
 

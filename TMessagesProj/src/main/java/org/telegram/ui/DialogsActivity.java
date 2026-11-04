@@ -3464,6 +3464,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
 
             optionsItem = menu.addItem(4, R.drawable.ic_ab_other);
             optionsItem.setContentDescription(LocaleController.getString(R.string.AccDescrMoreOptions));
+            if (!milliyHasOptionsMenu()) {
+                optionsItem.setVisibility(View.GONE);
+            }
             optionsItem.setOnClickListener(v -> {
                 getContactsController().loadGlobalPrivacySetting();
                 showItemOptions();
@@ -13718,6 +13721,11 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         }
     }
 
+    /** Milliygram: asosiy ro'yxatda 3 nuqta yo'q. Arxiv va hamjamiyatda kerak; qo'ng'iroqlar tabi yoqilganda Sozlamalarga yagona yo'l shu. */
+    private boolean milliyHasOptionsMenu() {
+        return communityId != 0 || isArchive() || getUserConfig().showCallsTab;
+    }
+
     private void showItemOptions() {
         ItemOptions io = ItemOptions.makeOptions(this, optionsItem);
         io.setColors(getThemedColor(Theme.key_actionBarDefaultTitle), getThemedColor(Theme.key_actionBarDefaultTitle));
@@ -14154,7 +14162,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         final float factor1 = 1f - animatorSearchVisible.getFloatValue();
         final float factor2 = 1f - getRightSlidingProgress();
         final float factor3 = 1f - animatorDoneButtonVisible.getFloatValue();
-        final float factor = factor1 * factor2 * factor3;
+        final float factor = factor1 * factor2 * factor3 * (milliyHasOptionsMenu() ? 1f : 0f);
         FragmentFloatingButton.setAnimatedVisibility(optionsItem, factor);
     }
 
@@ -14360,7 +14368,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     private RLottieDrawable milliyThemeDrawable;
 
     private void switchTheme(Theme.ThemeInfo themeInfo, boolean toDark) {
-        switchTheme(themeInfo, toDark, optionsItem);
+        switchTheme(themeInfo, toDark, milliyThemeItem != null ? milliyThemeItem : optionsItem);
     }
 
     private void switchTheme(Theme.ThemeInfo themeInfo, boolean toDark, ActionBarMenuItem anchor) {
