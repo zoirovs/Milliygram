@@ -131,6 +131,22 @@ public class MilliyLock {
         return true;
     }
 
+    private static long lockWaitSeconds() {
+        long left = MilliyPro.prefs().getLong("pin_block_until", 0) - System.currentTimeMillis();
+        return left > 0 ? left / 1000 + 1 : 0;
+    }
+
+    /** 5 ta xato parolgacha erkin, keyin har xatoda kutish ikki baravar oshadi (1 daqiqadan 1 soatgacha). */
+    private static void registerWrongPin() {
+        int fails = MilliyPro.prefs().getInt("pin_fails", 0) + 1;
+        android.content.SharedPreferences.Editor e = MilliyPro.prefs().edit().putInt("pin_fails", fails);
+        if (fails >= 5) {
+            long minutes = Math.min(60, 1L << Math.min(6, fails - 5));
+            e.putLong("pin_block_until", System.currentTimeMillis() + minutes * 60_000);
+        }
+        e.apply();
+    }
+
     /** PIN so'rash oynasi; barmoq izi yoqilgan bo'lsa, avval barmoq izi taklif qilinadi. */
     public static void ask(BaseFragment fragment, String kind, String title, Runnable onSuccess) {
         Context context = fragment.getParentActivity();
@@ -142,9 +158,14 @@ public class MilliyLock {
         b.setTitle(title);
         b.setView(wrap(context, edit));
         b.setPositiveButton(LocaleController.getString(R.string.MilliyPinOpen), (d, w) -> {
-            if (check(kind, edit.getText().toString())) {
+            long wait = lockWaitSeconds();
+            if (wait > 0) {
+                BulletinFactory.of(fragment).createSimpleBulletin(R.raw.error, LocaleController.formatString(R.string.MilliyPinLocked, wait)).show();
+            } else if (check(kind, edit.getText().toString())) {
+                MilliyPro.prefs().edit().remove("pin_fails").remove("pin_block_until").apply();
                 onSuccess.run();
             } else {
+                registerWrongPin();
                 BulletinFactory.of(fragment).createSimpleBulletin(R.raw.error, LocaleController.getString(R.string.MilliyPinWrong)).show();
             }
         });

@@ -30,7 +30,7 @@ import java.util.Set;
 public class MilliyData {
 
     /** Asosiy manzil. Eski manzil zaxira: yangi domen ishlamaguncha va tarmoqda muammo bo'lganda ilova to'xtab qolmaydi. */
-    private static final String API_MAIN = "https://milliygram.milliysi.uz/api/v1/";
+    private static final String API_MAIN = "https://milliygram.cyberhimoya.uz/api/v1/";
     private static final String API_RESERVE = "https://platforma.cyberhimoya.uz/api/v1/";
     private static volatile String apiBase;
     private static boolean mainProbed;
