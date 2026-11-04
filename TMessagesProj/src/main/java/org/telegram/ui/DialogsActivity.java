@@ -10824,6 +10824,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             }
         } else if (id == NotificationCenter.dialogFiltersUpdated) {
             updateFilterTabs(true, true);
+            if (!onlySelect && initialDialogsType == DIALOGS_TYPE_DEFAULT) {
+                org.telegram.milliy.MilliyFolders.ensure(this); // yangi akkaunt: jildlar onResume'dan keyin yuklanadi
+            }
         } else if (id == NotificationCenter.filterSettingsUpdated) {
             showFiltersHint();
         } else if (id == NotificationCenter.newSuggestionsAvailable) {

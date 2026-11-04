@@ -10196,6 +10196,15 @@
     <string name="MilliyRegionContinue">Давом этиш</string>
     <string name="MilliyRegionJoined">%1$d та ҳудуд каналига обуна бўлдингиз</string>
     <string name="MilliyMyRegion">Ҳудудим</string>
+    <string name="MilliyRegionSaved">Ҳудудингиз сақланди. Ҳудуд каналларига автоматик қўшиляпсиз.</string>
+    <string name="MilliyRegionAutoJoinInfo">Туман танланиши билан шу ҳудуд каналларига автоматик қўшиласиз. Улардан исталган вақтда чиқиб кетишингиз мумкин — Milliygram сизни қайта қўшмайди.</string>
+    <string name="MilliyGroupPrivacy">Махфийлик ва ҳимоя</string>
+    <string name="MilliyGroupChats">Хабарлар ва чатлар</string>
+    <string name="MilliyGroupLook">Кўриниш ва медиа</string>
+    <string name="MilliyGroupMore">Бошқа имкониятлар</string>
+    <string name="MilliySectionVoice">Таржима, овоз ва AI</string>
+    <string name="MilliySectionContacts">Ҳолат ва контактлар</string>
+    <string name="MilliySectionAdmins">Админлар учун</string>
     <string name="MilliyWeather">Об-ҳаво</string>
     <string name="MilliyCurrency">Валюта курси</string>
     <string name="MilliyCurrencyDate">Марказий банк курси, %1$s</string>
@@ -10306,7 +10315,7 @@
     <string name="MilliySecFix">Тузатиш</string>
     <string name="MilliyApkWarnTitle">⚠️ Диққат: бу илова файли (APK)</string>
     <string name="MilliyApkWarnText">Фирибгарлар кўпинча **«тўлов», «фото», «почта», «ҳужжат»** номли сохта иловалар юбориб, СМС кодларингиз, банк картангиз ва Телеграм аккаунтингизни эгаллаб олишади.\n\n• Нотаниш одам юборган иловани **ўрнатманг**\n• Иловаларни фақат Плай Маркетъдан ўрнатинг\n• Ўрнатгандан кейин СМС ва «махсус имкониятлар» рухсатини сўраса — берманг</string>
-    <string name="MilliyPro">Қўшимча имкониятлар</string>
+    <string name="MilliyPro">Milliygram созламалари</string>
     <string name="MilliyProSubtitle">Ghost, қулф, сейф, ўчирилган хабарлар</string>
     <string name="MilliyGhost">Ghost режими</string>
     <string name="MilliyGhostInfo">Сиз кузатилмайсиз: онлайн ҳолат, ёзаётганингиз ва ўқиганингиз кўринмайди</string>

@@ -11256,6 +11256,15 @@
     <string name="MilliyRegionContinue">Davom etish</string>
     <string name="MilliyRegionJoined">%1$d ta hudud kanaliga obuna boʻldingiz</string>
     <string name="MilliyMyRegion">Hududim</string>
+    <string name="MilliyRegionSaved">Hududingiz saqlandi. Hudud kanallariga avtomatik qoʻshilyapsiz.</string>
+    <string name="MilliyRegionAutoJoinInfo">Tuman tanlanishi bilan shu hudud kanallariga avtomatik qoʻshilasiz. Ulardan istalgan vaqtda chiqib ketishingiz mumkin — Milliygram sizni qayta qoʻshmaydi.</string>
+    <string name="MilliyGroupPrivacy">Maxfiylik va himoya</string>
+    <string name="MilliyGroupChats">Xabarlar va chatlar</string>
+    <string name="MilliyGroupLook">Koʻrinish va media</string>
+    <string name="MilliyGroupMore">Boshqa imkoniyatlar</string>
+    <string name="MilliySectionVoice">Tarjima, ovoz va AI</string>
+    <string name="MilliySectionContacts">Holat va kontaktlar</string>
+    <string name="MilliySectionAdmins">Adminlar uchun</string>
     <string name="MilliyWeather">Ob-havo</string>
     <string name="MilliyCurrency">Valyuta kursi</string>
     <string name="MilliyCurrencyDate">Markaziy bank kursi, %1$s</string>
@@ -11366,7 +11375,7 @@
     <string name="MilliySecFix">Tuzatish</string>
     <string name="MilliyApkWarnTitle">⚠️ Diqqat: bu ilova fayli (APK)</string>
     <string name="MilliyApkWarnText">Firibgarlar ko\'pincha **«to\'lov», «foto», «pochta», «hujjat»** nomli soxta ilovalar yuborib, SMS kodlaringiz, bank kartangiz va Telegram akkauntingizni egallab olishadi.\n\n• Notanish odam yuborgan ilovani **o\'rnatmang**\n• Ilovalarni faqat Play Market\'dan o\'rnating\n• O\'rnatgandan keyin SMS va «maxsus imkoniyatlar» ruxsatini so\'rasa — bermang</string>
-    <string name="MilliyPro">Qo\'shimcha imkoniyatlar</string>
+    <string name="MilliyPro">Milliygram sozlamalari</string>
     <string name="MilliyProSubtitle">Ghost, qulf, seyf, o\'chirilgan xabarlar</string>
     <string name="MilliyGhost">Ghost rejimi</string>
     <string name="MilliyGhostInfo">Siz kuzatilmaysiz: onlayn holat, yozayotganingiz va o\'qiganingiz ko\'rinmaydi</string>

@@ -18,27 +18,21 @@ import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.Cells.CheckBoxCell;
 import org.telegram.ui.Cells.HeaderCell;
 import org.telegram.ui.Components.BulletinFactory;
 import org.telegram.ui.Components.LayoutHelper;
 
-import java.util.ArrayList;
-
 /**
- * Hudud tanlash: viloyat → tuman → hudud kanallari (belgilangan, "Obuna bo'lish" tugmasi bilan).
+ * Hudud tanlash: viloyat → tuman; tuman tanlanishi bilan hudud kanallariga fonda qo'shiladi.
  * required=true bo'lsa (birinchi kirish) — tanlamaguncha yopilmaydi.
  */
 public class MilliyRegionActivity extends BaseFragment {
 
     private final boolean required;
     private LinearLayout list;
-    private TextView bottomButton;
     private JSONArray regions;
     private JSONObject selectedRegion;
     private String districtCode, districtName;
-    private final ArrayList<CheckBoxCell> channelCells = new ArrayList<>();
-    private ArrayList<MilliyData.Channel> channels;
     private int step;
 
     public MilliyRegionActivity(boolean required) {
@@ -77,17 +71,7 @@ public class MilliyRegionActivity extends BaseFragment {
         list = new LinearLayout(context);
         list.setOrientation(LinearLayout.VERTICAL);
         scrollView.addView(list, LayoutHelper.createScroll(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP));
-        root.addView(scrollView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.TOP, 0, 0, 0, 72));
-
-        bottomButton = new TextView(context);
-        bottomButton.setGravity(Gravity.CENTER);
-        bottomButton.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
-        bottomButton.setTypeface(AndroidUtilities.bold());
-        bottomButton.setTextColor(Theme.getColor(Theme.key_featuredStickers_buttonText));
-        bottomButton.setBackground(Theme.AdaptiveRipple.filledRectByKey(Theme.key_featuredStickers_addButton, 8));
-        bottomButton.setVisibility(View.GONE);
-        bottomButton.setOnClickListener(v -> subscribe());
-        root.addView(bottomButton, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 48, Gravity.BOTTOM, 16, 0, 16, 12));
+        root.addView(scrollView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
 
         fragmentView = root;
         loadRegions();
@@ -98,8 +82,6 @@ public class MilliyRegionActivity extends BaseFragment {
 
     private void clear(String header) {
         list.removeAllViews();
-        channelCells.clear();
-        bottomButton.setVisibility(View.GONE);
         HeaderCell headerCell = new HeaderCell(getContext());
         headerCell.setText(header);
         list.addView(headerCell);
@@ -166,101 +148,32 @@ public class MilliyRegionActivity extends BaseFragment {
     private void showDistricts() {
         step = 1;
         clear(selectedRegion.optString("name") + " — " + LocaleController.getString(R.string.MilliyChooseDistrict));
+        addInfo(LocaleController.getString(R.string.MilliyRegionAutoJoinInfo));
         JSONArray ds = selectedRegion.optJSONArray("districts");
         for (int i = 0; ds != null && i < ds.length(); i++) {
             JSONObject d = ds.optJSONObject(i);
             addRow(d.optString("name"), false, v -> {
                 districtCode = d.optString("code");
                 districtName = selectedRegion.optString("name") + ", " + d.optString("name");
-                loadChannels();
+                selectDistrict();
             });
         }
     }
 
-    private void loadChannels() {
-        step = 2;
-        clear(LocaleController.getString(R.string.MilliyLoading));
-        MilliyData.get("channels?district=" + MilliyData.enc(districtCode), 0, body -> {
-            channels = MilliyData.parseChannels(body, MilliyData.getOffered(currentAccount));
-            if (channels.isEmpty()) {
-                finishWithDistrict(0);
-                return;
-            }
-            showChannels();
-        }, () -> showError(this::loadChannels));
-    }
-
-    private void showChannels() {
-        clear(LocaleController.getString(R.string.MilliyRegionChannels));
-        addInfo(AndroidUtilities.replaceTags(LocaleController.formatString(R.string.MilliyRegionChannelsInfo, districtName)));
-        for (MilliyData.Channel c : channels) {
-            CheckBoxCell cell = new CheckBoxCell(getContext(), CheckBoxCell.TYPE_CHECK_BOX_DEFAULT);
-            cell.setBackground(Theme.getSelectorDrawable(false));
-            String subs = c.subscribers > 0 ? LocaleController.formatShortNumber(c.subscribers, null) : "";
-            cell.setText(c.title, subs, true, true);
-            cell.setOnClickListener(v -> {
-                cell.setChecked(!cell.isChecked(), true);
-                updateButton();
-            });
-            channelCells.add(cell);
-            list.addView(cell, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
-        }
-        addInfo(LocaleController.getString(R.string.MilliyRegionLeaveInfo));
-        bottomButton.setVisibility(View.VISIBLE);
-        updateButton();
-    }
-
-    private int checkedCount() {
-        int n = 0;
-        for (CheckBoxCell c : channelCells) {
-            if (c.isChecked()) n++;
-        }
-        return n;
-    }
-
-    private void updateButton() {
-        int n = checkedCount();
-        bottomButton.setText(n > 0
-                ? LocaleController.formatString(R.string.MilliyRegionSubscribe, n)
-                : LocaleController.getString(R.string.MilliyRegionContinue));
-    }
-
-    private void subscribe() {
-        ArrayList<String> selected = new ArrayList<>();
-        ArrayList<String> offered = new ArrayList<>();
-        for (int i = 0; i < channels.size(); i++) {
-            offered.add(channels.get(i).username);
-            if (channelCells.get(i).isChecked()) {
-                selected.add(channels.get(i).username);
-            }
-        }
-        // Taklif qilinganlar eslab qolinadi: chiqib ketsa ham qayta ulanmaydi
-        MilliyData.addOffered(currentAccount, offered);
-        bottomButton.setEnabled(false);
-        if (selected.isEmpty()) {
-            finishWithDistrict(0);
-            return;
-        }
-        bottomButton.setText(LocaleController.getString(R.string.MilliyLoading));
-        MilliyData.joinChannels(currentAccount, selected, () -> finishWithDistrict(selected.size()));
-    }
-
-    private void finishWithDistrict(int joined) {
+    /** Tuman tanlandi: saqlanadi, kanallarga fonda qo'shiladi, ekran darhol yopiladi. */
+    private void selectDistrict() {
         MilliyData.setDistrict(currentAccount, districtCode, districtName);
+        MilliyData.joinDistrictChannels(currentAccount);
         BaseFragment prev = getParentLayout() != null && getParentLayout().getFragmentStack().size() > 1
                 ? getParentLayout().getFragmentStack().get(getParentLayout().getFragmentStack().size() - 2) : null;
         finishFragment();
-        if (prev != null && joined > 0) {
-            BulletinFactory.of(prev).createSimpleBulletin(R.raw.contact_check, LocaleController.formatString(R.string.MilliyRegionJoined, joined)).show();
+        if (prev != null) {
+            BulletinFactory.of(prev).createSimpleBulletin(R.raw.contact_check, LocaleController.getString(R.string.MilliyRegionSaved)).show();
         }
     }
 
     @Override
     public boolean onBackPressed(boolean invoked) {
-        if (step == 2 && channels != null) {
-            if (invoked) showDistricts();
-            return false;
-        }
         if (step == 1) {
             if (invoked) showRegions();
             return false;
