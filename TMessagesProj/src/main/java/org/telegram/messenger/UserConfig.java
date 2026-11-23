@@ -19,13 +19,14 @@ import org.telegram.tgnet.SerializedData;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.tgnet.tl.TL_account;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 public class UserConfig extends BaseController {
 
     public static int selectedAccount;
     public final static int MAX_ACCOUNT_DEFAULT_COUNT = 10; // Milliygram: 10 akkaunt, Premium shart emas
-    public final static int MAX_ACCOUNT_COUNT = 10;
+    public final static int MAX_ACCOUNT_COUNT = 50;
 
     private final Object sync = new Object();
     private volatile boolean configLoaded;
@@ -581,6 +582,17 @@ public class UserConfig extends BaseController {
 
     public Long getEmojiStatus() {
         return UserObject.getEmojiStatusDocumentId(currentUser);
+    }
+
+    public static ArrayList<Long> getLoggedInAccountIds() {
+        ArrayList<Long> ids = new ArrayList<>();
+        for (int account = 0; account < UserConfig.MAX_ACCOUNT_COUNT; account++) {
+            UserConfig config = UserConfig.getInstance(account);
+            if (config.isClientActivated()) {
+                ids.add(config.getClientUserId());
+            }
+        }
+        return ids;
     }
 
 

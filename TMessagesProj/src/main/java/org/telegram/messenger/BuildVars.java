@@ -41,7 +41,10 @@ public class BuildVars {
     public static boolean IS_BILLING_UNAVAILABLE = true;
 
     // works only on official app ids, disable on your forks
-    public static boolean SUPPORTS_PASSKEYS = false;
+    public static boolean SUPPORTS_PASSKEYS = false; // Milliygram: passkey Telegram domeniga bog'langan
+    // the second main tab: News, or Contacts as before them
+
+    public static boolean SUPPORTS_FPNV = false; // Milliygram: raqamni Firebase orqali tasdiqlash Telegram loyihasiga bog'langan
 
     static {
         if (ApplicationLoader.applicationContext != null) {

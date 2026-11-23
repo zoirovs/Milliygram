@@ -47,6 +47,9 @@ public class MilliyRegionActivity extends BaseFragment {
         if (MilliyData.getDistrict(fragment.getCurrentAccount()) != null) {
             return;
         }
+        if (MilliyData.applyGlobalChoice(fragment.getCurrentAccount())) {
+            return; // keyingi akkauntlar: birinchi akkauntdagi tanlov bilan, ekran ko'rsatilmaydi
+        }
         if (fragment.getParentLayout() == null || fragment.getParentLayout().getLastFragment() instanceof MilliyRegionActivity) {
             return;
         }
@@ -68,13 +71,35 @@ public class MilliyRegionActivity extends BaseFragment {
             }
         });
 
-        FrameLayout root = new FrameLayout(context);
+        LinearLayout root = new LinearLayout(context);
+        root.setOrientation(LinearLayout.VERTICAL);
         root.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+
+        // Qidiruv: tuman nomini yozsa — viloyat tanlamasdan darhol topiladi
+        search = new org.telegram.ui.Components.EditTextBoldCursor(context);
+        search.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
+        search.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
+        search.setHintTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteHintText));
+        search.setHint(LocaleController.getString(R.string.MilliyRegionSearch));
+        search.setSingleLine(true);
+        search.setPadding(AndroidUtilities.dp(14), 0, AndroidUtilities.dp(14), 0);
+        search.setBackground(Theme.createRoundRectDrawable(AndroidUtilities.dp(12), Theme.getColor(Theme.key_windowBackgroundGray)));
+        search.addTextChangedListener(new android.text.TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence c, int a, int b, int d) {}
+            @Override public void onTextChanged(CharSequence c, int a, int b, int d) {}
+            @Override public void afterTextChanged(android.text.Editable e) {
+                if (step == 0 && regions != null) {
+                    if (e.length() == 0) showRegions(); else showSearch(e.toString());
+                }
+            }
+        });
+        root.addView(search, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 44, 16, 10, 16, 4));
+
         ScrollView scrollView = new ScrollView(context);
         list = new LinearLayout(context);
         list.setOrientation(LinearLayout.VERTICAL);
         scrollView.addView(list, LayoutHelper.createScroll(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP));
-        root.addView(scrollView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
+        root.addView(scrollView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 0, 1f));
 
         fragmentView = root;
         loadRegions();
@@ -123,21 +148,54 @@ public class MilliyRegionActivity extends BaseFragment {
 
     // ---------- Bosqichlar ----------
 
+    /** Ro'yxat ilova ichida bor: tarmoq kutilmaydi. */
     private void loadRegions() {
         step = 0;
-        clear(LocaleController.getString(R.string.MilliyLoading));
-        MilliyData.get("regions", 24L * 3600 * 1000, body -> {
-            try {
-                regions = new JSONArray(body);
-                showRegions();
-            } catch (Exception e) {
-                showError(this::loadRegions);
+        regions = MilliyData.regions();
+        if (regions.length() == 0) {
+            showError(this::loadRegions);
+        } else {
+            showRegions();
+        }
+    }
+
+    private org.telegram.ui.Components.EditTextBoldCursor search;
+
+    /** Barcha viloyatlar bo'yicha tuman qidiruvi (lotin yoki kirillda yozsa ham). */
+    private void showSearch(String query) {
+        String q = query.trim().toLowerCase();
+        String q2 = MilliyTranslit.isMostlyCyrillic(q) ? MilliyTranslit.toLatin(q).toLowerCase() : q;
+        clear(LocaleController.getString(R.string.MilliyRegionSearchResults));
+        int found = 0;
+        for (int i = 0; i < regions.length() && found < 40; i++) {
+            JSONObject r = regions.optJSONObject(i);
+            JSONArray ds = r.optJSONArray("districts");
+            for (int j = 0; ds != null && j < ds.length() && found < 40; j++) {
+                JSONObject d = ds.optJSONObject(j);
+                String name = d.optString("name");
+                String low = name.toLowerCase();
+                if (low.contains(q) || low.contains(q2)) {
+                    found++;
+                    addRow(name + "  ·  " + r.optString("name"), false, v -> {
+                        selectedRegion = r;
+                        districtCode = d.optString("code");
+                        districtName = r.optString("name") + ", " + name;
+                        search.setVisibility(View.GONE);
+                        selectDistrict();
+                    });
+                }
             }
-        }, () -> showError(this::loadRegions));
+        }
+        if (found == 0) {
+            addInfo(LocaleController.getString(R.string.MilliyRegionNotFound));
+        }
     }
 
     private void showRegions() {
         step = 0;
+        if (search != null) {
+            search.setVisibility(View.VISIBLE);
+        }
         clear(LocaleController.getString(R.string.MilliyChooseRegion));
         for (int i = 0; i < regions.length(); i++) {
             JSONObject r = regions.optJSONObject(i);
@@ -150,6 +208,9 @@ public class MilliyRegionActivity extends BaseFragment {
 
     private void showDistricts() {
         step = 1;
+        if (search != null) {
+            search.setVisibility(View.GONE);
+        }
         clear(selectedRegion.optString("name") + " — " + LocaleController.getString(R.string.MilliyChooseDistrict));
         if (!required && !MilliyData.isJoinDeclined(currentAccount)) {
             addInfo(LocaleController.getString(R.string.MilliyRegionAutoJoinInfo));
@@ -239,6 +300,9 @@ public class MilliyRegionActivity extends BaseFragment {
     }
 
     private void applyDistrict(boolean join) {
+        if (required && !MilliyData.hasGlobalChoice()) {
+            MilliyData.saveGlobalChoice(districtCode, districtName, join); // birinchi akkaunt: keyingilar uchun ham
+        }
         MilliyData.setDistrict(currentAccount, districtCode, districtName);
         MilliyData.setJoinDeclined(currentAccount, !join);
         if (join) {
@@ -255,7 +319,15 @@ public class MilliyRegionActivity extends BaseFragment {
     @Override
     public boolean onBackPressed(boolean invoked) {
         if (step == 2) {
-            if (invoked) showDistricts();
+            if (invoked) {
+                if (search != null && search.length() > 0) { // qidiruvdan kelgan bo'lsa — qidiruvga qaytadi
+                    step = 0;
+                    search.setVisibility(View.VISIBLE);
+                    showSearch(search.getText().toString());
+                } else {
+                    showDistricts();
+                }
+            }
             return false;
         }
         if (step == 1) {

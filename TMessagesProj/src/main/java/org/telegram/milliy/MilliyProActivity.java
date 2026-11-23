@@ -22,11 +22,23 @@ import org.telegram.ui.Components.LayoutHelper;
 public class MilliyProActivity extends BaseFragment {
 
     private LinearLayout root;
+    private final boolean insideTabs;
+
+    public MilliyProActivity() {
+        this(false);
+    }
+
+    /** insideTabs: pastki paneldagi «Milliygram» tabi — orqaga tugmasi yo'q, pastda panel uchun joy. */
+    public MilliyProActivity(boolean insideTabs) {
+        this.insideTabs = insideTabs;
+    }
 
     @Override
     public View createView(Context context) {
-        actionBar.setBackButtonImage(R.drawable.ic_ab_back);
-        actionBar.setTitle(LocaleController.getString(R.string.MilliyPro));
+        if (!insideTabs) {
+            actionBar.setBackButtonImage(R.drawable.ic_ab_back);
+        }
+        actionBar.setTitle(LocaleController.getString(insideTabs ? R.string.MilliyTab : R.string.MilliyPro));
         actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
             public void onItemClick(int id) {
@@ -35,14 +47,34 @@ public class MilliyProActivity extends BaseFragment {
                 }
             }
         });
+        LinearLayout outer = new LinearLayout(context);
+        outer.setOrientation(LinearLayout.VERTICAL);
+        outer.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundGray));
+
+        // Qidiruv: 40+ sozlama ichidan kerakligini darhol topish
+        search = new org.telegram.ui.Components.EditTextBoldCursor(context);
+        search.setTextSize(android.util.TypedValue.COMPLEX_UNIT_DIP, 16);
+        search.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
+        search.setHintTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteHintText));
+        search.setHint(LocaleController.getString(R.string.MilliySettingsSearch));
+        search.setSingleLine(true);
+        search.setPadding(org.telegram.messenger.AndroidUtilities.dp(14), 0, org.telegram.messenger.AndroidUtilities.dp(14), 0);
+        search.setBackground(Theme.createRoundRectDrawable(org.telegram.messenger.AndroidUtilities.dp(12), Theme.getColor(Theme.key_windowBackgroundWhite)));
+        search.addTextChangedListener(new android.text.TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence c, int a, int b, int d) {}
+            @Override public void onTextChanged(CharSequence c, int a, int b, int d) {}
+            @Override public void afterTextChanged(android.text.Editable e) { filter(e.toString()); }
+        });
+        outer.addView(search, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 44, 12, 10, 12, 6));
+
         ScrollView scroll = new ScrollView(context);
-        scroll.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundGray));
         root = new LinearLayout(context);
         root.setOrientation(LinearLayout.VERTICAL);
         scroll.addView(root, new ScrollView.LayoutParams(ScrollView.LayoutParams.MATCH_PARENT, ScrollView.LayoutParams.WRAP_CONTENT));
-        fragmentView = scroll;
+        outer.addView(scroll, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 0, 1f));
+        fragmentView = outer;
         build();
-        return scroll;
+        return outer;
     }
 
     @Override
@@ -56,6 +88,8 @@ public class MilliyProActivity extends BaseFragment {
     /** Bitta sahifa: bo'limlar Novagram tartibida, har bir qatorda qisqa izoh. */
     private void build() {
         root.removeAllViews();
+        sections.clear();
+        buildQuick();
         buildStories();
         buildMessages();
         buildAutoreply();
@@ -74,6 +108,83 @@ public class MilliyProActivity extends BaseFragment {
         buildContacts();
         buildBackup();
         buildOther();
+        if (insideTabs) { // oxirgi qator pastki panel ostida qolmasin
+            root.addView(new View(getParentActivity()), LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, org.telegram.ui.DialogsActivity.MAIN_TABS_HEIGHT_WITH_MARGINS));
+        }
+        if (search != null && search.length() > 0) {
+            filter(search.getText().toString());
+        }
+    }
+
+    /** Eng ko'p kerak bo'ladiganlar — sahifa boshida. */
+    private void buildQuick() {
+        header(R.string.MilliyQuickHeader);
+        customCheck(LocaleController.getString(R.string.MilliyHideAds), LocaleController.getString(MilliyPro.isUzPhone(currentAccount) ? R.string.MilliyHideAdsInfoUz : R.string.MilliyHideAdsInfo),
+                () -> MilliyPro.hideAds(currentAccount), v -> MilliyPro.setHideAds(currentAccount, v));
+        check(R.string.MilliyInfoBar, R.string.MilliyInfoBarInfo, "info_bar", true, null);
+        action(LocaleController.getString(R.string.MilliyUiScript), MilliyTranslit.uiScriptName(), () -> MilliyTranslit.toggleUiScript(this));
+        String district = MilliyData.getDistrictName(currentAccount);
+        action(LocaleController.getString(R.string.MilliyMyRegion), district != null ? district : LocaleController.getString(R.string.MilliyChooseRegion),
+                () -> presentFragment(new MilliyRegionActivity(false)));
+        action(LocaleController.getString(R.string.MilliySecurity), "", () -> presentFragment(new MilliySecurityActivity()));
+        info(R.string.MilliyQuickHint);
+    }
+
+    // ---------- Qidiruv ----------
+
+    private org.telegram.ui.Components.EditTextBoldCursor search;
+
+    private static class Section {
+        View header, info;
+        final java.util.ArrayList<View> rows = new java.util.ArrayList<>();
+        final java.util.ArrayList<String> texts = new java.util.ArrayList<>();
+    }
+
+    private final java.util.ArrayList<Section> sections = new java.util.ArrayList<>();
+
+    private Section current() {
+        if (sections.isEmpty()) {
+            sections.add(new Section());
+        }
+        return sections.get(sections.size() - 1);
+    }
+
+    private void addRow(View row, String text) {
+        current().rows.add(row);
+        current().texts.add(text == null ? "" : text.toLowerCase());
+    }
+
+    private void filter(String query) {
+        String q = query.trim().toLowerCase();
+        String q2 = MilliyTranslit.isMostlyCyrillic(q) ? MilliyTranslit.toLatin(q).toLowerCase() : MilliyTranslit.toCyrillic(q).toLowerCase();
+        for (Section sec : sections) {
+            boolean any = false;
+            for (int i = 0; i < sec.rows.size(); i++) {
+                String t = sec.texts.get(i);
+                boolean show = q.isEmpty() || t.contains(q) || t.contains(q2);
+                sec.rows.get(i).setVisibility(show ? View.VISIBLE : View.GONE);
+                any |= show;
+            }
+            if (sec.header != null) {
+                sec.header.setVisibility(any ? View.VISIBLE : View.GONE);
+            }
+            if (sec.info != null) {
+                sec.info.setVisibility(q.isEmpty() ? View.VISIBLE : View.GONE);
+            }
+        }
+    }
+
+    private void customCheck(String title, String subtitle, java.util.function.BooleanSupplier getter, java.util.function.Consumer<Boolean> setter) {
+        TextCheckCell c = new TextCheckCell(getParentActivity());
+        c.setBackground(Theme.getSelectorDrawable(true));
+        c.setTextAndValueAndCheck(title, subtitle, getter.getAsBoolean(), true, true);
+        c.setOnClickListener(v -> {
+            boolean nv = !getter.getAsBoolean();
+            setter.accept(nv);
+            c.setChecked(nv);
+        });
+        root.addView(c, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
+        addRow(c, title + " " + subtitle);
     }
 
     private void buildStatus() {
@@ -153,6 +264,7 @@ public class MilliyProActivity extends BaseFragment {
             lite.setChecked(MilliyPro.lite());
         });
         root.addView(lite, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
+        addRow(lite, LocaleController.getString(R.string.MilliyLite) + " " + LocaleController.getString(R.string.MilliyLiteInfo));
         info(R.string.MilliyViewHint);
     }
 
@@ -378,6 +490,9 @@ public class MilliyProActivity extends BaseFragment {
         h.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
         h.setText(LocaleController.getString(text));
         root.addView(h, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
+        Section sec = new Section();
+        sec.header = h;
+        sections.add(sec);
     }
 
     private void info(int text) {
@@ -385,6 +500,7 @@ public class MilliyProActivity extends BaseFragment {
         c.setText(LocaleController.getString(text));
         c.setBackground(Theme.getThemedDrawableByKey(getParentActivity(), R.drawable.greydivider, Theme.key_windowBackgroundGrayShadow));
         root.addView(c, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
+        current().info = c;
     }
 
     private void check(int title, int subtitle, String key, boolean def, Runnable after) {
@@ -405,6 +521,7 @@ public class MilliyProActivity extends BaseFragment {
             }
         });
         root.addView(c, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
+        addRow(c, LocaleController.getString(title) + (subtitle != 0 ? " " + LocaleController.getString(subtitle) : ""));
     }
 
     private void action(String title, String value, Runnable click) {
@@ -419,5 +536,6 @@ public class MilliyProActivity extends BaseFragment {
             c.setOnClickListener(v -> click.run());
         }
         root.addView(c, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
+        addRow(c, title);
     }
 }

@@ -161,9 +161,25 @@ public class MilliyChatsActivity extends BaseFragment implements NotificationCen
         }
     }
 
+    private org.telegram.messenger.FlagSecureReason flagSecure;
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (flagSecure != null) {
+            flagSecure.detach();
+        }
+    }
+
     @Override
     public void onResume() {
         super.onResume();
+        if (mode == VAULT && getParentActivity() != null) { // seyf ro'yxatida skrinshot yo'q
+            if (flagSecure == null) {
+                flagSecure = new org.telegram.messenger.FlagSecureReason(getParentActivity().getWindow(), () -> MilliyPro.get("lock_secure", true));
+            }
+            flagSecure.attach();
+        }
         reload();
     }
 

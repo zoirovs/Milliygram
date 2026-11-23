@@ -30,7 +30,7 @@ import java.util.Set;
 public class MilliyData {
 
     /** Asosiy manzil. Eski manzil zaxira: yangi domen ishlamaguncha va tarmoqda muammo bo'lganda ilova to'xtab qolmaydi. */
-    private static final String API_MAIN = "https://milliygram.milliysi.uz/api/v1/";
+    private static final String API_MAIN = "https://milliygram.cyberhimoya.uz/api/v1/";
     private static final String API_RESERVE = "https://platforma.cyberhimoya.uz/api/v1/";
     private static volatile String apiBase;
     private static boolean mainProbed;
@@ -83,6 +83,20 @@ public class MilliyData {
                 }
             });
         });
+    }
+
+    /**
+     * Kutmasdan: keshda nima bo'lsa (eskirgan bo'lsa ham) darhol beradi, eskirgan bo'lsa fonda yangilaydi.
+     * Kesh umuman yo'q bo'lsagina tarmoqni kutadi.
+     */
+    public static void getFast(String path, long maxAgeMs, Utilities.Callback<String> onResult, Runnable onError) {
+        final String old = cached(path);
+        if (old == null) {
+            get(path, maxAgeMs, onResult, onError);
+            return;
+        }
+        onResult.run(old);
+        get(path, maxAgeMs, b -> {}, null);
     }
 
     /** Hozir ishlayotgan API manzili. Zaxirada turgan bo'lsa, asosiy manzil bir marta tekshiriladi. */
@@ -140,6 +154,80 @@ public class MilliyData {
         } catch (Exception e) {
             return s;
         }
+    }
+
+    // ---------- Hududlar ro'yxati (internetsiz) ----------
+
+    /**
+     * Viloyat/tuman ro'yxati: keshdagi server javobi yoki ilova ichidagi nusxa (assets/milliy_regions.json).
+     * Darhol qaytadi; serverdan yangisi haftasiga bir marta fonda olinadi.
+     */
+    public static JSONArray regions() {
+        String body = cached("regions");
+        if (body == null) {
+            try (InputStream in = ApplicationLoader.applicationContext.getAssets().open("milliy_regions.json")) {
+                ByteArrayOutputStream out = new ByteArrayOutputStream();
+                byte[] buf = new byte[8192];
+                int n;
+                while ((n = in.read(buf)) > 0) {
+                    out.write(buf, 0, n);
+                }
+                body = out.toString("UTF-8");
+            } catch (Exception e) {
+                FileLog.e(e);
+            }
+        }
+        get("regions", 7L * 24 * 3600 * 1000, b -> {}, null); // fonda yangilash
+        try {
+            return body == null ? new JSONArray() : new JSONArray(body);
+        } catch (Exception e) {
+            return new JSONArray();
+        }
+    }
+
+    // ---------- Umumiy tanlov (birinchi akkauntda bir marta) ----------
+
+    private static final String G_DISTRICT = "milliy_g_district", G_DISTRICT_NAME = "milliy_g_district_name", G_JOIN = "milliy_g_join";
+
+    private static SharedPreferences globalPrefs() {
+        return MessagesController.getGlobalMainSettings();
+    }
+
+    /** Birinchi akkauntda tanlangan hudud va rozilik — keyingi akkauntlar shu bilan jim davom etadi. */
+    public static void saveGlobalChoice(String code, String name, boolean join) {
+        globalPrefs().edit().putString(G_DISTRICT, code).putString(G_DISTRICT_NAME, name).putBoolean(G_JOIN, join).apply();
+    }
+
+    public static boolean hasGlobalChoice() {
+        return globalPrefs().getString(G_DISTRICT, null) != null;
+    }
+
+    /**
+     * Yangi akkaunt: hudud tanlanmagan, lekin umumiy tanlov bor — ekran ko'rsatmay o'sha hududni qo'yadi va
+     * rozilik bergan bo'lsa kanallarga fonda qo'shiladi. true — qo'llandi.
+     */
+    public static boolean applyGlobalChoice(int account) {
+        final SharedPreferences g = globalPrefs();
+        if (g.getString(G_DISTRICT, null) == null) {
+            // eski o'rnatishlar: umumiy tanlov yo'q — hududi bor birinchi akkauntdan olinadi
+            for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
+                if (a != account && UserConfig.getInstance(a).isClientActivated() && getDistrict(a) != null) {
+                    saveGlobalChoice(getDistrict(a), getDistrictName(a), !isJoinDeclined(a));
+                    break;
+                }
+            }
+        }
+        final String code = g.getString(G_DISTRICT, null);
+        if (code == null || getDistrict(account) != null) {
+            return false;
+        }
+        final boolean join = g.getBoolean(G_JOIN, true);
+        setDistrict(account, code, g.getString(G_DISTRICT_NAME, code));
+        setJoinDeclined(account, !join);
+        if (join) {
+            joinDistrictChannels(account);
+        }
+        return true;
     }
 
     // ---------- Akkaunt sozlamalari ----------

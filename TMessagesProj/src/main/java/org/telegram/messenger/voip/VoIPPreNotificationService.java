@@ -230,7 +230,7 @@ public class VoIPPreNotificationService { // } extends Service implements AudioM
             PendingIntent.getActivity(
                 context,
                 0,
-                new Intent(context, LaunchActivity.class).setAction("voip_answer"),
+                new Intent(context, LaunchActivity.class).setAction("voip_answer").putExtra(LaunchActivity.EXTRA_VOIP_ANSWER_TOKEN, LaunchActivity.VOIP_ANSWER_TOKEN),
                 PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_CANCEL_CURRENT
             );
 
@@ -591,6 +591,7 @@ public class VoIPPreNotificationService { // } extends Service implements AudioM
         stopRinging();
         if (!answered) {
             for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; ++i) {
+                if (!UserConfig.getInstance(i).isClientActivated()) continue;
                 MessagesController.getInstance(i).ignoreSetOnline = false;
             }
             AndroidUtilities.runOnUIThread(() -> {

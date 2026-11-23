@@ -15,6 +15,11 @@ public class MilliyInfo {
     private static final long WEATHER_TTL = 30 * 60 * 1000L;
     private static final long CURRENCY_TTL = 60 * 60 * 1000L;
 
+    /** Sozlamalar tepasidagi ob-havo + valyuta paneli yoqilganmi. */
+    public static boolean enabled() {
+        return MilliyPro.get("info_bar", true);
+    }
+
     public static String weatherPath(int account) {
         String d = MilliyData.getDistrict(account);
         return d == null ? null : "weather?district=" + MilliyData.enc(d);
@@ -22,6 +27,9 @@ public class MilliyInfo {
 
     /** Ma'lumotlarni yangilaydi va tayyor bo'lganda onUpdate chaqiradi. */
     public static void refresh(int account, Runnable onUpdate) {
+        if (!enabled()) {
+            return; // panel o'chiq — tarmoqqa chiqilmaydi
+        }
         MilliyData.get("currency", CURRENCY_TTL, b -> onUpdate.run(), null);
         String wp = weatherPath(account);
         if (wp != null) {
@@ -55,7 +63,7 @@ public class MilliyInfo {
             fragment.presentFragment(new MilliyRegionActivity(false));
             return;
         }
-        MilliyData.get(wp, WEATHER_TTL, body -> {
+        MilliyData.getFast(wp, WEATHER_TTL, body -> {
             try {
                 JSONObject w = new JSONObject(body);
                 StringBuilder sb = new StringBuilder();
@@ -95,7 +103,7 @@ public class MilliyInfo {
     }
 
     public static void showCurrency(BaseFragment fragment) {
-        MilliyData.get("currency", CURRENCY_TTL, body -> {
+        MilliyData.getFast("currency", CURRENCY_TTL, body -> {
             try {
                 JSONArray arr = new JSONArray(body);
                 StringBuilder sb = new StringBuilder();

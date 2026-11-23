@@ -214,6 +214,9 @@ public class ApplicationLoader extends Application {
 
                     boolean isSlow = isConnectionSlow();
                     for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
+                        if (a != 0 && !UserConfig.getInstance(a).isClientActivated()) {
+                            continue; // Milliygram: bo'sh akkaunt joyi uchun ulanish ochilmaydi
+                        }
                         ConnectionsManager.getInstance(a).checkConnection();
                         FileLoader.getInstance(a).onNetworkChanged(isSlow);
                     }
@@ -234,6 +237,8 @@ public class ApplicationLoader extends Application {
             e.printStackTrace();
         }
 
+        LiteMode.registerBatteryReceiver();
+
         try {
             PowerManager pm = (PowerManager) ApplicationLoader.applicationContext.getSystemService(Context.POWER_SERVICE);
             isScreenOn = pm.isScreenOn();
@@ -248,6 +253,10 @@ public class ApplicationLoader extends Application {
         SharedPrefsHelper.init(applicationContext);
         for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) { //TODO improve account
             UserConfig.getInstance(a).loadConfig();
+            // Milliygram: og'ir akkaunt obyektlari faqat band joylar uchun yaratiladi (50 akkaunt xotira yemaydi)
+            if (a != 0 && !UserConfig.getInstance(a).isClientActivated()) {
+                continue;
+            }
             MessagesController.getInstance(a);
             if (a == 0) {
                 SharedConfig.pushStringStatus = "__FIREBASE_GENERATING_SINCE_" + ConnectionsManager.getInstance(a).getCurrentTime() + "__";
@@ -269,10 +278,17 @@ public class ApplicationLoader extends Application {
 
         MediaController.getInstance();
         for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) { //TODO improve account
+            if (a != 0 && !UserConfig.getInstance(a).isClientActivated()) {
+                continue;
+            }
             ContactsController.getInstance(a).checkAppAccount();
             DownloadController.getInstance(a);
         }
         BillingController.getInstance().startConnection();
+        // HTML widgets: the isolated engine's process up front, after the app's own start, so that a widget's first
+        // frame does not wait for it.
+        AndroidUtilities.runOnUIThread(() -> Utilities.globalQueue.postRunnable(
+                () -> org.telegram.utils.twidget.WidgetSandboxSession.prewarmEngine(applicationContext)), 3000);
     }
 
     public ApplicationLoader() {
@@ -289,6 +305,11 @@ public class ApplicationLoader extends Application {
         }
 
         super.onCreate();
+
+        // The widget engine's isolated process has no files, network or accounts: none of the client starts there.
+        if (org.telegram.utils.twidget.WidgetEngineService.isEngineProcess()) {
+            return;
+        }
 
         // AndroidUtilities must be initialized before FileLog
         final String helloWorld = AndroidUtilities.getHelloWorld();

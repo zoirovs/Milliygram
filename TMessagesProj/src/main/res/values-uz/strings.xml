@@ -3078,7 +3078,6 @@
     <string name="Directions">Yoʻnalishlar</string>
     <string name="GetDirections">Yoʻnalishlarni olish</string>
     <string name="NoPlacesFound">Joylar topilmadi</string>
-    <string name="NoPlacesFoundInfo">Yaqin-atrofingizda **%1$s** bilan mos keluvchilar yoʻq.</string>
     <string name="SendLocation">Joriy joylashuvimni yuborish</string>
     <string name="SendLiveLocation">Jonli joylashuvimni ulashish...</string>
     <string name="SendLiveLocationMenu">Jonli joylashuvimni ulashish</string>
@@ -3096,9 +3095,7 @@
     <string name="ShareLocation">Joylashuv</string>
     <string name="SharedPlace">Joy</string>
     <string name="AccurateTo">%1$s gacha aniqlikda</string>
-    <string name="NearbyVenue">Yoki joyni tanlang</string>
     <string name="LocationOnMap">Xaritadagi joylashuv</string>
-    <string name="TapToSendLocation">Bu joylashuvni yuborish uchun bosing</string>
     <string name="LiveLocations">Jonli joylashuvlar</string>
     <string name="LiveLocationContext">Jonli joylashuv</string>
     <string name="SendLiveLocationFor15m">15 daqiqaga</string>
@@ -3120,7 +3117,6 @@
     <string name="LiveLocationAlertGroup">Bu chatdagi odamlar aniq joylashuvingizni qancha muddat, jumladan, ilova yopilganida koʻrishini tanlang.</string>
     <string name="GpsDisabledAlertText">Joylashuvga asoslangan funksiyalarga kirish uchun GPSni yoqing.</string>
     <string name="ChatSetThisLocation">Bu joylashuvni tanlash</string>
-    <string name="PlacesInThisArea">Bu hududdagi joylar</string>
     <string name="OpenInMaps">Xaritalarda ochish</string>
     <string name="LocationNotifiation">Ogohlantirish</string>
     <string name="LocationNotifiationButtonUser">%1$s %2$s uzoqlikda ekanligida ogohlantirish</string>
@@ -4126,10 +4122,6 @@
     <string name="TranscriptionReportSent">Fikr-mulohazangiz uchun rahmat.</string>
     <string name="VoipQuickReplies">Matn bilan javob berish</string>
     <string name="VoipQuickRepliesExplain">Bu tezkor javoblar Telegramdagi chaqiruvlarga javob berish uchun ishlatiladi. Ularni tahrirlashingiz mumkin.</string>
-    <string name="QuickReplyDefault1">Hozir gaplasha olmayman. Tinchlikmi?</string>
-    <string name="QuickReplyDefault2">Boʻshab, qayta qoʻngʻiroq qilaman.</string>
-    <string name="QuickReplyDefault3">Kechroq qoʻngʻiroq qilaman.</string>
-    <string name="QuickReplyDefault4">Hozir gaplasha olmayman. Keyinroq chaqiruv qila olasizmi?</string>
     <string name="AllowCustomQuickReply">Maxsusga ruxsat berish</string>
     <string name="VoipInCallBrandingWithName">Telegram orqali chaqiruv: %s</string>
     <string name="VoipInVideoCallBrandingWithName">\n%sga Telegram video chaqiruv</string>
@@ -8035,7 +8027,6 @@
     <string name="StarsTransactionRecipient">Kimdan</string>
     <string name="StarsTransactionID">Tranzaksiya ID</string>
     <string name="StarsTransactionIDCopied">Tranzaksiya ID vaqtinchalik xotiraga nusxalandi</string>
-    <string name="WalletAddressCopied">Hamyon manzilidan vaqtinchalik xotiraga nusxa olindi</string>
     <string name="StarsTransactionDate">Sana</string>
     <string name="StarsTransactionFloodskipNumberName">Xabarlar</string>
     <string name="StarsTransactionFloodskipNumber_one">%d</string>
@@ -9350,7 +9341,6 @@
     <string name="EditToDo">Tahrirlash</string>
     <string name="AddTasks">Vazifalar qoʻshish</string>
     <string name="MyTON">TONlarim</string>
-    <string name="TONBalanceTitle">TON balansi</string>
     <string name="TodoMenuHint">Bitta vazifa uchun amallarni koʻryapsiz.\nRoʻyxat uchun amallarga oʻtishingiz mumkin.</string>
     <string name="TodoMenuTabTask">Vazifa</string>
     <string name="TodoMenuTabList">Roʻyxat</string>
@@ -10176,4 +10166,24 @@
     <string name="WelcomeMessageRevertInfo">xabarni asl\nkontentiga tiklaydi</string>
     <string name="GiftMessageAddTitle">Xabar qoʻshish</string>
     <string name="UnsupportedMessageTitle">Qoʻllab-quvvatlanmaydigan xabar</string>
+    <string name="WalletAddressCopied">Hamyon manzilidan vaqtinchalik xotiraga nusxa olindi</string>
+    <string name="WalletAttachMoney">Pul</string>
+    <string name="WalletTonConnectRequestAppProcessed">%s tranzaksiya soʻrovi qayta ishlandi</string>
+    <string name="WalletTonConnectRequestAppDeclined">%s tranzaksiya soʻrovi rad etildi</string>
+    <string name="WalletUnknownUser">NOTANISH FOYDALANUVCHI</string>
+    <string name="WalletTransferStatusSent">yuborildi</string>
+    <string name="WalletTransferStatusReceived">qabul qilindi</string>
+    <string name="WalletCurrency">Valyuta</string>
+    <string name="WalletSend">Yuborish</string>
+    <string name="WalletRecipient">Qabul qiluvchi</string>
+    <string name="WalletAddress">Manzil</string>
+    <string name="WalletFee">Komissiya</string>
+    <string name="WalletDate">Sana</string>
+    <string name="WalletWhatIsGram">Gram nima?</string>
+    <string name="WalletNotEnoughGram">Gram yetarli emas</string>
+    <string name="WalletActionSentGrams">Siz un1\'ga **%1$s** yubordingiz</string>
+    <string name="WalletActionReceivedGramsSomeone">Kimdir sizga **%1$s** yubordi</string>
+    <string name="WalletTransferWorth">%1$s (%2$s)</string>
+    <string name="Grams_one">%1$s Gram</string>
+    <string name="Grams_other">%1$s Gram</string>
 </resources>

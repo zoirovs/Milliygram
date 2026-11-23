@@ -80,6 +80,28 @@ public class MilliyPro {
         return get("confirm_gift", true);
     }
 
+    /**
+     * Reklama (kanaldagi homiylik xabarlari va qidiruvdagi reklama) yashirilganmi.
+     * Foydalanuvchi tanlamagan bo'lsa: O'zbekiston raqami (+998) bo'lsa yashirin, boshqasida ko'rinadi.
+     */
+    public static boolean hideAds(int account) {
+        final SharedPreferences p = prefs();
+        final String key = "hide_ads_" + account;
+        if (p.contains(key)) {
+            return p.getBoolean(key, true);
+        }
+        return isUzPhone(account);
+    }
+
+    public static void setHideAds(int account, boolean hide) {
+        prefs().edit().putBoolean("hide_ads_" + account, hide).apply();
+    }
+
+    public static boolean isUzPhone(int account) {
+        final TLRPC.User user = org.telegram.messenger.UserConfig.getInstance(account).getCurrentUser();
+        return user != null && user.phone != null && user.phone.replace("+", "").startsWith("998");
+    }
+
     public static boolean showId() {
         return get("show_id", true);
     }

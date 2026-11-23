@@ -88,7 +88,7 @@ public class MilliyAdminFolders {
         // Kategoriyalar (bo'sh bo'lmaganlari)
         int account = 0;
         for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
-            if (MessagesController.getInstance(a) == mc) {
+            if (UserConfig.getInstance(a).isClientActivated() && MessagesController.getInstance(a) == mc) {
                 account = a;
                 break;
             }

@@ -90,6 +90,7 @@ public class MilliySecurityActivity extends BaseFragment implements Notification
         list.setOrientation(LinearLayout.VERTICAL);
         list.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
         root.addView(list, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
+        buildExtra(context, root);
 
         fragmentView = scroll;
         render();
@@ -210,6 +211,53 @@ public class MilliySecurityActivity extends BaseFragment implements Notification
         int color = good == total ? OK : good >= total - 2 ? WARN : BAD;
         scoreView.setTextColor(color);
         scoreView.setText(LocaleController.formatString(R.string.MilliySecScore, good, total));
+    }
+
+    /** Qo'shimcha himoya: bot havolalari, qulflangan chatda skrinshot, APK tozalash, akkauntni o'chirish. */
+    private void buildExtra(Context context, LinearLayout root) {
+        org.telegram.ui.Cells.HeaderCell header = new org.telegram.ui.Cells.HeaderCell(context);
+        header.setText(LocaleController.getString(R.string.MilliyExtraProtection));
+        header.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+        root.addView(new org.telegram.ui.Cells.ShadowSectionCell(context));
+        root.addView(header);
+        LinearLayout box = new LinearLayout(context);
+        box.setOrientation(LinearLayout.VERTICAL);
+        box.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+        root.addView(box, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
+
+        toggle(context, box, R.string.MilliyBotGuardSetting, R.string.MilliyBotGuardSettingInfo, "bot_guard");
+        toggle(context, box, R.string.MilliyLockSecure, R.string.MilliyLockSecureInfo, "lock_secure");
+
+        org.telegram.ui.Cells.TextSettingsCell clean = new org.telegram.ui.Cells.TextSettingsCell(context);
+        clean.setText(LocaleController.getString(R.string.MilliyApkClean), true);
+        clean.setBackground(Theme.getSelectorDrawable(true));
+        clean.setOnClickListener(v -> MilliySafety.cleanApks(this));
+        box.addView(clean);
+
+        final org.telegram.tgnet.TLRPC.User me = getUserConfig().getCurrentUser();
+        if (me == null || !me.bot) {
+            org.telegram.ui.Cells.TextSettingsCell del = new org.telegram.ui.Cells.TextSettingsCell(context);
+            del.setText(LocaleController.getString(R.string.MilliyDeleteAccTitle), false);
+            del.setTextColor(Theme.getColor(Theme.key_text_RedRegular));
+            del.setBackground(Theme.getSelectorDrawable(true));
+            del.setOnClickListener(v -> MilliySafety.deleteAccount(this));
+            box.addView(del);
+        }
+        org.telegram.ui.Cells.TextInfoPrivacyCell info = new org.telegram.ui.Cells.TextInfoPrivacyCell(context);
+        info.setText(LocaleController.getString(R.string.MilliyExtraProtectionInfo));
+        root.addView(info);
+    }
+
+    private void toggle(Context context, LinearLayout box, int title, int value, String key) {
+        org.telegram.ui.Cells.TextCheckCell cell = new org.telegram.ui.Cells.TextCheckCell(context);
+        cell.setBackground(Theme.getSelectorDrawable(true));
+        cell.setTextAndValueAndCheck(LocaleController.getString(title), LocaleController.getString(value), MilliyPro.get(key, true), true, true);
+        cell.setOnClickListener(v -> {
+            boolean now = !MilliyPro.get(key, true);
+            MilliyPro.prefs().edit().putBoolean(key, now).apply();
+            cell.setChecked(now);
+        });
+        box.addView(cell);
     }
 
     private void addRow(int title, int state, int value, Runnable fix) {

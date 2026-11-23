@@ -162,6 +162,32 @@ public class MilliyTranslit {
         return sb.toString();
     }
 
+    // ---------- Interfeys yozuvi: Oʻzbekcha (lotin) ↔ Ўзбекча (кирилл) ----------
+
+    public static boolean isUiCyrillic() {
+        org.telegram.messenger.LocaleController.LocaleInfo info = org.telegram.messenger.LocaleController.getInstance().getCurrentLocaleInfo();
+        return info != null && org.telegram.messenger.LocaleController.MILLIY_UZ_CYRL.equals(info.shortName);
+    }
+
+    public static String uiScriptName() {
+        return isUiCyrillic() ? "Кирилл" : "Lotin";
+    }
+
+    /** Bir bosishda interfeysni lotin ↔ kirillga o'tkazadi (boshqa tilda bo'lsa — o'zbek lotiniga). */
+    public static void toggleUiScript(BaseFragment fragment) {
+        final String target = isUiCyrillic() ? "uz" : org.telegram.messenger.LocaleController.MILLIY_UZ_CYRL;
+        org.telegram.messenger.LocaleController.LocaleInfo info = org.telegram.messenger.LocaleController.getInstance().getLanguageFromDict(target);
+        if (info == null) {
+            return;
+        }
+        org.telegram.messenger.LocaleController.getInstance().applyLanguage(info, true, false, false, true, fragment.getCurrentAccount(), () ->
+                org.telegram.messenger.AndroidUtilities.runOnUIThread(() -> {
+                    if (fragment.getParentLayout() != null) {
+                        fragment.getParentLayout().rebuildAllFragmentViews(false, false);
+                    }
+                }));
+    }
+
     /** Xabar matnini o'girib, natijani oynada ko'rsatadi. */
     public static void showAlert(BaseFragment fragment, CharSequence text) {
         if (fragment == null || fragment.getParentActivity() == null || TextUtils.isEmpty(text)) {
