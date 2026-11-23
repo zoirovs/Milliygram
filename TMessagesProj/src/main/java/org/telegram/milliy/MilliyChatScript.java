@@ -22,7 +22,7 @@ import java.util.regex.Pattern;
  */
 public class MilliyChatScript {
 
-    public static final int ORIGINAL = 0, CYRILLIC = 1, LATIN = 2;
+    public static final int ORIGINAL = 0, CYRILLIC = 1, LATIN = 2, NEW_LATIN = 3;
 
     private static final Pattern LATIN_WORD = Pattern.compile("[A-Za-z]+(?:['ʻʼ‘’`][A-Za-z]+)*");
     private static final Pattern CYRILLIC_WORD = Pattern.compile("[\\u0400-\\u04FF]+");
@@ -61,7 +61,10 @@ public class MilliyChatScript {
             return text;
         }
         SpannableStringBuilder sb = text instanceof SpannableStringBuilder ? (SpannableStringBuilder) text : new SpannableStringBuilder(text);
-        Matcher m = (mode == CYRILLIC ? LATIN_WORD : CYRILLIC_WORD).matcher(sb.toString());
+        if (mode == NEW_LATIN) { // avval kirill so'zlar lotinga, keyin hammasi yangi lotinga
+            convert(sb, LATIN);
+        }
+        Matcher m = (mode == CYRILLIC || mode == NEW_LATIN ? LATIN_WORD : CYRILLIC_WORD).matcher(sb.toString());
         // oxiridan boshiga: almashtirish uzunlikni o'zgartiradi, oldingi indekslar buzilmaydi
         java.util.ArrayList<int[]> ranges = new java.util.ArrayList<>();
         while (m.find()) {
@@ -77,7 +80,7 @@ public class MilliyChatScript {
                 continue;
             }
             String word = sb.subSequence(s, e).toString();
-            String out = mode == CYRILLIC ? MilliyTranslit.toCyrillic(word) : MilliyTranslit.toLatin(word);
+            String out = mode == CYRILLIC ? MilliyTranslit.toCyrillic(word) : mode == NEW_LATIN ? MilliyTranslit.toNewLatin(word) : MilliyTranslit.toLatin(word);
             if (!out.equals(word)) {
                 sb.replace(s, e, out);
             }
@@ -95,7 +98,8 @@ public class MilliyChatScript {
         String[] items = {
                 LocaleController.getString(R.string.MilliyScriptOriginal),
                 LocaleController.getString(R.string.MilliyScriptCyrillic),
-                LocaleController.getString(R.string.MilliyScriptLatin)
+                LocaleController.getString(R.string.MilliyScriptLatin),
+                LocaleController.getString(R.string.MilliyScriptNewLatin)
         };
         AlertDialog.Builder b = new AlertDialog.Builder(fragment.getParentActivity());
         b.setTitle(LocaleController.getString(R.string.MilliyScriptTitle));

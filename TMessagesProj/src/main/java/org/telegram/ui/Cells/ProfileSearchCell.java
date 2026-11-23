@@ -790,7 +790,11 @@ public class ProfileSearchCell extends BaseCell implements NotificationCenter.No
 
     public void updateStatus(boolean verified, TLRPC.User user, TLRPC.Chat chat, boolean animated) {
         statusDrawable.center = LocaleController.isRTL;
-        if (allowEmojiStatus && verified) {
+        final int milliyBadge = org.telegram.milliy.MilliyBadges.of(chat, user);
+        if (milliyBadge != 0) {
+            statusDrawable.set(new org.telegram.milliy.MilliyBadges.BadgeDrawable(milliyBadge), animated);
+            statusDrawable.setColor(null);
+        } else if (allowEmojiStatus && verified) {
             statusDrawable.set(new CombinedDrawable(Theme.dialogs_verifiedDrawable, Theme.dialogs_verifiedCheckDrawable, 0, 0), animated);
             statusDrawable.setColor(null);
         } else if (allowEmojiStatus && user != null && !savedMessages && DialogObject.getEmojiStatusDocumentId(user.emoji_status) != 0) {

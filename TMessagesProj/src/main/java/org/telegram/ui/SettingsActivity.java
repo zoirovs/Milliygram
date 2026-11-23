@@ -967,7 +967,7 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
                 presentFragment(new org.telegram.milliy.MilliyRegionActivity(false));
                 break;
             case 110:
-                org.telegram.milliy.MilliyTranslit.toggleUiScript(this);
+                org.telegram.milliy.MilliyTranslit.chooseLanguage(this);
                 break;
             case 104:
                 presentFragment(new org.telegram.milliy.MilliySecurityActivity());

@@ -12189,7 +12189,7 @@
     <string name="MilliyScriptOriginal">Asl holida</string>
     <string name="MilliyScriptCyrillic">Kirillda (Кирилл)</string>
     <string name="MilliyScriptLatin">Lotinda (Lotin)</string>
-    <string name="MilliyUiScript">Interfeys yozuvi</string>
+    <string name="MilliyUiScript">Til</string>
     <string name="MilliySettingsSearch">Sozlamalardan qidirish</string>
     <string name="MilliyQuickHeader">Asosiy</string>
     <string name="MilliyQuickHint">Eng koʻp kerak boʻladigan sozlamalar. Qolganlari pastda yoki tepadagi qidiruvda.</string>
@@ -12202,4 +12202,6 @@
     <string name="MilliyRegionSearch">Tuman yoki shahar nomi</string>
     <string name="MilliyRegionSearchResults">Topilgan tumanlar</string>
     <string name="MilliyRegionNotFound">Hech narsa topilmadi. Viloyatni roʻyxatdan tanlang.</string>
+    <string name="MilliyOtherLanguages">Boshqa tillar…</string>
+    <string name="MilliyScriptNewLatin">Yangi lotinda</string>
 </resources>

@@ -1500,11 +1500,23 @@ public class AnimatedEmojiDrawable extends Drawable {
 
         @Override
         public int getIntrinsicWidth() {
+            if (drawables[0] != null && !(drawables[0] instanceof AnimatedEmojiDrawable)) {
+                int dw = drawables[0].getIntrinsicWidth();
+                if (dw > 0) {
+                    return dw;
+                }
+            }
             return size;
         }
 
         @Override
         public int getIntrinsicHeight() {
+            if (drawables[0] != null && !(drawables[0] instanceof AnimatedEmojiDrawable)) {
+                int dh = drawables[0].getIntrinsicHeight();
+                if (dh > 0) {
+                    return dh;
+                }
+            }
             return size;
         }
 

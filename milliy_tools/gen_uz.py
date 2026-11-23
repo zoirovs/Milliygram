@@ -1,6 +1,7 @@
 """Rasmiy o'zbekcha Telegram tarjimasidan (uz_langpack.json) Milliygram til fayllarini yasaydi:
   values-uz/strings.xml        — lotin
   values-b+uz+Cyrl/strings.xml — kirill (avtomatik o'girilgan)
+  values-b+uz+Latn/strings.xml — yangi lotin alifbosi (oʻ→ö, gʻ→ğ, sh→ş, ch→ç; ÖzAlifbo qoidalari)
 Placeholder'lari inglizchasiga mos kelmagan matnlar tashlab ketiladi (inglizchasi ishlatiladi).
 Ishlatish: python3 milliy_tools/gen_uz.py"""
 import json, re, sys
@@ -71,16 +72,38 @@ def fix_date_pattern(v):
         return None
     return v
 
+APOS_ALL = "'ʻʼ‘’`´"
+def to_new_plain(t):
+    out, i, n = [], 0, len(t)
+    while i < n:
+        c = t[i]; nx = t[i + 1] if i + 1 < n else ""
+        if c in "OoGg" and nx and nx in APOS_ALL:
+            out.append({"O": "Ö", "o": "ö", "G": "Ğ", "g": "ğ"}[c]); i += 2; continue
+        two = t[i:i + 2]
+        if two in ("sh", "Sh", "SH", "sH", "ch", "Ch", "CH", "cH"):
+            low = two[0].lower() == "s"
+            out.append(("ş" if low else "ç") if two[0].islower() else ("Ş" if low else "Ç")); i += 2; continue
+        out.append(c); i += 1
+    return "".join(out)
+
+def to_new(t):
+    """Yangi lotin: o'rinbosar, havola, @username, teglar va Milliygram/Telegram nomlari o'girilmaydi."""
+    parts, last = [], 0
+    for m in re.finditer(PROTECT.pattern + r"|Milliygram|Telegram|Premium", t):
+        parts.append(to_new_plain(t[last:m.start()])); parts.append(m.group(0)); last = m.end()
+    parts.append(to_new_plain(t[last:]))
+    return "".join(parts)
+
 def main():
     en_raw = (RES / "values/strings.xml").read_text(encoding="utf-8")
     en = {k: unescape(v) for k, v in re.findall(r'<string name="([^"]+)"[^>]*>(.*?)</string>', en_raw, re.S)}
     uz = json.loads((ROOT / "milliy_tools/uz_langpack.json").read_text(encoding="utf-8"))["strings"]
-    lat, cyr, bad = [], [], 0
+    lat, cyr, new, bad = [], [], [], 0
     for k in en:
         if k in ("AppName", "AppNameBeta"):
             continue
         if k.startswith("Milliy"):  # o'z matnlarimiz: asli lotincha, kirillga o'giramiz
-            cyr.append((k, to_cyr(en[k])))
+            cyr.append((k, to_cyr(en[k]))); new.append((k, to_new(en[k])))
             continue
         v = uz.get(k)
         if v is None:
@@ -93,10 +116,10 @@ def main():
             v = fix_date_pattern(v)
             if v is None:
                 bad += 1; continue
-            lat.append((k, v)); cyr.append((k, v.replace("'yil'", "'йил'")))
+            lat.append((k, v)); cyr.append((k, v.replace("'yil'", "'йил'"))); new.append((k, v))
             continue
-        lat.append((k, v)); cyr.append((k, to_cyr(v)))
-    for d, items in (("values-uz", lat), ("values-b+uz+Cyrl", cyr)):
+        lat.append((k, v)); cyr.append((k, to_cyr(v))); new.append((k, to_new(v)))
+    for d, items in (("values-uz", lat), ("values-b+uz+Cyrl", cyr), ("values-b+uz+Latn", new)):
         p = RES / d; p.mkdir(exist_ok=True)
         body = "".join(f'    <string name="{k}">{escape(v)}</string>\n' for k, v in items)
         (p / "strings.xml").write_text('<?xml version="1.0" encoding="utf-8"?>\n<resources>\n' + body + "</resources>\n", encoding="utf-8")

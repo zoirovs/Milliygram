@@ -249,9 +249,16 @@ public class MilliyBadges {
         private final Path path = new Path();
         private String label;
         private int labelWidth;
+        private final boolean compact;
 
         public BadgeDrawable(int type) {
+            this(type, false);
+        }
+
+        /** compact: yozuvsiz dumaloq belgi (tor joylar, masalan ulashish oynasidagi to'r). */
+        public BadgeDrawable(int type, boolean compact) {
             this.type = type;
+            this.compact = compact;
             bg.setColor(type == SCAM ? 0xFFD93025 : 0xFF1A86D0); // rasmiy va tasdiqlangan: Telegram tasdiq belgisi (#33A8E6) tusi, oq yozuv o'qilishi uchun to'qroq
             text.setColor(0xFFFFFFFF);
             text.setShadowLayer(dp(1), 0, dp(0.5f), 0x40000000);
@@ -276,17 +283,38 @@ public class MilliyBadges {
 
         @Override
         public int getIntrinsicWidth() {
+            if (compact) {
+                return dp(14);
+            }
             return dp(5 + 8 + 3 + 5) + labelWidth;
         }
 
         @Override
         public int getIntrinsicHeight() {
+            if (compact) {
+                return dp(14);
+            }
             return dp(16);
         }
 
         @Override
         public void draw(Canvas canvas) {
             rect.set(getBounds());
+            if (compact) {
+                float cx = rect.left + dp(7), ccy = rect.centerY();
+                canvas.drawCircle(cx, ccy, dp(7), bg);
+                path.reset();
+                if (type == SCAM) {
+                    canvas.drawLine(cx, ccy - dp(3.5f), cx, ccy + dp(0.8f), icon);
+                    canvas.drawPoint(cx, ccy + dp(3.3f), icon);
+                } else {
+                    path.moveTo(cx - dp(3.2f), ccy);
+                    path.lineTo(cx - dp(0.9f), ccy + dp(2.4f));
+                    path.lineTo(cx + dp(3.3f), ccy - dp(2.5f));
+                    canvas.drawPath(path, icon);
+                }
+                return;
+            }
             // sarlavhalarda bounds kengroq berilishi mumkin — o'z o'lchamimizda, vertikal markazda chizamiz
             float top = rect.centerY() - dp(8);
             rect.set(rect.left, top, rect.left + getIntrinsicWidth(), top + dp(16));

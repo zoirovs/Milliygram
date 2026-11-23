@@ -171,7 +171,10 @@ public class JoinGroupAlert extends BottomSheet {
         simpleTextView.setGravity(Gravity.CENTER);
         linearLayout.addView(simpleTextView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP | Gravity.CENTER_HORIZONTAL, 10, 10, 10, participants_count > 0 ? 0 : 20));
 
-        if (scam || fake) {
+        final int milliyBadge = org.telegram.milliy.MilliyBadges.of(currentChat != null ? currentChat : chatInvite != null ? chatInvite.chat : null, null);
+        if (milliyBadge != 0) {
+            simpleTextView.setRightDrawable(new org.telegram.milliy.MilliyBadges.BadgeDrawable(milliyBadge));
+        } else if (scam || fake) {
             simpleTextView.setRightDrawable(getScamDrawable(scam ? 0 : 1));
         } else if (verified) {
             simpleTextView.setRightDrawable(getVerifiedCrossfadeDrawable());

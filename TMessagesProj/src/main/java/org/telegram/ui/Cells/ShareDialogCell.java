@@ -205,6 +205,18 @@ public class ShareDialogCell extends FrameLayout implements NotificationCenter.N
         return LocaleController.getString(R.string.FwdMyStory);
     }
 
+    /** Milliygram belgisi: tor katakda yozuvsiz dumaloq ✓ (firibgarda !) nom oxirida. */
+    private void milliyBadge(int type) {
+        if (type == 0) {
+            return;
+        }
+        org.telegram.milliy.MilliyBadges.BadgeDrawable d = new org.telegram.milliy.MilliyBadges.BadgeDrawable(type, true);
+        d.setBounds(0, 0, d.getIntrinsicWidth(), d.getIntrinsicHeight());
+        android.text.SpannableStringBuilder sb = new android.text.SpannableStringBuilder(nameTextView.getText()).append("  ");
+        sb.setSpan(new android.text.style.ImageSpan(d, android.text.style.DynamicDrawableSpan.ALIGN_BOTTOM), sb.length() - 1, sb.length(), android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        nameTextView.setText(sb);
+    }
+
     public void setDialog(long uid, boolean checked, CharSequence name) {
         avatarDrawable.setScaleSize(1f);
         if (uid == Long.MAX_VALUE) {
@@ -239,6 +251,7 @@ public class ShareDialogCell extends FrameLayout implements NotificationCenter.N
                 } else {
                     nameTextView.setText("");
                 }
+                milliyBadge(org.telegram.milliy.MilliyBadges.of(user));
                 imageView.setForUserOrChat(user, avatarDrawable);
             }
             imageView.setRoundRadius(dp(28));
@@ -260,6 +273,7 @@ public class ShareDialogCell extends FrameLayout implements NotificationCenter.N
             } else {
                 nameTextView.setText("");
             }
+            milliyBadge(org.telegram.milliy.MilliyBadges.of(chat));
             if (ChatObject.isMonoForum(chat)) {
                 ForumUtilities.setMonoForumAvatar(currentAccount, chat, avatarDrawable, imageView);
             } else {

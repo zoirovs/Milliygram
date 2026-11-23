@@ -1627,7 +1627,11 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
                     if (index > 0) {
                         name = name.substring(0, index);
                     }
-                    if (user.verified) {
+                    if (org.telegram.milliy.MilliyBadges.of(user) != 0) { // Milliygram belgisi
+                        CharSequence text = Emoji.replaceEmoji(name, textView.getPaint().getFontMetricsInt(), false);
+                        textView.setText(text);
+                        textView.setRightDrawable(new org.telegram.milliy.MilliyBadges.BadgeDrawable(org.telegram.milliy.MilliyBadges.of(user)));
+                    } else if (user.verified) {
                         if (verifiedDrawable == null) {
                             verifiedDrawable = createVerifiedDrawable();
                         }

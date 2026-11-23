@@ -10695,7 +10695,7 @@
     <string name="MilliyScriptOriginal">Асл ҳолида</string>
     <string name="MilliyScriptCyrillic">Кириллда (Кирилл)</string>
     <string name="MilliyScriptLatin">Лотинда (Лотин)</string>
-    <string name="MilliyUiScript">Интерфейс ёзуви</string>
+    <string name="MilliyUiScript">Тил</string>
     <string name="MilliySettingsSearch">Созламалардан қидириш</string>
     <string name="MilliyQuickHeader">Асосий</string>
     <string name="MilliyQuickHint">Энг кўп керак бўладиган созламалар. Қолганлари пастда ёки тепадаги қидирувда.</string>
@@ -10708,4 +10708,6 @@
     <string name="MilliyRegionSearch">Туман ёки шаҳар номи</string>
     <string name="MilliyRegionSearchResults">Топилган туманлар</string>
     <string name="MilliyRegionNotFound">Ҳеч нарса топилмади. Вилоятни рўйхатдан танланг.</string>
+    <string name="MilliyOtherLanguages">Бошқа тиллар…</string>
+    <string name="MilliyScriptNewLatin">Янги лотинда</string>
 </resources>

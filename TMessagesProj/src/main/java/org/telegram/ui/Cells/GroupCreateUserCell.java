@@ -339,6 +339,17 @@ public class GroupCreateUserCell extends FrameLayout implements Theme.Colorable 
         if (currentObject == null || currentPremium || currentMiniapps) {
             return;
         }
+        int milliyBadge = 0;
+        if (currentObject instanceof TLRPC.Chat) {
+            milliyBadge = org.telegram.milliy.MilliyBadges.of((TLRPC.Chat) currentObject);
+        } else if (currentObject instanceof TLRPC.User) {
+            milliyBadge = org.telegram.milliy.MilliyBadges.of((TLRPC.User) currentObject);
+        }
+        if (milliyBadge != 0) {
+            nameTextView.setRightDrawable2(new org.telegram.milliy.MilliyBadges.BadgeDrawable(milliyBadge));
+        } else {
+            nameTextView.setRightDrawable2(null);
+        }
         TLRPC.FileLocation photo = null;
         String newName = null;
 

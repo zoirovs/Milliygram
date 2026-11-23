@@ -14456,11 +14456,35 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         return MediaActionDrawable.ICON_NONE;
     }
 
+    private int milliyForwardBadge() {
+        return currentForwardChannel != null ? org.telegram.milliy.MilliyBadges.of(currentForwardChannel) : org.telegram.milliy.MilliyBadges.of(currentForwardUser);
+    }
+
     private boolean isForwardVerified() {
+        if (milliyForwardBadge() != 0) {
+            return true; // Milliygram belgisi (RASMIY / TASDIQLANGAN / FIRIBGAR)
+        }
         return currentForwardChannel != null ? currentForwardChannel.verified : currentForwardUser != null && currentForwardUser.verified;
     }
 
+    private int forwardVerifiedWidth() {
+        final int badge = milliyForwardBadge();
+        if (badge != 0) {
+            return new org.telegram.milliy.MilliyBadges.BadgeDrawable(badge).getIntrinsicWidth() + dp(4);
+        }
+        return (int) (Theme.chat_forwardNamePaint.getTextSize() * 0.95f) + dp(4);
+    }
+
     private ColoredImageSpan getForwardVerifiedSpan() {
+        final int milliyBadge = milliyForwardBadge();
+        if (milliyBadge != 0) {
+            org.telegram.milliy.MilliyBadges.BadgeDrawable d = new org.telegram.milliy.MilliyBadges.BadgeDrawable(milliyBadge);
+            ColoredImageSpan span = new ColoredImageSpan(d);
+            span.recolorDrawable = false;
+            span.setSize(d.getIntrinsicHeight());
+            span.setWidth(d.getIntrinsicWidth());
+            return span;
+        }
         if (forwardVerifiedSpan == null) {
             Drawable background = getContext().getResources().getDrawable(R.drawable.verified_area).mutate();
             Drawable check = getContext().getResources().getDrawable(R.drawable.verified_check).mutate();
@@ -16315,7 +16339,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                         forwardedNameWidth -= dp(36);
                     }
                     final boolean verified = isForwardVerified();
-                    final int verifiedWidth = verified ? (int) (Theme.chat_forwardNamePaint.getTextSize() * 0.95f) + dp(4) : 0;
+                    final int verifiedWidth = verified ? forwardVerifiedWidth() : 0;
                     CharSequence name = TextUtils.ellipsize((includeAvatar ? "A " : "") + currentForwardNameString.replace('\n', ' '), Theme.chat_replyNamePaint, forwardedNameWidth - viaWidth - verifiedWidth - dp(includeAvatar ? 17.33f : 0), TextUtils.TruncateAt.END);
                     String fromString = AndroidUtilities.removeDiacritics(name.toString());
                     final int verifiedIndex = fromString.length() + 1;

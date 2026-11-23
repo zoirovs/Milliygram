@@ -125,7 +125,7 @@ public class MilliyProActivity extends BaseFragment {
         customCheck(LocaleController.getString(R.string.MilliyHideAds), LocaleController.getString(MilliyPro.isUzPhone(currentAccount) ? R.string.MilliyHideAdsInfoUz : R.string.MilliyHideAdsInfo),
                 () -> MilliyPro.hideAds(currentAccount), v -> MilliyPro.setHideAds(currentAccount, v));
         check(R.string.MilliyInfoBar, R.string.MilliyInfoBarInfo, "info_bar", true, null);
-        action(LocaleController.getString(R.string.MilliyUiScript), MilliyTranslit.uiScriptName(), () -> MilliyTranslit.toggleUiScript(this));
+        action(LocaleController.getString(R.string.MilliyUiScript), MilliyTranslit.uiScriptName(), () -> MilliyTranslit.chooseLanguage(this));
         String district = MilliyData.getDistrictName(currentAccount);
         action(LocaleController.getString(R.string.MilliyMyRegion), district != null ? MilliyTranslit.ui(district) : LocaleController.getString(R.string.MilliyChooseRegion),
                 () -> presentFragment(new MilliyRegionActivity(false)));

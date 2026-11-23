@@ -1126,7 +1126,7 @@ public class FiltersSetupActivity extends BaseFragment implements NotificationCe
                     view = new TextCell(mContext);
                     break;
                 case VIEW_TYPE_MILLIY:
-                    view = new org.telegram.ui.Cells.TextCell(mContext); // bu fayldagi ichki TextCell emas — check/value bilan
+                    view = new org.telegram.ui.Cells.TextCell(mContext, 20, false, true, null); // kalit (Switch) bilan: 13.x da TextCell uni o'zi yaratmaydi
                     break;
                 case VIEW_TYPE_CHECK:
                     view = new TextCheckCell(mContext);

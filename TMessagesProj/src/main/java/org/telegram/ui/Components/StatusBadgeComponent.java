@@ -33,7 +33,11 @@ public class StatusBadgeComponent {
     }
 
     public Drawable updateDrawable(TLRPC.User user, TLRPC.Chat chat, int colorFilter, boolean animated) {
-        if (chat != null && chat.verified) {
+        final int milliyBadge = org.telegram.milliy.MilliyBadges.of(chat, user); // Milliygram: RASMIY / TASDIQLANGAN / FIRIBGAR
+        if (milliyBadge != 0) {
+            statusDrawable.set(new org.telegram.milliy.MilliyBadges.BadgeDrawable(milliyBadge), animated);
+            statusDrawable.setColor(null);
+        } else if (chat != null && chat.verified) {
             statusDrawable.set(verifiedDrawable = (verifiedDrawable == null ? new CombinedDrawable(Theme.dialogs_verifiedDrawable, Theme.dialogs_verifiedCheckDrawable) : verifiedDrawable), animated);
             statusDrawable.setColor(null);
         } else if (chat != null && DialogObject.getEmojiStatusDocumentId(chat.emoji_status) != 0) {

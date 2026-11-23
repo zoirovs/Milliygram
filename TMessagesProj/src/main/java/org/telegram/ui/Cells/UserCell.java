@@ -673,6 +673,12 @@ public class UserCell extends FrameLayout implements NotificationCenter.Notifica
             nameTextView.setText(name);
         }
         long botVerificationIcon = 0;
+        final int milliyBadge = org.telegram.milliy.MilliyBadges.of(currentChat, currentUser);
+        if (milliyBadge != 0) {
+            nameTextView.setRightDrawable2(new org.telegram.milliy.MilliyBadges.BadgeDrawable(milliyBadge));
+        } else {
+            nameTextView.setRightDrawable2(null);
+        }
         if (currentUser != null) {
             botVerificationIcon = DialogObject.getBotVerificationIcon(currentUser);
         } else if (currentChat != null) {

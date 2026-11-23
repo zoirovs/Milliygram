@@ -548,6 +548,7 @@ public class LocaleController {
     }
 
     public static final String MILLIY_UZ_CYRL = "uz_cyrl";
+    public static final String MILLIY_UZ_NEW = "uz_new"; // yangi o'zbek lotin alifbosi (ö, ğ, ş, ç)
 
     private boolean loadingRemoteLanguages;
 
@@ -691,7 +692,7 @@ public class LocaleController {
 
         // Milliygram: o'zbek tili (lotin va kirill) ilova ichida
         localeInfo = new LocaleInfo();
-        localeInfo.name = "Oʻzbekcha";
+        localeInfo.name = "Oʻzbek";
         localeInfo.nameEnglish = "Uzbek";
         localeInfo.shortName = localeInfo.pluralLangCode = "uz";
         localeInfo.pathToFile = null;
@@ -700,9 +701,19 @@ public class LocaleController {
         languagesDict.put(localeInfo.shortName, localeInfo);
 
         localeInfo = new LocaleInfo();
-        localeInfo.name = "Ўзбекча (кирилл)";
+        localeInfo.name = "Ўзбек";
         localeInfo.nameEnglish = "Uzbek (Cyrillic)";
         localeInfo.shortName = MILLIY_UZ_CYRL;
+        localeInfo.pluralLangCode = "uz";
+        localeInfo.pathToFile = null;
+        localeInfo.builtIn = true;
+        languages.add(localeInfo);
+        languagesDict.put(localeInfo.shortName, localeInfo);
+
+        localeInfo = new LocaleInfo();
+        localeInfo.name = "Özbek (yangi lotin)";
+        localeInfo.nameEnglish = "Uzbek (new Latin)";
+        localeInfo.shortName = MILLIY_UZ_NEW;
         localeInfo.pluralLangCode = "uz";
         localeInfo.pathToFile = null;
         localeInfo.builtIn = true;
@@ -1393,6 +1404,8 @@ public class LocaleController {
             }
             if (MILLIY_UZ_CYRL.equals(localeInfo.shortName)) {
                 newLocale = new Locale.Builder().setLanguage("uz").setScript("Cyrl").build();
+            } else if (MILLIY_UZ_NEW.equals(localeInfo.shortName)) {
+                newLocale = new Locale.Builder().setLanguage("uz").setScript("Latn").build(); // values-b+uz+Latn
             }
             if (override) {
                 languageOverride = localeInfo.shortName;

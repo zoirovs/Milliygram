@@ -162,36 +162,92 @@ public class MilliyTranslit {
         return sb.toString();
     }
 
-    // ---------- Interfeys yozuvi: Oʻzbekcha (lotin) ↔ Ўзбекча (кирилл) ----------
+    // ---------- Til: Oʻzbek (lotin) / Ўзбек (kirill) / Özbek (yangi lotin) ----------
+
+    private static String currentShortName() {
+        org.telegram.messenger.LocaleController.LocaleInfo info = org.telegram.messenger.LocaleController.getInstance().getCurrentLocaleInfo();
+        return info == null ? "" : info.shortName;
+    }
 
     public static boolean isUiCyrillic() {
-        org.telegram.messenger.LocaleController.LocaleInfo info = org.telegram.messenger.LocaleController.getInstance().getCurrentLocaleInfo();
-        return info != null && org.telegram.messenger.LocaleController.MILLIY_UZ_CYRL.equals(info.shortName);
+        return org.telegram.messenger.LocaleController.MILLIY_UZ_CYRL.equals(currentShortName());
     }
 
-    /** Serverdan lotincha keladigan nomlar (hudud, ob-havo) interfeys kirillda bo'lsa kirillda ko'rsatiladi. */
+    public static boolean isUiNewLatin() {
+        return org.telegram.messenger.LocaleController.MILLIY_UZ_NEW.equals(currentShortName());
+    }
+
+    /** Serverdan eski lotinda keladigan nomlar (hudud, ob-havo) tanlangan yozuvda ko'rsatiladi. */
     public static String ui(String s) {
-        return s == null || !isUiCyrillic() ? s : toCyrillic(s);
+        if (s == null) return null;
+        if (isUiCyrillic()) return toCyrillic(s);
+        if (isUiNewLatin()) return toNewLatin(s);
+        return s;
     }
 
+    /** Eski lotin → yangi lotin: oʻ→ö, gʻ→ğ, sh→ş, ch→ç (ÖzAlifbo qoidalari). */
+    public static String toNewLatin(CharSequence text) {
+        StringBuilder sb = new StringBuilder(text.length());
+        int n = text.length();
+        for (int i = 0; i < n; i++) {
+            char c = text.charAt(i);
+            char next = i + 1 < n ? text.charAt(i + 1) : 0;
+            if ((c == 'o' || c == 'O' || c == 'g' || c == 'G') && next != 0 && (isApostrophe(next) || next == '´')) {
+                sb.append(c == 'o' ? 'ö' : c == 'O' ? 'Ö' : c == 'g' ? 'ğ' : 'Ğ');
+                i++;
+            } else if ((c == 's' || c == 'S' || c == 'c' || c == 'C') && (next == 'h' || next == 'H')) {
+                boolean upper = Character.isUpperCase(c);
+                sb.append(c == 's' || c == 'S' ? (upper ? 'Ş' : 'ş') : (upper ? 'Ç' : 'ç'));
+                i++;
+            } else {
+                sb.append(c);
+            }
+        }
+        return sb.toString();
+    }
+
+    /** Sozlamadagi qator qiymati: hozirgi til nomi. */
     public static String uiScriptName() {
-        return isUiCyrillic() ? "Кирилл" : "Lotin";
+        org.telegram.messenger.LocaleController.LocaleInfo info = org.telegram.messenger.LocaleController.getInstance().getCurrentLocaleInfo();
+        return info == null ? "" : info.name;
     }
 
-    /** Bir bosishda interfeysni lotin ↔ kirillga o'tkazadi (boshqa tilda bo'lsa — o'zbek lotiniga). */
-    public static void toggleUiScript(BaseFragment fragment) {
-        final String target = isUiCyrillic() ? "uz" : org.telegram.messenger.LocaleController.MILLIY_UZ_CYRL;
-        org.telegram.messenger.LocaleController.LocaleInfo info = org.telegram.messenger.LocaleController.getInstance().getLanguageFromDict(target);
-        if (info == null) {
+    /** Til tanlash oynasi. Tanlangan til oynani qayta ochmasdan, joyida qo'llanadi. */
+    public static void chooseLanguage(BaseFragment fragment) {
+        if (fragment.getParentActivity() == null) {
             return;
         }
-        org.telegram.messenger.LocaleController.getInstance().applyLanguage(info, true, false, false, true, fragment.getCurrentAccount(), () ->
-                org.telegram.messenger.AndroidUtilities.runOnUIThread(() -> {
-                    // pastki tablar ichidagi sahifalar ham yangi yozuvda chizilishi uchun oyna qayta yaratiladi
-                    if (fragment.getParentActivity() != null) {
-                        fragment.getParentActivity().recreate();
-                    }
-                }));
+        final String[] codes = {"uz", org.telegram.messenger.LocaleController.MILLIY_UZ_CYRL, org.telegram.messenger.LocaleController.MILLIY_UZ_NEW};
+        final String[] names = {"Oʻzbek", "Ўзбек", "Özbek (yangi lotin)"};
+        final String cur = currentShortName();
+        CharSequence[] items = new CharSequence[codes.length + 1];
+        for (int i = 0; i < codes.length; i++) {
+            items[i] = (codes[i].equals(cur) ? "✓  " : "     ") + names[i];
+        }
+        items[codes.length] = "     " + org.telegram.messenger.LocaleController.getString(R.string.MilliyOtherLanguages);
+        AlertDialog.Builder b = new AlertDialog.Builder(fragment.getParentActivity());
+        b.setTitle(org.telegram.messenger.LocaleController.getString(R.string.MilliyUiScript));
+        b.setItems(items, (d, w) -> {
+            if (w == codes.length) {
+                fragment.presentFragment(new org.telegram.ui.LanguageSelectActivity());
+                return;
+            }
+            if (codes[w].equals(cur)) {
+                return;
+            }
+            org.telegram.messenger.LocaleController.LocaleInfo info = org.telegram.messenger.LocaleController.getInstance().getLanguageFromDict(codes[w]);
+            if (info == null) {
+                return;
+            }
+            org.telegram.messenger.LocaleController.getInstance().applyLanguage(info, true, false, false, true, fragment.getCurrentAccount(), () ->
+                    org.telegram.messenger.AndroidUtilities.runOnUIThread(() -> {
+                        // Telegram faqat orqadagi sahifalarni qayta chizadi; ko'rinib turgan (pastki tablar) ham yangilansin
+                        if (fragment.getParentLayout() != null) {
+                            fragment.getParentLayout().rebuildAllFragmentViews(true, true);
+                        }
+                    }));
+        });
+        fragment.showDialog(b.create());
     }
 
     /** Xabar matnini o'girib, natijani oynada ko'rsatadi. */

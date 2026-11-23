@@ -86,7 +86,7 @@ public class CheckBoxUserCell extends FrameLayout {
         } else {
             textView.setText("");
         }
-        textView.setRightDrawable(user != null && user.verified ? getVerifiedDrawable() : null);
+        textView.setRightDrawable(user != null && org.telegram.milliy.MilliyBadges.of(user) != 0 ? new org.telegram.milliy.MilliyBadges.BadgeDrawable(org.telegram.milliy.MilliyBadges.of(user)) : user != null && user.verified ? getVerifiedDrawable() : null);
         checkBox.setChecked(checked, false);
         avatarDrawable.setInfo(user);
         imageView.setForUserOrChat(user, avatarDrawable);
