@@ -10710,4 +10710,5 @@
     <string name="MilliyRegionNotFound">Ҳеч нарса топилмади. Вилоятни рўйхатдан танланг.</string>
     <string name="MilliyOtherLanguages">Бошқа тиллар…</string>
     <string name="MilliyScriptNewLatin">Янги лотинда</string>
+    <string name="MilliyApkNoDownload">Бу **APK файл** — телефонга ўрнатиладиган илова. Фирибгарлар шундай файллар орқали вирус тарқатиб, аккаунт ва карта маълумотларини ўғирлайди.\n\nХавфсизлик учун Миллийграм APK файлни **юклаб олмайди**. Керак бўлса, уни ЗИРҲ ботида текширинг: хавфсиз бўлса, бот уни сизга қайтаради.</string>
 </resources>

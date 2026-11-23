@@ -21,6 +21,7 @@ import org.telegram.messenger.SendMessagesHelper;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
 import org.telegram.messenger.Utilities;
+import org.telegram.messenger.NotificationCenter;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
@@ -102,7 +103,50 @@ public class MilliyShield {
     private static final long ZIRH_MAX_FILE = 20L * 1024 * 1024;
 
     public static boolean isApk(String fileName, String mime) {
-        return fileName != null && fileName.toLowerCase(Locale.US).endsWith(".apk") || "application/vnd.android.package-archive".equals(mime);
+        if ("application/vnd.android.package-archive".equals(mime)) {
+            return true;
+        }
+        if (fileName == null) {
+            return false;
+        }
+        String n = fileName.toLowerCase(Locale.US);
+        return n.endsWith(".apk") || n.endsWith(".apks") || n.endsWith(".xapk") || n.endsWith(".apkm");
+    }
+
+    // ---------- APK yuklab olish cheklovi ----------
+
+    /** ZIRH'ga nusxa yuborish uchun bir martalik yuklab olishga ruxsat berilgan hujjatlar. */
+    private static final HashSet<Long> allowedDocs = new HashSet<>();
+
+    /**
+     * Hujjatni yuklab olish mumkinmi. APK yuklanmaydi — faqat ZIRH bot o'z chatida qaytargan nusxa
+     * yoki ZIRH'ga yuborish uchun ruxsat berilgani bundan mustasno.
+     */
+    public static boolean canDownload(TLRPC.Document document, Object parentObject) {
+        if (document == null || !isApk(FileLoader.getDocumentFileName(document), document.mime_type)) {
+            return true;
+        }
+        if (parentObject instanceof MessageObject && isFromZirh((MessageObject) parentObject)) {
+            return true;
+        }
+        return allowedDocs.contains(document.id);
+    }
+
+    /** Yuklanmagan APK bosilganda: yuklab olinmasligi aytiladi va ZIRH'da tekshirish taklif qilinadi. */
+    public static void onApkPressed(android.content.Context context, MessageObject m) {
+        if (context == null) {
+            return;
+        }
+        AlertDialog.Builder b = new AlertDialog.Builder(context);
+        b.setTitle(LocaleController.getString(R.string.MilliyApkBlockedTitle));
+        b.setMessage(AndroidUtilities.replaceTags(LocaleController.getString(R.string.MilliyApkNoDownload)));
+        b.setPositiveButton(LocaleController.getString(R.string.MilliyApkCheck), (d, w) -> sendToZirh(m));
+        b.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
+        try {
+            b.show();
+        } catch (Exception e) {
+            FileLog.e(e);
+        }
     }
 
     public static boolean isApk(MessageObject m) {
@@ -217,8 +261,11 @@ public class MilliyShield {
                 ArrayList<MessageObject> list = new ArrayList<>();
                 list.add(m);
                 SendMessagesHelper.getInstance(account).sendMessage(list, peerId, true, false, true, 0, 0);
-            } else {
+            } else if (FileLoader.getInstance(account).getPathToMessage(m.messageOwner).exists()
+                    || m.messageOwner.attachPath != null && !m.messageOwner.attachPath.isEmpty() && new File(m.messageOwner.attachPath).exists()) {
                 uploadCopy(account, m, peerId);
+            } else {
+                downloadThenUpload(account, m, peerId);
             }
             Bundle args = new Bundle();
             args.putLong("user_id", peerId);
@@ -227,6 +274,25 @@ public class MilliyShield {
                 last.presentFragment(new org.telegram.ui.ChatActivity(args));
             }
         });
+    }
+
+    /** Forward taqiqlangan chat: APK faqat ZIRH'ga yuborish uchun yuklanadi, tayyor bo'lgach botga jo'natiladi. */
+    private static void downloadThenUpload(int account, MessageObject m, long peerId) {
+        final TLRPC.Document doc = m.getDocument();
+        final String name = FileLoader.getAttachFileName(doc);
+        allowedDocs.add(doc.id);
+        final NotificationCenter nc = NotificationCenter.getInstance(account);
+        nc.addObserver(new NotificationCenter.NotificationCenterDelegate() {
+            @Override
+            public void didReceivedNotification(int id, int acc, Object... args) {
+                if (id == NotificationCenter.fileLoaded && name.equals(args[0])) {
+                    nc.removeObserver(this, NotificationCenter.fileLoaded);
+                    allowedDocs.remove(doc.id);
+                    uploadCopy(account, m, peerId);
+                }
+            }
+        }, NotificationCenter.fileLoaded);
+        FileLoader.getInstance(account).loadFile(doc, m, FileLoader.PRIORITY_HIGH, 0);
     }
 
     /** Forward taqiqlangan chatdan: yuklangan faylni asl nomi bilan nusxalab, botga hujjat sifatida yuboradi. */

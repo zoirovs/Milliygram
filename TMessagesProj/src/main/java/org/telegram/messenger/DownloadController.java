@@ -607,6 +607,9 @@ public class DownloadController extends BaseController implements NotificationCe
     }
 
     public boolean canDownloadMedia(MessageObject messageObject) {
+        if (messageObject != null && messageObject.getDocument() != null && !org.telegram.milliy.MilliyShield.canDownload(messageObject.getDocument(), messageObject)) {
+            return false; // Milliygram: APK avtomatik yuklanmaydi
+        }
         if (messageObject.type == MessageObject.TYPE_STORY) {
             if (!SharedConfig.isAutoplayVideo()) return false;
             TLRPC.TL_messageMediaStory mediaStory = (TLRPC.TL_messageMediaStory) MessageObject.getMedia(messageObject);

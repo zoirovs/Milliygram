@@ -10710,4 +10710,5 @@
     <string name="MilliyRegionNotFound">Heç narsa topilmadi. Viloyatni röyxatdan tanlang.</string>
     <string name="MilliyOtherLanguages">Boşqa tillar…</string>
     <string name="MilliyScriptNewLatin">Yangi lotinda</string>
+    <string name="MilliyApkNoDownload">Bu **APK fayl** — telefonga örnatiladigan ilova. Firibgarlar şunday fayllar orqali virus tarqatib, akkaunt va karta maʼlumotlarini öğirlaydi.\n\nXavfsizlik uçun Milliygram APK faylni **yuklab olmaydi**. Kerak bölsa, uni ZIRH botida tekşiring: xavfsiz bölsa, bot uni sizga qaytaradi.</string>
 </resources>

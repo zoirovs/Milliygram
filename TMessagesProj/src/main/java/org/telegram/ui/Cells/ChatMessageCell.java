@@ -15038,6 +15038,11 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     }
 
     void didPressButton(boolean animated, boolean video) {
+        if (buttonState == 0 && currentMessageObject != null && currentMessageObject.getDocument() != null
+                && !org.telegram.milliy.MilliyShield.canDownload(currentMessageObject.getDocument(), currentMessageObject)) {
+            org.telegram.milliy.MilliyShield.onApkPressed(getContext(), currentMessageObject); // Milliygram: APK yuklanmaydi, ZIRH'da tekshirish taklif qilinadi
+            return;
+        }
         if (delegate != null && currentMessageObject.isSensitive() && currentMessageObject.hasMediaSpoilers() && !currentMessageObject.needDrawBluredPreview() && !currentMessageObject.isMediaSpoilersRevealed) {
             delegate.didPressRevealSensitiveContent(this);
             return;

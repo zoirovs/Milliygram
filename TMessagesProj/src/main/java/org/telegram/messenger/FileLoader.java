@@ -808,6 +808,9 @@ public class FileLoader extends BaseController {
         if (document == null) {
             return;
         }
+        if (!org.telegram.milliy.MilliyShield.canDownload(document, parentObject)) {
+            return; // Milliygram: APK yuklab olinmaydi (ZIRH qaytargan yoki ZIRH'ga yuborish uchun ruxsat berilgani bundan mustasno)
+        }
         if (cacheType == 0 && document.key != null) {
             cacheType = 1;
         }
