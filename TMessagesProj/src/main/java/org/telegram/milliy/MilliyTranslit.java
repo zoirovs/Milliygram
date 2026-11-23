@@ -169,6 +169,11 @@ public class MilliyTranslit {
         return info != null && org.telegram.messenger.LocaleController.MILLIY_UZ_CYRL.equals(info.shortName);
     }
 
+    /** Serverdan lotincha keladigan nomlar (hudud, ob-havo) interfeys kirillda bo'lsa kirillda ko'rsatiladi. */
+    public static String ui(String s) {
+        return s == null || !isUiCyrillic() ? s : toCyrillic(s);
+    }
+
     public static String uiScriptName() {
         return isUiCyrillic() ? "Кирилл" : "Lotin";
     }
@@ -182,8 +187,9 @@ public class MilliyTranslit {
         }
         org.telegram.messenger.LocaleController.getInstance().applyLanguage(info, true, false, false, true, fragment.getCurrentAccount(), () ->
                 org.telegram.messenger.AndroidUtilities.runOnUIThread(() -> {
-                    if (fragment.getParentLayout() != null) {
-                        fragment.getParentLayout().rebuildAllFragmentViews(false, false);
+                    // pastki tablar ichidagi sahifalar ham yangi yozuvda chizilishi uchun oyna qayta yaratiladi
+                    if (fragment.getParentActivity() != null) {
+                        fragment.getParentActivity().recreate();
                     }
                 }));
     }

@@ -112,7 +112,7 @@ public class MilliyInfoBar extends LinearLayout {
                 int t = w.getInt("temp");
                 CharSequence temp = MilliyInfo.emoji(w.optInt("code")) + " " + (t > 0 ? "+" : "") + t + "°";
                 tempView.setText(Emoji.replaceEmoji(temp, tempView.getPaint().getFontMetricsInt(), false));
-                placeView.setText(w.getString("place") + " · " + w.optString("text"));
+                placeView.setText(MilliyTranslit.ui(w.getString("place") + " · " + w.optString("text")));
             } catch (Exception e) {
                 tempView.setText("—");
                 placeView.setText("");

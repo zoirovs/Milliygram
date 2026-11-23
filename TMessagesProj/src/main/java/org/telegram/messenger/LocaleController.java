@@ -1510,11 +1510,14 @@ public class LocaleController {
         if (res == R.string.AppName || res == R.string.Page1Title || res == R.string.TelegramVersion
                 || res == R.string.Page2Message || res == R.string.Page3Message || res == R.string.Page4Message
                 || res == R.string.Page5Message || res == R.string.Page6Message || res == R.string.ContactsPermissionAlert) {
-            return value.replace("Telegram", "Milliygram");
+            return value.replace("Telegram", "Milliygram").replace("Телеграм", "Миллийграм").replace("ТЕЛЕГРАМ", "МИЛЛИЙГРАМ");
         }
         // Ruxsat so'rovlari: «**Telegram** ... ruxsat kerak». Kod Telegram ilovasiga borgani haqidagi matn tegilmaydi.
         if (res != R.string.SentAppCode && res != R.string.SentAppCodeWithPhone && value.contains("**Telegram**")) {
             return value.replace("**Telegram**", "**Milliygram**");
+        }
+        if (res != R.string.SentAppCode && res != R.string.SentAppCodeWithPhone && value.contains("**Телеграм**")) {
+            return value.replace("**Телеграм**", "**Миллийграм**"); // kirill paketi
         }
         return value;
     }

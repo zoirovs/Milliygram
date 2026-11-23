@@ -79,7 +79,7 @@ public class MilliyInfo {
                             .append(deg(d.optInt("min"))).append(" … ").append(deg(d.optInt("max")))
                             .append(", ").append(d.optString("text")).append("\n");
                 }
-                show(fragment, LocaleController.getString(R.string.MilliyWeather), sb.toString().trim());
+                show(fragment, LocaleController.getString(R.string.MilliyWeather), MilliyTranslit.ui(sb.toString().trim()));
             } catch (Exception e) {
                 show(fragment, LocaleController.getString(R.string.MilliyWeather), LocaleController.getString(R.string.MilliyNetworkError));
             }

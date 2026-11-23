@@ -815,7 +815,7 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
         items.add(UItem.asHeader("Milliygram"));
         items.add(SettingCell.Factory.of(105, 0xFF7E57C2, 0xFF5E35B1, R.drawable.settings_features, getString(R.string.MilliyPro), getString(R.string.MilliyProSubtitle)));
         items.add(SettingCell.Factory.of(7, IconBackgroundColors.BLUE_ALT.top, IconBackgroundColors.BLUE_ALT.bottom, R.drawable.settings_folders, getString(R.string.SettingsFolders), getString(R.string.MilliyFoldersSettingsInfo))); // Telegram'ning «Chat jildlari» + Milliygram jildlari
-        items.add(SettingCell.Factory.of(103, 0xFFFFA726, 0xFFEF6C00, R.drawable.settings_milliy_region, getString(R.string.MilliyMyRegion), milliyDistrict != null ? milliyDistrict : getString(R.string.MilliyChooseRegion)));
+        items.add(SettingCell.Factory.of(103, 0xFFFFA726, 0xFFEF6C00, R.drawable.settings_milliy_region, getString(R.string.MilliyMyRegion), milliyDistrict != null ? org.telegram.milliy.MilliyTranslit.ui(milliyDistrict) : getString(R.string.MilliyChooseRegion)));
         items.add(SettingCell.Factory.of(110, 0xFFEC407A, 0xFFD81B60, R.drawable.msg_translate, getString(R.string.MilliyUiScript), org.telegram.milliy.MilliyTranslit.uiScriptName())); // lotin ↔ kirill bir bosishda
         items.add(SettingCell.Factory.of(106, 0xFF66BB6A, 0xFF43A047, R.drawable.msg_download, getString(R.string.MilliyDlManager), getString(R.string.MilliyDlManagerInfo)));
         final TLRPC.User milliyUser = UserConfig.getInstance(currentAccount).getCurrentUser();

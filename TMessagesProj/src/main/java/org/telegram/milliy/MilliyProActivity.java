@@ -50,6 +50,9 @@ public class MilliyProActivity extends BaseFragment {
         LinearLayout outer = new LinearLayout(context);
         outer.setOrientation(LinearLayout.VERTICAL);
         outer.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundGray));
+        if (insideTabs) { // tab ichida sarlavha sahifa ustida turadi — kontent uning tagidan boshlansin
+            outer.setPadding(0, org.telegram.ui.ActionBar.ActionBar.getCurrentActionBarHeight() + (actionBar.getOccupyStatusBar() ? org.telegram.messenger.AndroidUtilities.statusBarHeight : 0), 0, 0);
+        }
 
         // Qidiruv: 40+ sozlama ichidan kerakligini darhol topish
         search = new org.telegram.ui.Components.EditTextBoldCursor(context);
@@ -124,9 +127,11 @@ public class MilliyProActivity extends BaseFragment {
         check(R.string.MilliyInfoBar, R.string.MilliyInfoBarInfo, "info_bar", true, null);
         action(LocaleController.getString(R.string.MilliyUiScript), MilliyTranslit.uiScriptName(), () -> MilliyTranslit.toggleUiScript(this));
         String district = MilliyData.getDistrictName(currentAccount);
-        action(LocaleController.getString(R.string.MilliyMyRegion), district != null ? district : LocaleController.getString(R.string.MilliyChooseRegion),
+        action(LocaleController.getString(R.string.MilliyMyRegion), district != null ? MilliyTranslit.ui(district) : LocaleController.getString(R.string.MilliyChooseRegion),
                 () -> presentFragment(new MilliyRegionActivity(false)));
-        action(LocaleController.getString(R.string.MilliySecurity), "", () -> presentFragment(new MilliySecurityActivity()));
+        if (!MilliyLogin.isBot(currentAccount)) { // bot akkauntda 2FA/seans so'rovlari ishlamaydi
+            action(LocaleController.getString(R.string.MilliySecurity), "", () -> presentFragment(new MilliySecurityActivity()));
+        }
         info(R.string.MilliyQuickHint);
     }
 

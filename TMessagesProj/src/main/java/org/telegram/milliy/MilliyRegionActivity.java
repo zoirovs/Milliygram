@@ -176,7 +176,7 @@ public class MilliyRegionActivity extends BaseFragment {
                 String low = name.toLowerCase();
                 if (low.contains(q) || low.contains(q2)) {
                     found++;
-                    addRow(name + "  ·  " + r.optString("name"), false, v -> {
+                    addRow(MilliyTranslit.ui(name + "  ·  " + r.optString("name")), false, v -> {
                         selectedRegion = r;
                         districtCode = d.optString("code");
                         districtName = r.optString("name") + ", " + name;
@@ -199,7 +199,7 @@ public class MilliyRegionActivity extends BaseFragment {
         clear(LocaleController.getString(R.string.MilliyChooseRegion));
         for (int i = 0; i < regions.length(); i++) {
             JSONObject r = regions.optJSONObject(i);
-            addRow(r.optString("name"), false, v -> {
+            addRow(MilliyTranslit.ui(r.optString("name")), false, v -> {
                 selectedRegion = r;
                 showDistricts();
             });
@@ -211,14 +211,14 @@ public class MilliyRegionActivity extends BaseFragment {
         if (search != null) {
             search.setVisibility(View.GONE);
         }
-        clear(selectedRegion.optString("name") + " — " + LocaleController.getString(R.string.MilliyChooseDistrict));
+        clear(MilliyTranslit.ui(selectedRegion.optString("name")) + " — " + LocaleController.getString(R.string.MilliyChooseDistrict));
         if (!required && !MilliyData.isJoinDeclined(currentAccount)) {
             addInfo(LocaleController.getString(R.string.MilliyRegionAutoJoinInfo));
         }
         JSONArray ds = selectedRegion.optJSONArray("districts");
         for (int i = 0; ds != null && i < ds.length(); i++) {
             JSONObject d = ds.optJSONObject(i);
-            addRow(d.optString("name"), false, v -> {
+            addRow(MilliyTranslit.ui(d.optString("name")), false, v -> {
                 districtCode = d.optString("code");
                 districtName = selectedRegion.optString("name") + ", " + d.optString("name");
                 selectDistrict();
@@ -263,7 +263,7 @@ public class MilliyRegionActivity extends BaseFragment {
         box.addView(title, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 0, 0, 6));
 
         TextView place = new TextView(getContext());
-        place.setText(districtName);
+        place.setText(MilliyTranslit.ui(districtName));
         place.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
         place.setTextColor(Theme.getColor(Theme.key_featuredStickers_addButton));
         place.setGravity(Gravity.CENTER);
