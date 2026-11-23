@@ -92,6 +92,8 @@ public class MilliyProActivity extends BaseFragment {
     private void build() {
         root.removeAllViews();
         sections.clear();
+        tilesView = null;
+        loadIcons();
         buildQuick();
         buildStories();
         buildMessages();
@@ -119,20 +121,138 @@ public class MilliyProActivity extends BaseFragment {
         }
     }
 
-    /** Eng ko'p kerak bo'ladiganlar — sahifa boshida. */
+    /** Eng ko'p kerak bo'ladiganlar — sahifa boshida: 4 ta katta tugma va «Asosiy» karta. */
     private void buildQuick() {
-        header(R.string.MilliyQuickHeader);
-        customCheck(LocaleController.getString(R.string.MilliyHideAds), LocaleController.getString(MilliyPro.isUzPhone(currentAccount) ? R.string.MilliyHideAdsInfoUz : R.string.MilliyHideAdsInfo),
-                () -> MilliyPro.hideAds(currentAccount), v -> MilliyPro.setHideAds(currentAccount, v));
-        check(R.string.MilliyInfoBar, R.string.MilliyInfoBarInfo, "info_bar", true, null);
-        action(LocaleController.getString(R.string.MilliyUiScript), MilliyTranslit.uiScriptName(), () -> MilliyTranslit.chooseLanguage(this));
+        LinearLayout grid = new LinearLayout(getParentActivity());
+        grid.setOrientation(LinearLayout.VERTICAL);
+        LinearLayout r1 = new LinearLayout(getParentActivity()), r2 = new LinearLayout(getParentActivity());
+        boolean ads = MilliyPro.hideAds(currentAccount);
         String district = MilliyData.getDistrictName(currentAccount);
-        action(LocaleController.getString(R.string.MilliyMyRegion), district != null ? MilliyTranslit.ui(district) : LocaleController.getString(R.string.MilliyChooseRegion),
+        tile(r1, R.string.MilliyHideAds, LocaleController.getString(ads ? R.string.MilliyOn : R.string.MilliyOff), () -> {
+            MilliyPro.setHideAds(currentAccount, !MilliyPro.hideAds(currentAccount));
+            build();
+        });
+        tile(r1, R.string.MilliyUiScript, MilliyTranslit.uiScriptName(), () -> MilliyTranslit.chooseLanguage(this));
+        tile(r2, R.string.MilliyMyRegion, district != null ? MilliyTranslit.ui(district) : LocaleController.getString(R.string.MilliyChooseRegion),
                 () -> presentFragment(new MilliyRegionActivity(false)));
         if (!MilliyLogin.isBot(currentAccount)) { // bot akkauntda 2FA/seans so'rovlari ishlamaydi
-            action(LocaleController.getString(R.string.MilliySecurity), "", () -> presentFragment(new MilliySecurityActivity()));
+            tile(r2, R.string.MilliySecurity, LocaleController.getString(R.string.MilliySecOpen), () -> presentFragment(new MilliySecurityActivity()));
+        } else {
+            tile(r2, R.string.MilliyInfoBar, LocaleController.getString(MilliyInfo.enabled() ? R.string.MilliyOn : R.string.MilliyOff), () -> {
+                MilliyPro.set("info_bar", !MilliyInfo.enabled());
+                build();
+            });
         }
+        grid.addView(r1, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
+        grid.addView(r2, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 10, 0, 0));
+        root.addView(grid, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 12, 6, 12, 4));
+        tilesView = grid;
+
+        header(R.string.MilliyQuickHeader);
+        check(R.string.MilliyInfoBar, R.string.MilliyInfoBarInfo, "info_bar", true, null);
         info(R.string.MilliyQuickHint);
+    }
+
+    private View tilesView;
+
+    /** Katta tezkor tugma: rangli ikonka, nom va holat. */
+    private void tile(LinearLayout row, int title, String value, Runnable click) {
+        int[] ic = icons.get(LocaleController.getString(title));
+        LinearLayout t = new LinearLayout(getParentActivity());
+        t.setOrientation(LinearLayout.VERTICAL);
+        t.setPadding(org.telegram.messenger.AndroidUtilities.dp(14), org.telegram.messenger.AndroidUtilities.dp(12), org.telegram.messenger.AndroidUtilities.dp(12), org.telegram.messenger.AndroidUtilities.dp(12));
+        t.setBackground(Theme.createRoundRectDrawable(org.telegram.messenger.AndroidUtilities.dp(16), Theme.getColor(Theme.key_windowBackgroundWhite)));
+        android.widget.FrameLayout iconBox = new android.widget.FrameLayout(getParentActivity());
+        org.telegram.ui.SettingsActivity.SettingCell.Background bg = new org.telegram.ui.SettingsActivity.SettingCell.Background();
+        bg.setColor(ic != null ? ic[1] : 0xFF4FA3F7, ic != null ? ic[2] : 0xFF2F7FE0);
+        iconBox.setBackground(bg);
+        android.widget.ImageView iv = new android.widget.ImageView(getParentActivity());
+        if (ic != null) iv.setImageResource(ic[0]);
+        iv.setColorFilter(new android.graphics.PorterDuffColorFilter(0xFFFFFFFF, android.graphics.PorterDuff.Mode.SRC_IN));
+        iconBox.addView(iv, LayoutHelper.createFrame(22, 22, android.view.Gravity.CENTER));
+        t.addView(iconBox, LayoutHelper.createLinear(34, 34));
+        android.widget.TextView name = new android.widget.TextView(getParentActivity());
+        name.setText(LocaleController.getString(title));
+        name.setTextSize(android.util.TypedValue.COMPLEX_UNIT_DIP, 15);
+        name.setTypeface(org.telegram.messenger.AndroidUtilities.bold());
+        name.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
+        name.setSingleLine();
+        name.setEllipsize(android.text.TextUtils.TruncateAt.END);
+        t.addView(name, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 10, 0, 0));
+        android.widget.TextView val = new android.widget.TextView(getParentActivity());
+        val.setText(value);
+        val.setTextSize(android.util.TypedValue.COMPLEX_UNIT_DIP, 13);
+        val.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlueText4));
+        val.setSingleLine();
+        val.setEllipsize(android.text.TextUtils.TruncateAt.END);
+        t.addView(val, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 2, 0, 0));
+        t.setOnClickListener(v -> click.run());
+        t.setForeground(Theme.createSelectorDrawable(Theme.getColor(Theme.key_listSelector), Theme.RIPPLE_MASK_ROUNDRECT_6DP));
+        row.addView(t, LayoutHelper.createLinear(0, LayoutHelper.WRAP_CONTENT, 1f, row.getChildCount() == 0 ? 0 : 10, 0, 0, 0));
+    }
+
+    /** Qator ikonkalari: sarlavha matni → {ikonka, rang yuqori, rang pastki}. */
+    private final java.util.HashMap<String, int[]> icons = new java.util.HashMap<>();
+
+    private void loadIcons() {
+        icons.clear();
+        icons.put(LocaleController.getString(R.string.MilliyHideAds), new int[]{R.drawable.msg_block, 0xFFFF6B6B, 0xFFE5484D});
+        icons.put(LocaleController.getString(R.string.MilliyInfoBar), new int[]{R.drawable.settings_milliy_weather, 0xFF4DD0F2, 0xFF1DA7D3});
+        icons.put(LocaleController.getString(R.string.MilliyUiScript), new int[]{R.drawable.msg_language, 0xFFF77BB5, 0xFFE0497F});
+        icons.put(LocaleController.getString(R.string.MilliyMyRegion), new int[]{R.drawable.msg_location, 0xFFFFAA44, 0xFFF07F1A});
+        icons.put(LocaleController.getString(R.string.MilliySecurity), new int[]{R.drawable.outline_shield_check, 0xFF5BD06A, 0xFF34A853});
+        icons.put(LocaleController.getString(R.string.MilliyStoryAnon), new int[]{R.drawable.msg_stories_stealth, 0xFFA97BF5, 0xFF7E57C2});
+        icons.put(LocaleController.getString(R.string.MilliyHideStories), new int[]{R.drawable.msg_stories_myhide, 0xFFA97BF5, 0xFF7E57C2});
+        icons.put(LocaleController.getString(R.string.MilliyStoryDownload), new int[]{R.drawable.msg_stories_save, 0xFFA97BF5, 0xFF7E57C2});
+        icons.put(LocaleController.getString(R.string.MilliyKeepDeleted), new int[]{R.drawable.msg_delete, 0xFFFF6B6B, 0xFFE5484D});
+        icons.put(LocaleController.getString(R.string.MilliyKeepEdits), new int[]{R.drawable.msg_edit, 0xFFFFAA44, 0xFFF07F1A});
+        icons.put(LocaleController.getString(R.string.MilliyConfirmGift), new int[]{R.drawable.msg_gift_premium, 0xFFF77BB5, 0xFFE0497F});
+        icons.put(LocaleController.getString(R.string.MilliyOneTimeVoice), new int[]{R.drawable.msg_voicechat, 0xFF3FD3C4, 0xFF16A99A});
+        icons.put(LocaleController.getString(R.string.MilliyTimeSeconds), new int[]{R.drawable.outline_message_time_24, 0xFF4FA3F7, 0xFF2F7FE0});
+        icons.put(LocaleController.getString(R.string.MilliyAutoReply), new int[]{R.drawable.menu_quickreply, 0xFF5BD06A, 0xFF34A853});
+        icons.put(LocaleController.getString(R.string.MilliyAutoReplyText), new int[]{R.drawable.msg_message, 0xFF5BD06A, 0xFF34A853});
+        icons.put(LocaleController.getString(R.string.MilliyAutoReplyEvery), new int[]{R.drawable.msg_autodelete, 0xFF5BD06A, 0xFF34A853});
+        icons.put(LocaleController.getString(R.string.MilliyGhost), new int[]{R.drawable.msg_stories_stealth2, 0xFF7C8CF8, 0xFF5466E0});
+        icons.put(LocaleController.getString(R.string.MilliyGhostOnline), new int[]{R.drawable.msg_contacts_time, 0xFF7C8CF8, 0xFF5466E0});
+        icons.put(LocaleController.getString(R.string.MilliyGhostTyping), new int[]{R.drawable.msg_edit, 0xFF7C8CF8, 0xFF5466E0});
+        icons.put(LocaleController.getString(R.string.MilliyGhostRead), new int[]{R.drawable.msg_folders_read, 0xFF7C8CF8, 0xFF5466E0});
+        icons.put(LocaleController.getString(R.string.MilliyGhostStory), new int[]{R.drawable.msg_stories_views, 0xFF7C8CF8, 0xFF5466E0});
+        icons.put(LocaleController.getString(R.string.MilliyGhostButton), new int[]{R.drawable.menu_sidebar_top, 0xFF7C8CF8, 0xFF5466E0});
+        icons.put(LocaleController.getString(R.string.MilliyLockPinSet), new int[]{R.drawable.msg_pin_code, 0xFF4FA3F7, 0xFF2F7FE0});
+        icons.put(LocaleController.getString(R.string.MilliyLockPinChange), new int[]{R.drawable.msg_pin_code, 0xFF4FA3F7, 0xFF2F7FE0});
+        icons.put(LocaleController.getString(R.string.MilliyLockedChats), new int[]{R.drawable.msg_secret, 0xFF4FA3F7, 0xFF2F7FE0});
+        icons.put(LocaleController.getString(R.string.MilliyVault), new int[]{R.drawable.msg_archive_hide, 0xFF9AA6B2, 0xFF6F7C88});
+        icons.put(LocaleController.getString(R.string.MilliyPinDigits), new int[]{R.drawable.msg_pin_code, 0xFF9AA6B2, 0xFF6F7C88});
+        icons.put(LocaleController.getString(R.string.MilliyFingerprint), new int[]{R.drawable.filled_access_fingerprint, 0xFF3FD3C4, 0xFF16A99A});
+        icons.put(LocaleController.getString(R.string.MilliyStrangers), new int[]{R.drawable.msg_user_remove, 0xFFFFAA44, 0xFFF07F1A});
+        icons.put(LocaleController.getString(R.string.MilliyStrangersTitle), new int[]{R.drawable.msg_contacts, 0xFFFFAA44, 0xFFF07F1A});
+        icons.put(LocaleController.getString(R.string.MilliyConfirmStickerTitle), new int[]{R.drawable.msg_sticker, 0xFFF77BB5, 0xFFE0497F});
+        icons.put(LocaleController.getString(R.string.MilliyConfirmGifTitle), new int[]{R.drawable.msg_gif, 0xFFF77BB5, 0xFFE0497F});
+        icons.put(LocaleController.getString(R.string.MilliyConfirmVoiceTitle), new int[]{R.drawable.msg_voicechat2, 0xFFF77BB5, 0xFFE0497F});
+        icons.put(LocaleController.getString(R.string.MilliyAutoDl), new int[]{R.drawable.msg_download_settings, 0xFF4DD0F2, 0xFF1DA7D3});
+        icons.put(LocaleController.getString(R.string.MilliyRoundBack), new int[]{R.drawable.msg_video, 0xFF4DD0F2, 0xFF1DA7D3});
+        icons.put(LocaleController.getString(R.string.MilliyHideTabs), new int[]{R.drawable.msg_folders, 0xFF4FA3F7, 0xFF2F7FE0});
+        icons.put(LocaleController.getString(R.string.MilliyAvatarProfile), new int[]{R.drawable.msg_premium_avatar, 0xFF4FA3F7, 0xFF2F7FE0});
+        icons.put(LocaleController.getString(R.string.MilliyAvatarShape), new int[]{R.drawable.msg_addphoto, 0xFF4FA3F7, 0xFF2F7FE0});
+        icons.put(LocaleController.getString(R.string.MilliyThemeEditor), new int[]{R.drawable.msg_palette, 0xFFA97BF5, 0xFF7E57C2});
+        icons.put(LocaleController.getString(R.string.MilliyLite), new int[]{R.drawable.settings_power, 0xFFFFAA44, 0xFFF07F1A});
+        icons.put(LocaleController.getString(R.string.SettingsFolders), new int[]{R.drawable.settings_folders, 0xFF4FA3F7, 0xFF2F7FE0});
+        icons.put(LocaleController.getString(R.string.MilliyQuickBar), new int[]{R.drawable.menu_sidebar_bottom, 0xFF3FD3C4, 0xFF16A99A});
+        icons.put(LocaleController.getString(R.string.MilliyCategories), new int[]{R.drawable.menu_tag_filter, 0xFF3FD3C4, 0xFF16A99A});
+        icons.put(LocaleController.getString(R.string.MilliyDlManager), new int[]{R.drawable.msg_download, 0xFF5BD06A, 0xFF34A853});
+        icons.put(LocaleController.getString(R.string.MilliyAutoTranslate), new int[]{R.drawable.msg_translate, 0xFF7C8CF8, 0xFF5466E0});
+        icons.put(LocaleController.getString(R.string.MilliyDictationLang), new int[]{R.drawable.msg_voice_unmuted, 0xFFFF6B6B, 0xFFE5484D});
+        icons.put(LocaleController.getString(R.string.MilliyVoiceFx), new int[]{R.drawable.msg_voice_headphones, 0xFFFF6B6B, 0xFFE5484D});
+        icons.put(LocaleController.getString(R.string.MilliyStatus), new int[]{R.drawable.msg_smile_status, 0xFFFFAA44, 0xFFF07F1A});
+        icons.put(LocaleController.getString(R.string.MilliyContactLogTitle), new int[]{R.drawable.msg_contacts_name, 0xFF3FD3C4, 0xFF16A99A});
+        icons.put(LocaleController.getString(R.string.MilliyContactLog), new int[]{R.drawable.msg_contacts_time, 0xFF3FD3C4, 0xFF16A99A});
+        icons.put(LocaleController.getString(R.string.MilliySpecialList), new int[]{R.drawable.msg_premium_liststar, 0xFFFFAA44, 0xFFF07F1A});
+        icons.put(LocaleController.getString(R.string.MilliyBackupExport), new int[]{R.drawable.msg_saved, 0xFF5BD06A, 0xFF34A853});
+        icons.put(LocaleController.getString(R.string.MilliyBackupRestore), new int[]{R.drawable.msg_unarchive, 0xFF5BD06A, 0xFF34A853});
+        icons.put(LocaleController.getString(R.string.MilliyShowId), new int[]{R.drawable.filled_username, 0xFF9AA6B2, 0xFF6F7C88});
+        icons.put(LocaleController.getString(R.string.MilliyApkShield), new int[]{R.drawable.outline_shield_plain_24, 0xFF5BD06A, 0xFF34A853});
+        icons.put(LocaleController.getString(R.string.MilliySecretCodes), new int[]{R.drawable.menu_feature_code, 0xFF9AA6B2, 0xFF6F7C88});
+        icons.put(LocaleController.getString(R.string.MilliyCopySettingsLink), new int[]{R.drawable.msg_link, 0xFF9AA6B2, 0xFF6F7C88});
     }
 
     // ---------- Qidiruv ----------
@@ -140,7 +260,7 @@ public class MilliyProActivity extends BaseFragment {
     private org.telegram.ui.Components.EditTextBoldCursor search;
 
     private static class Section {
-        View header, info;
+        View header, card, info;
         final java.util.ArrayList<View> rows = new java.util.ArrayList<>();
         final java.util.ArrayList<String> texts = new java.util.ArrayList<>();
     }
@@ -149,19 +269,33 @@ public class MilliyProActivity extends BaseFragment {
 
     private Section current() {
         if (sections.isEmpty()) {
-            sections.add(new Section());
+            header(0);
         }
         return sections.get(sections.size() - 1);
     }
 
-    private void addRow(View row, String text) {
-        current().rows.add(row);
-        current().texts.add(text == null ? "" : text.toLowerCase());
+    /** Qatorni joriy kartaga qo'shadi (oldingi qatorga ajratuvchi chiziq). */
+    private void addRow(MilliyRow row, String text) {
+        Section sec = current();
+        if (!sec.rows.isEmpty()) {
+            ((MilliyRow) sec.rows.get(sec.rows.size() - 1)).setDivider(true);
+        }
+        ((LinearLayout) sec.card).addView(row, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
+        sec.rows.add(row);
+        sec.texts.add(text == null ? "" : text.toLowerCase());
+    }
+
+    private MilliyRow newRow(String title) {
+        int[] ic = icons.get(title);
+        return new MilliyRow(getParentActivity(), ic != null ? ic[0] : R.drawable.msg_info, ic != null ? ic[1] : 0xFF9AA6B2, ic != null ? ic[2] : 0xFF6F7C88);
     }
 
     private void filter(String query) {
         String q = query.trim().toLowerCase();
         String q2 = MilliyTranslit.isMostlyCyrillic(q) ? MilliyTranslit.toLatin(q).toLowerCase() : MilliyTranslit.toCyrillic(q).toLowerCase();
+        if (tilesView != null) {
+            tilesView.setVisibility(q.isEmpty() ? View.VISIBLE : View.GONE);
+        }
         for (Section sec : sections) {
             boolean any = false;
             for (int i = 0; i < sec.rows.size(); i++) {
@@ -173,6 +307,7 @@ public class MilliyProActivity extends BaseFragment {
             if (sec.header != null) {
                 sec.header.setVisibility(any ? View.VISIBLE : View.GONE);
             }
+            sec.card.setVisibility(any ? View.VISIBLE : View.GONE);
             if (sec.info != null) {
                 sec.info.setVisibility(q.isEmpty() ? View.VISIBLE : View.GONE);
             }
@@ -180,15 +315,12 @@ public class MilliyProActivity extends BaseFragment {
     }
 
     private void customCheck(String title, String subtitle, java.util.function.BooleanSupplier getter, java.util.function.Consumer<Boolean> setter) {
-        TextCheckCell c = new TextCheckCell(getParentActivity());
-        c.setBackground(Theme.getSelectorDrawable(true));
-        c.setTextAndValueAndCheck(title, subtitle, getter.getAsBoolean(), true, true);
+        MilliyRow c = newRow(title).setTexts(title, subtitle).setSwitch(getter.getAsBoolean());
         c.setOnClickListener(v -> {
             boolean nv = !getter.getAsBoolean();
             setter.accept(nv);
             c.setChecked(nv);
         });
-        root.addView(c, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
         addRow(c, title + " " + subtitle);
     }
 
@@ -261,15 +393,7 @@ public class MilliyProActivity extends BaseFragment {
             showDialog(b.create());
         });
         action(LocaleController.getString(R.string.MilliyThemeEditor), "", () -> presentFragment(new org.telegram.ui.ThemeActivity(org.telegram.ui.ThemeActivity.THEME_TYPE_BASIC)));
-        TextCheckCell lite = new TextCheckCell(getParentActivity());
-        lite.setBackground(Theme.getSelectorDrawable(true));
-        lite.setTextAndValueAndCheck(LocaleController.getString(R.string.MilliyLite), LocaleController.getString(R.string.MilliyLiteInfo), MilliyPro.lite(), true, true);
-        lite.setOnClickListener(v -> {
-            MilliyPro.setLite(!MilliyPro.lite());
-            lite.setChecked(MilliyPro.lite());
-        });
-        root.addView(lite, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
-        addRow(lite, LocaleController.getString(R.string.MilliyLite) + " " + LocaleController.getString(R.string.MilliyLiteInfo));
+        customCheck(LocaleController.getString(R.string.MilliyLite), LocaleController.getString(R.string.MilliyLiteInfo), MilliyPro::lite, MilliyPro::setLite);
         info(R.string.MilliyViewHint);
     }
 
@@ -491,32 +615,44 @@ public class MilliyProActivity extends BaseFragment {
     }
 
     private void header(int text) {
-        HeaderCell h = new HeaderCell(getParentActivity());
-        h.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
-        h.setText(LocaleController.getString(text));
-        root.addView(h, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
         Section sec = new Section();
-        sec.header = h;
+        if (text != 0) {
+            android.widget.TextView h = new android.widget.TextView(getParentActivity());
+            h.setText(LocaleController.getString(text));
+            h.setTextSize(android.util.TypedValue.COMPLEX_UNIT_DIP, 14);
+            h.setTypeface(org.telegram.messenger.AndroidUtilities.bold());
+            h.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlueHeader));
+            root.addView(h, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 28, 18, 28, 8));
+            sec.header = h;
+        }
+        LinearLayout card = new LinearLayout(getParentActivity());
+        card.setOrientation(LinearLayout.VERTICAL);
+        card.setBackground(Theme.createRoundRectDrawable(org.telegram.messenger.AndroidUtilities.dp(16), Theme.getColor(Theme.key_windowBackgroundWhite)));
+        card.setClipToOutline(true);
+        card.setOutlineProvider(new android.view.ViewOutlineProvider() {
+            @Override
+            public void getOutline(View view, android.graphics.Outline outline) {
+                outline.setRoundRect(0, 0, view.getWidth(), view.getHeight(), org.telegram.messenger.AndroidUtilities.dp(16));
+            }
+        });
+        root.addView(card, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 12, 0, 12, 0));
+        sec.card = card;
         sections.add(sec);
     }
 
     private void info(int text) {
-        TextInfoPrivacyCell c = new TextInfoPrivacyCell(getParentActivity());
+        android.widget.TextView c = new android.widget.TextView(getParentActivity());
         c.setText(LocaleController.getString(text));
-        c.setBackground(Theme.getThemedDrawableByKey(getParentActivity(), R.drawable.greydivider, Theme.key_windowBackgroundGrayShadow));
-        root.addView(c, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
+        c.setTextSize(android.util.TypedValue.COMPLEX_UNIT_DIP, 13);
+        c.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText4));
+        root.addView(c, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 28, 8, 28, 4));
         current().info = c;
     }
 
     private void check(int title, int subtitle, String key, boolean def, Runnable after) {
-        TextCheckCell c = new TextCheckCell(getParentActivity());
-        c.setBackground(Theme.getSelectorDrawable(true));
-        boolean on = MilliyPro.get(key, def);
-        if (subtitle != 0) {
-            c.setTextAndValueAndCheck(LocaleController.getString(title), LocaleController.getString(subtitle), on, true, true);
-        } else {
-            c.setTextAndCheck(LocaleController.getString(title), on, true);
-        }
+        String t = LocaleController.getString(title);
+        String sub = subtitle != 0 ? LocaleController.getString(subtitle) : null;
+        MilliyRow c = newRow(t).setTexts(t, sub).setSwitch(MilliyPro.get(key, def));
         c.setOnClickListener(v -> {
             boolean nv = !MilliyPro.get(key, def);
             MilliyPro.set(key, nv);
@@ -525,22 +661,16 @@ public class MilliyProActivity extends BaseFragment {
                 after.run();
             }
         });
-        root.addView(c, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
-        addRow(c, LocaleController.getString(title) + (subtitle != 0 ? " " + LocaleController.getString(subtitle) : ""));
+        addRow(c, t + (sub != null ? " " + sub : ""));
     }
 
     private void action(String title, String value, Runnable click) {
-        TextSettingsCell c = new TextSettingsCell(getParentActivity());
-        c.setBackground(Theme.getSelectorDrawable(true));
-        if (value != null) {
-            c.setTextAndValue(title, value, true);
-        } else {
-            c.setText(title, true);
-        }
+        MilliyRow c = newRow(title).setTexts(title, null).setValue(value, click != null);
         if (click != null) {
             c.setOnClickListener(v -> click.run());
+        } else {
+            c.setBackground(null);
         }
-        root.addView(c, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
         addRow(c, title);
     }
 }

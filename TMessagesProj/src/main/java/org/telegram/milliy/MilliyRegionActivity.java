@@ -163,8 +163,7 @@ public class MilliyRegionActivity extends BaseFragment {
 
     /** Barcha viloyatlar bo'yicha tuman qidiruvi (lotin yoki kirillda yozsa ham). */
     private void showSearch(String query) {
-        String q = query.trim().toLowerCase();
-        String q2 = MilliyTranslit.isMostlyCyrillic(q) ? MilliyTranslit.toLatin(q).toLowerCase() : q;
+        final String q = searchKey(query);
         clear(LocaleController.getString(R.string.MilliyRegionSearchResults));
         int found = 0;
         for (int i = 0; i < regions.length() && found < 40; i++) {
@@ -173,8 +172,7 @@ public class MilliyRegionActivity extends BaseFragment {
             for (int j = 0; ds != null && j < ds.length() && found < 40; j++) {
                 JSONObject d = ds.optJSONObject(j);
                 String name = d.optString("name");
-                String low = name.toLowerCase();
-                if (low.contains(q) || low.contains(q2)) {
+                if (q.length() > 0 && searchKey(name).contains(q)) {
                     found++;
                     addRow(MilliyTranslit.ui(name + "  ·  " + r.optString("name")), false, v -> {
                         selectedRegion = r;
@@ -189,6 +187,20 @@ public class MilliyRegionActivity extends BaseFragment {
         if (found == 0) {
             addInfo(LocaleController.getString(R.string.MilliyRegionNotFound));
         }
+    }
+
+    /**
+     * Qidiruv kaliti: xalq yozishidagi farqlarga chidamli. Kirill → lotin, tutuq belgilari olib tashlanadi,
+     * u/o, a/o, x/h, ye/e farqlanmaydi: «Kukdala», «Kokdala», «Кўкдала» → Koʻkdala; «Xazorasp» → Hazorasp.
+     */
+    static String searchKey(String s) {
+        String t = s.trim().toLowerCase();
+        if (MilliyTranslit.isMostlyCyrillic(t)) {
+            t = MilliyTranslit.toLatin(t).toLowerCase();
+        }
+        t = t.replace("ö", "o").replace("ğ", "g").replace("ş", "sh").replace("ç", "ch");
+        t = t.replaceAll("['ʻʼ‘’`´]", "").replace("ye", "e").replace('x', 'h').replace('u', 'o').replace('a', 'o');
+        return t.replace(" tumani", "").replace(" shahri", "").replace(" sh.", "");
     }
 
     private void showRegions() {
