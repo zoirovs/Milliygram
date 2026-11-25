@@ -9,8 +9,10 @@ on:
 
 env:
   PLAY_PACKAGE: com.milliy.telegram
-  # Play'dagi oxirgi versiya kodi 1555965839 (1.0.24) — yangisi undan katta bo'lishi shart
-  PLAY_VERSION_BASE: 1556000000
+  # Play'dagi oxirgi versiya kodi 1555965839 (1.0.24) — yangisi undan katta bo'lishi shart.
+  # build.gradle yakuniy kodni APP_VERSION_CODE*10+1 qiladi (bundleAfat), shuning uchun asos 10 marta kichik:
+  # (155600000+run)*10+1 = 1556000001+... (int chegarasi 2147483647 dan oshmasin)
+  PLAY_VERSION_BASE: 155600000
 
 jobs:
   bundle:
