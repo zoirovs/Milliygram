@@ -71,7 +71,9 @@ jobs:
           sed -i "s|details?id=uz\.milliygram\.app|details?id=$PLAY_PACKAGE|" TMessagesProj/src/main/java/org/telegram/messenger/BuildVars.java
           # Play siyosati: paket o'rnatish ruxsati Play versiyasida bo'lmaydi
           sed -i '/android.permission.REQUEST_INSTALL_PACKAGES/d' TMessagesProj/src/main/AndroidManifest.xml
-          grep -c REQUEST_INSTALL_PACKAGES TMessagesProj/src/main/AndroidManifest.xml || true
+          # Play siyosati: qo'ng'iroqlar jurnali faqat dialer ilovalariga ruxsat etiladi
+          sed -i '/android.permission.READ_CALL_LOG/d' TMessagesProj/src/main/AndroidManifest.xml TMessagesProj/config/release/*.xml
+          ! grep -lE 'REQUEST_INSTALL_PACKAGES|READ_CALL_LOG' TMessagesProj/src/main/AndroidManifest.xml TMessagesProj/config/release/*.xml
           grep -E '^APP_(PACKAGE|VERSION_CODE|VERSION_NAME)=' gradle.properties
 
       - name: AAB yig'ish
@@ -84,7 +86,7 @@ jobs:
           VC=$(grep '^APP_VERSION_CODE=' gradle.properties | cut -d= -f2)
           F=$(ls TMessagesProj_App/build/outputs/bundle/bundleAfatRelease/*.aab | head -1)
           mkdir -p out && cp "$F" "out/Milliygram-play-$V-$VC.aab"
-          unzip -p "$F" base/manifest/AndroidManifest.xml | strings | grep -iE 'milliy|INSTALL_PACKAGES' | head || true
+          unzip -p "$F" base/manifest/AndroidManifest.xml | strings | grep -iE 'milliy|permission' | sort -u | head -80 || true
           ls -la out
 
       - uses: actions/upload-artifact@v4
